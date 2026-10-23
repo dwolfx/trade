@@ -1,0 +1,36 @@
+@import './styles/tokens.css';
+@import './styles/responsive.css';
+@import './styles/components.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: var(--bg-canvas, #0B0F19);
+    color: var(--text-primary, #F8FAFC);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom scrollbars for clean financial terminal look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas, #0B0F19);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle, #1E293B);
+  border-radius: var(--radius-full, 9999px);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-default, #334155);
+}

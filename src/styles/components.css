@@ -1,0 +1,167 @@
+/**
+ * TradeCraft Reusable Financial UI Components
+ * Pre-composed, tokenized classes for cards, badges, buttons, chips, and inputs.
+ */
+
+/* ==========================================================================
+   1. CARDS & PANELS
+   ========================================================================== */
+.tc-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tc-card-hover:hover {
+  border-color: var(--border-default);
+}
+
+.tc-card-elevated {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+}
+
+/* ==========================================================================
+   2. SEMANTIC BADGES
+   ========================================================================== */
+.tc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem; /* 10px */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+.tc-badge-profit {
+  background-color: var(--color-profit-bg);
+  color: var(--color-profit);
+  border: 1px solid var(--color-profit-border);
+}
+
+.tc-badge-loss {
+  background-color: var(--color-loss-bg);
+  color: var(--color-loss);
+  border: 1px solid var(--color-loss-border);
+}
+
+.tc-badge-demo {
+  background-color: var(--color-demo-bg);
+  color: var(--color-demo);
+  border: 1px solid var(--color-demo-border);
+}
+
+.tc-badge-brand {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-light);
+  border: 1px solid var(--color-brand-border);
+}
+
+/* ==========================================================================
+   3. BUTTONS & ACTIONS
+   ========================================================================== */
+.tc-btn-primary {
+  background-color: var(--color-brand);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.75rem;
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tc-btn-primary:hover {
+  background-color: var(--color-brand-hover);
+}
+
+.tc-btn-buy {
+  background-color: var(--color-profit-dark);
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.75rem;
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px var(--color-profit-glow);
+}
+
+.tc-btn-buy:hover {
+  background-color: #0369A1;
+}
+
+.tc-btn-sell {
+  background-color: var(--color-loss-dark);
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.75rem;
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px var(--color-loss-glow);
+}
+
+.tc-btn-sell:hover {
+  background-color: #BE123C;
+}
+
+/* ==========================================================================
+   4. INPUTS & CONTROLS
+   ========================================================================== */
+.tc-input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease;
+}
+
+.tc-input:focus {
+  outline: none;
+  border-color: var(--color-brand-light);
+}
+
+/* Filter Tab / Chip */
+.tc-tab-track {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tc-tab-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.tc-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tc-tab-btn-active {
+  background-color: var(--color-brand);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
