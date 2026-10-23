@@ -3,6 +3,7 @@ import { useMarket } from '../../context/MarketContext';
 import { INITIAL_NEWS } from '../../data/mockNews';
 import { NewsCategory, NewsItem, NewsSource } from '../../types/news';
 import { WatchlistNewsRadar } from './WatchlistNewsRadar';
+import { BreakingNewsTicker } from './BreakingNewsTicker';
 import { NewsItemCard } from './NewsItemCard';
 import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
@@ -27,23 +28,55 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [readingNews, setReadingNews] = useState<NewsItem | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [incomingNews, setIncomingNews] = useState<NewsItem[]>([]);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [orderModalSymbol, setOrderModalSymbol] = useState<string>('PETR4');
 
-  // Load real live news on mount
+  // Load real live news on mount & auto-poll every 60s
   useEffect(() => {
     let isMounted = true;
-    fetchLiveNews().then((result) => {
-      if (isMounted) {
-        if (result.news.length > 0) {
-          setNewsList(result.news);
-        }
+
+    const checkFeed = async (isInitial = false) => {
+      try {
+        const result = await fetchLiveNews();
+        if (!isMounted) return;
+
         setIsLive(result.isLive);
         setTotalLive(result.totalLive);
+
+        if (result.news.length > 0) {
+          if (isInitial) {
+            setNewsList(result.news);
+        setIncomingNews([]);
+          } else {
+            setNewsList((currentList) => {
+              const currentIds = new Set(currentList.map((n) => n.id));
+              const newItems = result.news.filter((n) => !currentIds.has(n.id));
+              if (newItems.length > 0) {
+                setIncomingNews((prev) => {
+                  const prevIds = new Set(prev.map((n) => n.id));
+                  const fresh = newItems.filter((n) => !prevIds.has(n.id));
+                  return [...fresh, ...prev];
+                });
+              }
+              return currentList;
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[NewsPage] Error polling live news:', err);
       }
-    });
+    };
+
+    checkFeed(true);
+
+    const interval = setInterval(() => {
+      checkFeed(false);
+    }, 60000);
+
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 
@@ -64,6 +97,17 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
     await selectOrCreateAsset(symbol);
     setOrderModalSymbol(symbol);
     setIsOrderModalOpen(true);
+  };
+
+  const handleApplyIncomingNews = () => {
+    if (incomingNews.length === 0) return;
+    setNewsList((prev) => {
+      const prevIds = new Set(prev.map((n) => n.id));
+      const toAdd = incomingNews.filter((n) => !prevIds.has(n.id));
+      return [...toAdd, ...prev];
+    });
+    setIncomingNews([]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleRefresh = async () => {
@@ -231,6 +275,29 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
           <span>{isRefreshing ? 'Atualizando...' : 'Atualizar Feed'}</span>
         </button>
       </div>
+
+      {/* Floating incoming news notification badge */}
+      {incomingNews.length > 0 && (
+        <div className="sticky top-4 z-30 flex justify-center animate-in fade-in slide-in-from-top-4 duration-300">
+          <button
+            onClick={handleApplyIncomingNews}
+            className="group flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 text-white font-mono text-xs font-bold shadow-xl shadow-blue-500/30 border border-sky-300/40 hover:scale-105 active:scale-95 transition-all"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+            <span>
+              ⚡ {incomingNews.length} {incomingNews.length === 1 ? 'nova matéria recebida' : 'novas matérias recebidas'} · Atualizar agora
+            </span>
+            <RefreshCw size={13} className="group-hover:rotate-180 transition-transform duration-500" />
+          </button>
+        </div>
+      )}
+
+      {/* Breaking News Ticker (Plantão B3 / Bloomberg style) */}
+      <BreakingNewsTicker
+        news={newsList}
+        onReadNews={(item) => setReadingNews(item)}
+        onOpenOrder={handleOpenOrder}
+      />
 
       {/* TOP RADAR: Watchlist & Portfolio Highlighted News */}
       <WatchlistNewsRadar

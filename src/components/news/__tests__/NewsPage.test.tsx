@@ -111,4 +111,13 @@ describe('NewsPage Functional & Integration Tests', () => {
       expect(screen.getByText(/Exibindo/i)).toBeInTheDocument();
     });
   });
+  it('renders the breaking news ticker (PLANTÃO B3)', async () => {
+    render(
+      <MarketProvider>
+        <NewsPage onNavigate={() => {}} />
+      </MarketProvider>
+    );
+
+    expect(screen.getByText(/PLANTÃO B3/i)).toBeInTheDocument();
+  });
 });
