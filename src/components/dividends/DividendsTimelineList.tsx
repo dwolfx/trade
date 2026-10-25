@@ -2,6 +2,7 @@ import React from 'react';
 import { DividendCalendarItem } from '../../types/dividend';
 import { PortfolioPosition } from '../../types/market';
 import { Calendar, Zap, Building2, TrendingUp, Sparkles, CheckCircle2, Clock, Globe } from 'lucide-react';
+import { EmptyState } from '../common/EmptyState';
 
 interface DividendsTimelineListProps {
   items: DividendCalendarItem[];
@@ -25,13 +26,11 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
 
   if (sortedItems.length === 0) {
     return (
-      <div className="w-full py-12 px-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] text-center flex flex-col items-center justify-center gap-3">
-        <Calendar size={36} className="text-[#64748B]" />
-        <h3 className="text-base font-bold text-white">Nenhum provento encontrado</h3>
-        <p className="text-xs text-[#94A3B8] max-w-md">
-          Não encontramos nenhum dividendo ou rendimento para o filtro selecionado neste mês. Tente alternar para "Todo o Mercado" ou limpar a busca.
-        </p>
-      </div>
+      <EmptyState
+        icon={Calendar}
+        title="Nenhum provento encontrado"
+        description='Não encontramos nenhum dividendo ou rendimento para o filtro selecionado neste mês. Tente alternar para "Todo o Mercado" ou limpar a busca.'
+      />
     );
   }
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { CalendarDays, DollarSign, Clock, Building2, TrendingUp, Sparkles } from 'lucide-react';
 import { DividendCalendarItem } from '../../types/dividend';
 import { PortfolioPosition } from '../../types/market';
+import { MetricCard } from '../common/MetricCard';
 
 interface DividendsStatsHeaderProps {
   currentMonthName: string;
@@ -38,113 +39,118 @@ export const DividendsStatsHeader: React.FC<DividendsStatsHeaderProps> = ({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-      {/* Card 1: Total Previsto para Minha Carteira */}
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] border border-blue-500/30 shadow-lg relative overflow-hidden group">
-        <div className="absolute -top-10 -right-10 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-blue-400 flex items-center gap-1.5">
-            <DollarSign size={14} />
-            Previsto na Carteira ({currentMonthName})
+      {/* Card 1: Previsto na Carteira */}
+      <MetricCard
+        label={`Previsto na Carteira (${currentMonthName})`}
+        icon={DollarSign}
+        iconBg="bg-blue-500/10"
+        iconColor="text-[#60A5FA]"
+        value={`R$ ${totalUserAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        subValue={
+          <span className="flex items-center gap-1 text-[#94A3B8]">
+            <Sparkles size={12} className="text-amber-400" />
+            Baseado na custódia das suas cotas atuais
           </span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-[#60A5FA] border border-blue-500/30">
-            {userMonthEvents.length} {userMonthEvents.length === 1 ? 'ativo' : 'ativos'}
-          </span>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl sm:text-3xl font-mono font-black text-white">
-            R$ {totalUserAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-        <p className="text-[11px] text-[#94A3B8] mt-1 flex items-center gap-1">
-          <Sparkles size={12} className="text-amber-400" />
-          <span>Baseado na custódia das suas cotas atuais</span>
-        </p>
-      </div>
+        }
+        badge={{
+          text: `${userMonthEvents.length} ${userMonthEvents.length === 1 ? 'ativo' : 'ativos'}`,
+          variant: 'blue',
+        }}
+      />
 
-      {/* Card 2: Próximo Pagamento */}
-      <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] shadow-md hover:border-slate-700 transition-colors relative overflow-hidden">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-[#94A3B8] flex items-center gap-1.5">
-            <Clock size={14} className="text-amber-400" />
-            Próximo Pinga-Pinga
-          </span>
-          {nextUserEvent && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-              {nextUserEvent.paymentDateDisplay}
-            </span>
-          )}
-        </div>
-        {nextUserEvent ? (
-          <div>
-            <div className="flex items-center justify-between">
+      {/* Card 2: Próximo Pinga-Pinga */}
+      <MetricCard
+        label="Próximo Pinga-Pinga"
+        icon={Clock}
+        iconBg="bg-amber-500/10"
+        iconColor="text-[#F59E0B]"
+        badge={
+          nextUserEvent
+            ? { text: nextUserEvent.paymentDateDisplay, variant: 'amber' }
+            : undefined
+        }
+        value={
+          nextUserEvent ? (
+            <div className="flex items-center justify-between w-full">
               <span className="text-xl font-mono font-bold text-white flex items-center gap-2">
                 {nextUserEvent.symbol}
                 <span className="text-xs font-normal text-[#94A3B8]">({nextUserEvent.type})</span>
               </span>
               <button
+                type="button"
                 onClick={() => onSelectUpcoming(nextUserEvent.symbol)}
                 className="text-[11px] font-mono text-[#60A5FA] hover:underline"
               >
                 Ver detalhes →
               </button>
             </div>
-            <p className="text-[11px] text-sky-400 font-mono mt-1">
+          ) : (
+            <span className="text-sm font-normal text-[#64748B]">Nenhum provento pendente para este mês</span>
+          )
+        }
+        subValue={
+          nextUserEvent ? (
+            <span className="text-[11px] text-[#38BDF8] font-mono">
               R$ {nextUserEvent.valuePerShare.toFixed(2)} / cota · Total: R${' '}
               {((userPortfolioMap.get(nextUserEvent.symbol.toUpperCase())?.quantity || 0) * nextUserEvent.valuePerShare).toFixed(2)}
-            </p>
+            </span>
+          ) : null
+        }
+      />
+
+      {/* Card 3: Agenda Geral B3 */}
+      <MetricCard
+        label="Agenda Geral B3"
+        icon={CalendarDays}
+        iconBg="bg-sky-500/10"
+        iconColor="text-[#38BDF8]"
+        badge={{
+          text: `${monthItems.length} pagamentos`,
+          variant: 'sky',
+        }}
+        value={
+          <div className="flex items-baseline gap-2">
+            <span>{monthItems.length}</span>
+            <span className="text-xs font-normal text-[#94A3B8]">proventos mapeados</span>
           </div>
-        ) : (
-          <p className="text-sm text-[#64748B] mt-2">Nenhum provento pendente para este mês</p>
-        )}
-      </div>
+        }
+        subValue={
+          <div className="flex items-center gap-3 text-[11px] text-[#94A3B8]">
+            <span className="flex items-center gap-1 text-[#38BDF8]">
+              <Building2 size={12} />
+              {fiiCount} FIIs
+            </span>
+            <span className="text-slate-600">·</span>
+            <span className="flex items-center gap-1 text-[#60A5FA]">
+              <TrendingUp size={12} />
+              {acaoCount} Ações
+            </span>
+          </div>
+        }
+      />
 
-      {/* Card 3: Oportunidades do Mês no Mercado B3 */}
-      <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] shadow-md hover:border-slate-700 transition-colors">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-[#94A3B8] flex items-center gap-1.5">
-            <CalendarDays size={14} className="text-sky-400" />
-            Agenda Geral B3
+      {/* Card 4: FIIs: Renda Isenta Mensal */}
+      <MetricCard
+        label="FIIs: Renda Isenta Mensal"
+        icon={Building2}
+        iconBg="bg-sky-500/10"
+        iconColor="text-[#38BDF8]"
+        badge={{
+          text: 'IR 0%',
+          variant: 'sky',
+        }}
+        value={
+          <div className="flex items-baseline gap-2">
+            <span>100%</span>
+            <span className="text-xs font-normal text-[#94A3B8]">dos FIIs pagam no mês</span>
+          </div>
+        }
+        subValue={
+          <span className="text-[11px] text-[#94A3B8]">
+            Concentração de pagamentos entre os dias <strong className="text-white">12 e 15</strong>.
           </span>
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30">
-            {monthItems.length} pagamentos
-          </span>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-mono font-bold text-white">{monthItems.length}</span>
-          <span className="text-xs text-[#94A3B8]">proventos mapeados</span>
-        </div>
-        <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#94A3B8]">
-          <span className="flex items-center gap-1 text-sky-400">
-            <Building2 size={12} />
-            {fiiCount} FIIs
-          </span>
-          <span className="text-slate-600">·</span>
-          <span className="flex items-center gap-1 text-blue-400">
-            <TrendingUp size={12} />
-            {acaoCount} Ações
-          </span>
-        </div>
-      </div>
-
-      {/* Card 4: Foco em Renda Passiva */}
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F1523] to-[#162338] border border-sky-500/30 shadow-md">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-sky-400 flex items-center gap-1.5">
-            <Building2 size={14} />
-            FIIs: Renda Isenta Mensal
-          </span>
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-            IR 0%
-          </span>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-mono font-bold text-white">100%</span>
-          <span className="text-xs text-[#94A3B8]">dos FIIs pagam no mês</span>
-        </div>
-        <p className="text-[11px] text-[#94A3B8] mt-1">
-          Concentração de pagamentos entre os dias <strong className="text-white">12 e 15</strong>.
-        </p>
-      </div>
+        }
+      />
     </div>
   );
 };

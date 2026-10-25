@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, X, Building2, TrendingUp, Sparkles, Globe, Clock, Heart, Filter, Check } from 'lucide-react';
+import { Building2, TrendingUp, Sparkles, Globe, Clock, Heart, Filter, Check } from 'lucide-react';
 import { DividendOrigin, DividendCategoryFilter } from '../../types/dividend';
+import { SearchBar } from '../common/SearchBar';
 
 interface DividendsFilterBarProps {
   selectedOrigins: DividendOrigin[];
@@ -136,24 +137,12 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
         </div>
 
         {/* Search Input Box */}
-        <div className="relative flex-1 max-w-md">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por ticker (MXRF11, PETR4, AAPL) ou empresa..."
-            className="w-full pl-9 pr-9 py-2 rounded-xl bg-[#161F33] border border-[#1E293B] hover:border-slate-700 focus:border-[#2962FF] text-xs font-mono text-white placeholder-[#64748B] focus:outline-none transition-colors"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-white"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        <SearchBar
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Buscar por ticker (MXRF11, PETR4, AAPL) ou empresa..."
+          className="flex-1 max-w-md font-mono"
+        />
       </div>
 
       {/* Row 2: Nível 2 - Sub-filtros por Classe de Ativo */}

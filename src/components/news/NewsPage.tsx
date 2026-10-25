@@ -8,9 +8,11 @@ import { NewsItemCard } from './NewsItemCard';
 import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
 import { ActiveNav } from '../../types/market';
-import { Search, Filter, Newspaper, RefreshCw, X, Loader2, ChevronDown, CheckCheck, ArrowLeft } from 'lucide-react';
+import { Search, Filter, Newspaper, RefreshCw, Loader2, ChevronDown, CheckCheck, ArrowLeft } from 'lucide-react';
 import { fetchLiveNews } from '../../services/newsService';
 import { PageHeader } from '../common/PageHeader';
+import { SearchBar } from '../common/SearchBar';
+import { EmptyState } from '../common/EmptyState';
 
 interface NewsPageProps {
   onNavigate: (nav: ActiveNav) => void;
@@ -309,24 +311,12 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
         {/* Row 1: Search & Source dropdown */}
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           {/* Search Box */}
-          <div className="relative w-full sm:max-w-md">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por notícia, empresa ou ticker (ex: PETR4, CVM, Copom)..."
-              className="w-full bg-[#0B0F19] border border-[#1E293B] focus:border-[#2962FF] rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-[#64748B] outline-none transition-colors font-sans"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-white"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Buscar por notícia, empresa ou ticker (ex: PETR4, CVM, Copom)..."
+            className="w-full sm:max-w-md font-sans"
+          />
 
           {/* Source Dropdown Filter */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -472,25 +462,19 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
           </div>
         </>
       ) : (
-        <div className="py-16 text-center bg-[#0F1523] border border-[#1E293B] rounded-2xl flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#161F33] flex items-center justify-center text-[#64748B]">
-            <Search size={24} />
-          </div>
-          <h3 className="text-base font-bold text-white">Nenhuma notícia encontrada</h3>
-          <p className="text-xs text-[#94A3B8] max-w-sm">
-            Tente buscar com outros termos ou altere os filtros de categoria e fonte.
-          </p>
-          <button
-            onClick={() => {
+        <EmptyState
+          icon={Search}
+          title="Nenhuma notícia encontrada"
+          description="Tente buscar com outros termos ou altere os filtros de categoria e fonte."
+          action={{
+            label: "Ver todas as notícias",
+            onClick: () => {
               setSelectedCategory('todas');
               setSelectedSource('all');
               setSearchQuery('');
-            }}
-            className="mt-2 px-4 py-2 rounded-xl bg-[#2962FF] text-white text-xs font-semibold shadow-md"
-          >
-            Ver todas as notícias
-          </button>
-        </div>
+            },
+          }}
+        />
       )}
 
       {/* Reader Modal */}

@@ -11,6 +11,8 @@ import {
   Building2,
   TrendingUpDown,
 } from 'lucide-react';
+import { SearchBar } from '../common/SearchBar';
+import { EmptyState } from '../common/EmptyState';
 
 interface PortfolioAssetsListProps {
   portfolio: PortfolioPosition[];
@@ -155,16 +157,12 @@ export const PortfolioAssetsList: React.FC<PortfolioAssetsListProps> = ({
         </div>
 
         {/* Search input */}
-        <div className="relative w-full md:w-72">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-          <input
-            type="text"
-            placeholder="Buscar por código ou ativo..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-[#141C2E] border border-[#1E293B] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-[#64748B] focus:outline-none focus:border-[#2962FF] transition-colors"
-          />
-        </div>
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar por código ou ativo..."
+          className="w-full md:w-72"
+        />
       </div>
 
       {/* Category Tabs */}
@@ -345,9 +343,11 @@ export const PortfolioAssetsList: React.FC<PortfolioAssetsListProps> = ({
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="py-12 text-center text-sm text-[#64748B]">
-          Nenhum ativo encontrado para os filtros selecionados.
-        </div>
+        <EmptyState
+          icon={Search}
+          title="Nenhum ativo encontrado"
+          description="Nenhum ativo encontrado para os filtros selecionados. Tente alterar a categoria ou limpar a busca."
+        />
       )}
     </div>
   );
