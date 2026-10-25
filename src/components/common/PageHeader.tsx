@@ -16,7 +16,7 @@ export interface PageHeaderProps {
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
   icon: Icon,
-  iconGradient = 'from-[#2962FF] to-[#3B82F6]',
+  iconGradient = 'from-[#2962FF] to-[#1D4ED8]',
   title,
   badge,
   subtitle,
@@ -37,11 +37,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-6 border-b border-[#1E293B]">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1E293B]">
       {/* Left: Standardized Icon + Title + Badge + Subtitle */}
       <div className="flex items-center gap-3.5 min-w-0">
         <div
-          className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr ${iconGradient} flex items-center justify-center text-white shadow-lg shadow-blue-500/15 shrink-0`}
+          className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr ${iconGradient} border border-blue-400/20 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0`}
         >
           <Icon size={22} className="sm:w-6 sm:h-6" />
         </div>

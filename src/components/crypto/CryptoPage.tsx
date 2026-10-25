@@ -68,7 +68,6 @@ export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
       {/* Standardized Page Header */}
       <PageHeader
         icon={Coins}
-        iconGradient="from-purple-600 to-indigo-500"
         title="Criptoativos 24/7"
         badge={{
           text: 'AO VIVO 24/7',
@@ -81,10 +80,10 @@ export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
             {onNavigate && (
               <button
                 onClick={() => onNavigate('bolsa')}
-                className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
               >
                 <ArrowLeft size={14} />
-                <span className="hidden sm:inline">Voltar à Bolsa</span>
+                <span className="hidden sm:inline">Voltar ao Home Broker</span>
               </button>
             )}
 

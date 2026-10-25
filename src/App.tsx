@@ -193,20 +193,20 @@ export const AppContent: React.FC = () => {
           <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
             <PageHeader
               icon={Zap}
-              iconGradient="from-amber-500 to-amber-600"
               title="Day Trade Cockpit"
               badge={{
                 text: 'FASE 3 · EM DESENVOLVIMENTO',
                 variant: 'amber',
+                pulse: true,
               }}
               subtitle="Ambiente de alta densidade para mini-índice (WIN) e mini-dólar (WDO) com margem reduzida"
               rightActions={
                 <button
                   onClick={() => setActiveNav('bolsa')}
-                  className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
                 >
                   <ArrowLeft size={14} />
-                  <span>Voltar à Bolsa</span>
+                  <span>Voltar ao Home Broker</span>
                 </button>
               }
             />

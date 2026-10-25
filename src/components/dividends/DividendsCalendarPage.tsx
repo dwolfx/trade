@@ -206,7 +206,6 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
       {/* Page Header */}
       <PageHeader
         icon={CalendarDays}
-        iconGradient="from-purple-600 to-indigo-500"
         title="Calendário & Mapa de Dividendos"
         badge={{
           text: 'Pinga-Pinga B3 & Internacional',
@@ -217,7 +216,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
         rightActions={
           <button
             onClick={() => onNavigate('bolsa')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-mono font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
           >
             <ArrowLeft size={14} />
             <span>Voltar ao Home Broker</span>

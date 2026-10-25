@@ -162,7 +162,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 py-2 animate-in fade-in duration-300">
+    <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
       {/* Standardized Page Header */}
       <PageHeader
         icon={Wallet}
@@ -170,13 +170,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ onNavigate }) => {
         badge={{
           text: mode === 'DEMO' ? 'SIMULADOR B3' : 'CONTA REAL B3',
           variant: mode === 'DEMO' ? 'amber' : 'sky',
+          pulse: true,
         }}
         subtitle="Visão consolidada do seu patrimônio: Ações, FIIs, Renda Fixa e Dividendos"
         rightActions={
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => onNavigate('bolsa')}
-              className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
             >
               <ArrowLeft size={14} />
               <span>Voltar ao Home Broker</span>
@@ -186,7 +187,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ onNavigate }) => {
                 setTradingSymbol(undefined);
                 setIsOrderModalOpen(true);
               }}
-              className="px-4 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition-all"
             >
               <PlusCircle size={14} />
               <span>Nova Ordem</span>
