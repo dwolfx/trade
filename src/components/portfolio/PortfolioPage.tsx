@@ -14,13 +14,13 @@ import {
   RECENT_PAID_DIVIDENDS,
 } from '../../data/mockPortfolioData';
 import { ActiveNav } from '../../types/market';
-import { Wallet, ArrowLeft, PlusCircle } from 'lucide-react';
+import { Wallet, PlusCircle } from 'lucide-react';
 
 interface PortfolioPageProps {
   onNavigate: (nav: ActiveNav) => void;
 }
 
-export const PortfolioPage: React.FC<PortfolioPageProps> = ({ onNavigate }) => {
+export const PortfolioPage: React.FC<PortfolioPageProps> = () => {
   const {
     portfolio,
     executeOrder,
@@ -174,25 +174,16 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ onNavigate }) => {
         }}
         subtitle="Visão consolidada do seu patrimônio: Ações, FIIs, Renda Fixa e Dividendos"
         rightActions={
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => onNavigate('bolsa')}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-            >
-              <ArrowLeft size={14} />
-              <span>Voltar ao Home Broker</span>
-            </button>
-            <button
-              onClick={() => {
-                setTradingSymbol(undefined);
-                setIsOrderModalOpen(true);
-              }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition-all"
-            >
-              <PlusCircle size={14} />
-              <span>Nova Ordem</span>
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setTradingSymbol(undefined);
+              setIsOrderModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition-all"
+          >
+            <PlusCircle size={14} />
+            <span>Nova Ordem</span>
+          </button>
         }
       />
 

@@ -12,7 +12,7 @@ import { DividendDayInspector } from './DividendDayInspector';
 import { DividendSimulatorCard } from './DividendSimulatorCard';
 import { OrderModal } from '../order/OrderModal';
 import { PageHeader } from '../common/PageHeader';
-import { CalendarDays, ArrowLeft } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 
 interface DividendsCalendarPageProps {
   onNavigate: (nav: ActiveNav) => void;
@@ -213,15 +213,6 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
           pulse: true,
         }}
         subtitle="Previsão de proventos de Ações e FIIs da sua custódia, favoritos e mapa de datas-com de todo o mercado"
-        rightActions={
-          <button
-            onClick={() => onNavigate('bolsa')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-          >
-            <ArrowLeft size={14} />
-            <span>Voltar ao Home Broker</span>
-          </button>
-        }
       />
 
       {/* Top Stats Cards */}

@@ -200,15 +200,6 @@ export const AppContent: React.FC = () => {
                 pulse: true,
               }}
               subtitle="Ambiente de alta densidade para mini-índice (WIN) e mini-dólar (WDO) com margem reduzida"
-              rightActions={
-                <button
-                  onClick={() => setActiveNav('bolsa')}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-                >
-                  <ArrowLeft size={14} />
-                  <span>Voltar ao Home Broker</span>
-                </button>
-              }
             />
 
             <EmptyState

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { PortfolioPage } from '../PortfolioPage';
 import { MarketProvider } from '../../../context/MarketContext';
 
@@ -92,17 +92,16 @@ describe('PortfolioPage Integration Tests', () => {
     expect(screen.queryByTitle('Fechar boleta')).not.toBeInTheDocument();
   });
 
-  it('should navigate back to home broker when button clicked', () => {
-    const handleNavigate = vi.fn();
+  it('should open order drawer when clicking Nova Ordem button', () => {
     render(
       <MarketProvider>
-        <PortfolioPage onNavigate={handleNavigate} />
+        <PortfolioPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    const backButton = screen.getByRole('button', { name: /Voltar ao Home Broker/i });
-    fireEvent.click(backButton);
+    const novaOrdemButton = screen.getByRole('button', { name: /Nova Ordem/i });
+    fireEvent.click(novaOrdemButton);
 
-    expect(handleNavigate).toHaveBeenCalledWith('bolsa');
+    expect(screen.getByText(/Boleta Rápida B3/i)).toBeInTheDocument();
   });
 });

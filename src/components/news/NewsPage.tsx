@@ -8,7 +8,7 @@ import { NewsItemCard } from './NewsItemCard';
 import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
 import { ActiveNav } from '../../types/market';
-import { Search, Filter, Newspaper, RefreshCw, Loader2, ChevronDown, CheckCheck, ArrowLeft } from 'lucide-react';
+import { Search, Filter, Newspaper, RefreshCw, Loader2, ChevronDown, CheckCheck } from 'lucide-react';
 import { fetchLiveNews } from '../../services/newsService';
 import { PageHeader } from '../common/PageHeader';
 import { SearchBar } from '../common/SearchBar';
@@ -250,25 +250,14 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
         }
         subtitle="Agregador de baixa latência: InfoMoney, G1 Economia, Brazil Journal e CoinDesk"
         rightActions={
-          <div className="flex items-center gap-2.5">
-            {onNavigate && (
-              <button
-                onClick={() => onNavigate('bolsa')}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-              >
-                <ArrowLeft size={14} />
-                <span className="hidden sm:inline">Voltar ao Home Broker</span>
-              </button>
-            )}
-            <button
-              onClick={handleRefresh}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-              title="Atualizar feed"
-            >
-              <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#60A5FA]' : ''} />
-              <span>{isRefreshing ? 'Atualizando...' : 'Atualizar Feed'}</span>
-            </button>
-          </div>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
+            title="Atualizar feed"
+          >
+            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#60A5FA]' : ''} />
+            <span>{isRefreshing ? 'Atualizando...' : 'Atualizar Feed'}</span>
+          </button>
         }
       />
 

@@ -5,7 +5,7 @@ import { CryptoFeaturedCards } from './CryptoFeaturedCards';
 import { CryptoChart } from './CryptoChart';
 import { CryptoOrderPad } from './CryptoOrderPad';
 import { CryptoTable } from './CryptoTable';
-import { Coins, Flame, ArrowLeft } from 'lucide-react';
+import { Coins, Flame } from 'lucide-react';
 import { PageHeader } from '../common/PageHeader';
 import { ActiveNav } from '../../types/market';
 
@@ -13,7 +13,7 @@ interface CryptoPageProps {
   onNavigate?: (nav: ActiveNav) => void;
 }
 
-export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
+export const CryptoPage: React.FC<CryptoPageProps> = () => {
   const [quoteCurrency, setQuoteCurrency] = useState<CryptoQuoteCurrency>('BRL');
   const [assets, setAssets] = useState<CryptoAsset[]>([]);
   const [activeAsset, setActiveAsset] = useState<CryptoAsset>(() => ({
@@ -77,16 +77,6 @@ export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
         subtitle="Mercado global sem interrupção · Liquidez em tempo real Binance Spot"
         rightActions={
           <div className="flex items-center gap-2.5 flex-wrap">
-            {onNavigate && (
-              <button
-                onClick={() => onNavigate('bolsa')}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-              >
-                <ArrowLeft size={14} />
-                <span className="hidden sm:inline">Voltar ao Home Broker</span>
-              </button>
-            )}
-
             {fearAndGreed && (
               <div
                 className="flex items-center gap-2 bg-[#0F1523] border border-[#1E293B] px-3 py-1.5 rounded-xl text-xs"
