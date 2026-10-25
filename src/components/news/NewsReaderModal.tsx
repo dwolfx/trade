@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { NewsItem } from '../../types/news';
 import { InteractiveTickerText } from './InteractiveTickerText';
 import {

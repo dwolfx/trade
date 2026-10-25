@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { NewsItem, NewsSource } from '../../types/news';
 import { InteractiveTickerText } from './InteractiveTickerText';
 import { ExternalLink, TrendingUp, TrendingDown, Minus, Clock, Share2, Check, Zap, Sparkles } from 'lucide-react';
@@ -12,7 +12,7 @@ interface NewsItemCardProps {
 }
 
 const SOURCE_COLORS: Record<NewsSource, { bg: string; text: string; border: string }> = {
-  'CVM / B3': { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  'CVM / B3': { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/30' },
   'Brazil Journal': { bg: 'bg-violet-500/10', text: 'text-violet-400', border: 'border-violet-500/30' },
   'InfoMoney': { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/30' },
   'Valor PRO': { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
@@ -85,7 +85,7 @@ export const NewsItemCard: React.FC<NewsItemCardProps> = ({
               </span>
 
               {item.sentiment === 'bullish' && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 text-[10px] font-semibold backdrop-blur-md">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-950/80 text-sky-400 border border-sky-500/30 text-[10px] font-semibold backdrop-blur-md">
                   <TrendingUp size={11} /> Otimista
                 </span>
               )}
@@ -124,7 +124,7 @@ export const NewsItemCard: React.FC<NewsItemCardProps> = ({
               </span>
 
               {item.sentiment === 'bullish' && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-semibold">
                   <TrendingUp size={11} /> Otimista
                 </span>
               )}
@@ -217,7 +217,7 @@ export const NewsItemCard: React.FC<NewsItemCardProps> = ({
             className="p-1.5 rounded-lg hover:text-white hover:bg-[#1E293B] transition-colors"
             title="Copiar manchete"
           >
-            {copied ? <Check size={14} className="text-emerald-400" /> : <Share2 size={14} />}
+            {copied ? <Check size={14} className="text-sky-400" /> : <Share2 size={14} />}
           </button>
           <button
             type="button"

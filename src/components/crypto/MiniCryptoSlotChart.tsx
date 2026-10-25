@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+﻿import React, { useRef, useEffect, useState } from 'react';
 import { CryptoCandle, CryptoTimeframe } from '../../types/crypto';
 import { fetchCryptoCandles } from '../../services/binanceService';
 

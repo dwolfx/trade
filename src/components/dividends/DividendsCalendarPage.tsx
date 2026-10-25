@@ -18,7 +18,7 @@ interface DividendsCalendarPageProps {
 }
 
 export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ onNavigate }) => {
-  const { portfolio, selectOrCreateAsset } = useMarket();
+  const { portfolio, favoriteSymbols, selectOrCreateAsset } = useMarket();
 
   // Selected month options
   const availableMonths = useMemo(
@@ -31,9 +31,9 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
   );
 
   const [currentMonthKey, setCurrentMonthKey] = useState<string>('2026-11');
-  // Level 1: Scope filter (Minha Carteira vs Todo o Mercado B3)
+  // Level 1: Scope filter (Minha Carteira vs Meus Favoritos vs Todo o Mercado)
   const [originFilter, setOriginFilter] = useState<DividendOriginFilter>('carteira');
-  // Level 2: Category sub-filter (Todos vs FIIs vs Ações vs Data-COM Aberta)
+  // Level 2: Category sub-filter (Todos vs FIIs vs Ações vs Internacionais vs Data-COM Aberta)
   const [categoryFilter, setCategoryFilter] = useState<DividendCategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -51,6 +51,11 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
     });
     return map;
   }, [portfolio]);
+
+  // Set of uppercase favorite symbols
+  const favoritesSet = useMemo(() => {
+    return new Set((favoriteSymbols || []).map((s) => s.toUpperCase()));
+  }, [favoriteSymbols]);
 
   // Year and month numbers from currentMonthKey "YYYY-MM"
   const [yearNum, monthNum] = useMemo(() => {
@@ -70,30 +75,44 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
 
   const todayStr = '2026-10-25'; // simulated anchor date
 
-  // Compute sub-filter counts dynamically based on active originFilter
+  // Compute sub-filter counts dynamically based on active originFilter (Carteira vs Favoritos vs Mercado)
   const counts = useMemo(() => {
     const carteiraItems = monthAllItems.filter((item) =>
       userPortfolioMap.has(item.symbol.toUpperCase())
     );
-    const pool = originFilter === 'carteira' ? carteiraItems : monthAllItems;
+    const favoritosItems = monthAllItems.filter((item) =>
+      favoritesSet.has(item.symbol.toUpperCase())
+    );
+
+    let pool = monthAllItems;
+    if (originFilter === 'carteira') {
+      pool = carteiraItems;
+    } else if (originFilter === 'favoritos') {
+      pool = favoritosItems;
+    }
 
     return {
       carteiraTotal: carteiraItems.length,
+      favoritosTotal: favoritosItems.length,
       mercadoTotal: monthAllItems.length,
       total: pool.length,
       fii: pool.filter((item) => item.category === 'fii').length,
       acao: pool.filter((item) => item.category === 'acao').length,
+      internacional: pool.filter((item) => item.category === 'internacional').length,
       datacomAberta: pool.filter((item) => item.dateCom >= todayStr).length,
     };
-  }, [monthAllItems, originFilter, userPortfolioMap]);
+  }, [monthAllItems, originFilter, userPortfolioMap, favoritesSet]);
 
   // Filtered items based on origin, category sub-filter, and search
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return monthAllItems.filter((item) => {
-      // 1. Level 1 Origin Filter
+      // 1. Level 1 Origin Filter (Minha Carteira / Meus Favoritos / Todo o Mercado)
       if (originFilter === 'carteira' && !userPortfolioMap.has(item.symbol.toUpperCase())) {
+        return false;
+      }
+      if (originFilter === 'favoritos' && !favoritesSet.has(item.symbol.toUpperCase())) {
         return false;
       }
 
@@ -102,6 +121,9 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
         return false;
       }
       if (categoryFilter === 'acao' && item.category !== 'acao') {
+        return false;
+      }
+      if (categoryFilter === 'internacional' && item.category !== 'internacional') {
         return false;
       }
       if (categoryFilter === 'datacom_aberta' && item.dateCom < todayStr) {
@@ -117,7 +139,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
 
       return true;
     });
-  }, [monthAllItems, originFilter, categoryFilter, searchQuery, userPortfolioMap]);
+  }, [monthAllItems, originFilter, categoryFilter, searchQuery, userPortfolioMap, favoritesSet]);
 
   // Handlers
   const handleOpenOrder = async (symbol: string) => {
@@ -160,11 +182,11 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
               </h1>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                 <Sparkles size={11} className="fill-emerald-300" />
-                Pinga-Pinga Mensal B3
+                Pinga-Pinga B3 & Internacional
               </span>
             </div>
             <p className="text-xs text-[#94A3B8] mt-1">
-              Previsão de proventos de Ações e FIIs da sua custódia e mapa de datas-com de todo o mercado brasileiro
+              Previsão de proventos de Ações e FIIs da sua custódia, favoritos e mapa de datas-com de todo o mercado
             </p>
           </div>
         </div>
@@ -187,7 +209,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
         onSelectUpcoming={handleSelectUpcoming}
       />
 
-      {/* Filter Bar with 2-level filter hierarchy (Origin + Sub-filter Category) */}
+      {/* Filter Bar with 3-Level Origin (Carteira, Favoritos, Todo o Mercado) + Category Sub-filters */}
       <DividendsFilterBar
         originFilter={originFilter}
         onSelectOrigin={setOriginFilter}

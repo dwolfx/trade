@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { NewsItem } from '../../types/news';
 import { Flame, ChevronLeft, ChevronRight, Clock, Zap, ExternalLink } from 'lucide-react';
 

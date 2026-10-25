@@ -16,7 +16,7 @@ describe('CryptoPage Functional Tests', () => {
     );
 
     expect(screen.getByText('Criptoativos 24/7')).toBeInTheDocument();
-    expect(screen.getByText('24/7 ONLINE')).toBeInTheDocument();
+    expect(screen.getByText('AO VIVO 24/7')).toBeInTheDocument();
     expect(screen.getByText('🇧🇷 BRL (R$)')).toBeInTheDocument();
     expect(screen.getByText('🇺🇸 USDT ($)')).toBeInTheDocument();
   });
@@ -94,8 +94,8 @@ describe('CryptoPage Functional Tests', () => {
 
     fireEvent.click(multiBtn);
 
-    // After clicking, button says '1 Gráfico' and 4 slots are visible
-    expect(screen.getByText('1 Gráfico')).toBeInTheDocument();
+    // After clicking, button says 'Voltar para 1 Gráfico' and 4 slots are visible
+    expect(screen.getByText(/1 Gráfico/i)).toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('#2')).toBeInTheDocument();
     expect(screen.getByText('#3')).toBeInTheDocument();

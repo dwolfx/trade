@@ -8,8 +8,9 @@ import { NewsItemCard } from './NewsItemCard';
 import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
 import { ActiveNav } from '../../types/market';
-import { Search, Filter, Newspaper, RefreshCw, X, Loader2, ChevronDown, CheckCheck, Radio } from 'lucide-react';
+import { Search, Filter, Newspaper, RefreshCw, X, Loader2, ChevronDown, CheckCheck, ArrowLeft } from 'lucide-react';
 import { fetchLiveNews } from '../../services/newsService';
+import { PageHeader } from '../common/PageHeader';
 
 interface NewsPageProps {
   onNavigate: (nav: ActiveNav) => void;
@@ -236,45 +237,38 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1E293B]">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600/30 to-sky-400/20 border border-blue-500/30 flex items-center justify-center text-[#60A5FA] shadow-lg shadow-blue-500/10">
-            <Newspaper size={26} />
+      {/* Standardized Page Header */}
+      <PageHeader
+        icon={Newspaper}
+        title="Terminal de Notícias & Fatos Relevantes"
+        badge={
+          isLive
+            ? { text: `AO VIVO (${totalLive})`, variant: 'sky', pulse: true }
+            : { text: 'CACHE LOCAL', variant: 'blue' }
+        }
+        subtitle="Agregador de baixa latência: InfoMoney, G1 Economia, Brazil Journal e CoinDesk"
+        rightActions={
+          <div className="flex items-center gap-2.5">
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('bolsa')}
+                className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+              >
+                <ArrowLeft size={14} />
+                <span className="hidden sm:inline">Voltar à Bolsa</span>
+              </button>
+            )}
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] hover:border-slate-600 text-xs font-mono font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
+              title="Atualizar feed"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#60A5FA]' : ''} />
+              <span>{isRefreshing ? 'Atualizando...' : 'Atualizar Feed'}</span>
+            </button>
           </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                Terminal de Notícias & Fatos Relevantes
-                <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping" />
-              </h1>
-              {isLive ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/15 text-[#38BDF8] border border-sky-500/30 shadow-sm animate-in fade-in">
-                  <Radio size={12} className="animate-pulse" />
-                  AO VIVO ({totalLive} matérias conectadas)
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-slate-500/15 text-slate-400 border border-slate-500/30">
-                  Modo Cache Local
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-[#94A3B8] mt-1">
-              Agregador institucional de baixa latência conectado a InfoMoney, G1 Economia, Brazil Journal e CoinDesk ({newsList.length} notícias disponíveis)
-            </p>
-          </div>
-        </div>
-
-        {/* Refresh button */}
-        <button
-          onClick={handleRefresh}
-          className="self-start sm:self-auto flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] hover:border-slate-600 text-xs font-mono font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-          title="Atualizar feed"
-        >
-          <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#60A5FA]' : ''} />
-          <span>{isRefreshing ? 'Atualizando...' : 'Atualizar Feed'}</span>
-        </button>
-      </div>
+        }
+      />
 
       {/* Floating incoming news notification badge */}
       {incomingNews.length > 0 && (
@@ -470,7 +464,7 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
             ) : (
               filteredNews.length > PAGE_SIZE && (
                 <div className="flex items-center gap-2 text-xs font-mono text-[#64748B] py-2 px-4 rounded-xl bg-[#0F1523] border border-[#1E293B]">
-                  <CheckCheck size={14} className="text-emerald-400" />
+                  <CheckCheck size={14} className="text-sky-400" />
                   <span>Você chegou ao fim: todas as {filteredNews.length} notícias foram carregadas.</span>
                 </div>
               )

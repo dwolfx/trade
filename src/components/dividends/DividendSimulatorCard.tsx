@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Calculator, Zap } from 'lucide-react';
 import { DividendCalendarItem } from '../../types/dividend';
 
@@ -36,13 +36,13 @@ export const DividendSimulatorCard: React.FC<DividendSimulatorCardProps> = ({
     <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#0F1523] via-[#161F33] to-[#0F1523] border border-[#1E293B] shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-[#1E293B]">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center">
             <Calculator size={20} />
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               Simulador de Pinga-Pinga (Renda Passiva)
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300">
                 Interativo
               </span>
             </h3>
@@ -110,7 +110,7 @@ export const DividendSimulatorCard: React.FC<DividendSimulatorCardProps> = ({
             <span className="text-[10px] font-mono text-[#64748B] block uppercase">
               {currentItem.category === 'fii' ? 'Renda Mensal' : 'Por Pagamento'}
             </span>
-            <span className="text-lg font-mono font-black text-emerald-400">
+            <span className="text-lg font-mono font-black text-sky-400">
               R$ {monthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <span className="text-[10px] text-[#94A3B8] block">
@@ -136,7 +136,7 @@ export const DividendSimulatorCard: React.FC<DividendSimulatorCardProps> = ({
           <button
             type="button"
             onClick={() => onOpenOrder(currentItem.symbol)}
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-mono font-black text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-600 to-blue-500 hover:from-sky-500 hover:to-blue-400 text-white font-mono font-black text-xs shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
           >
             <Zap size={14} className="fill-white" />
             <span>Operar {currentItem.symbol}</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { CryptoAsset, CryptoCategory, CryptoQuoteCurrency } from '../../types/crypto';
 import { Search, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 import { formatBRL } from '../../utils/formatters';
@@ -120,7 +120,7 @@ export const CryptoTable: React.FC<CryptoTableProps> = ({
                   <td className="py-3 px-3 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded text-[11px] ${
-                        isPositive ? 'text-[#10B981] bg-emerald-500/10' : 'text-[#F43F5E] bg-rose-500/10'
+                        isPositive ? 'text-[#38BDF8] bg-sky-500/10' : 'text-[#F43F5E] bg-rose-500/10'
                       }`}
                     >
                       {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}

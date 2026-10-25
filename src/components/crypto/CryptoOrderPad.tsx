@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { CryptoAsset, CryptoQuoteCurrency } from '../../types/crypto';
 import { useMarket } from '../../context/MarketContext';
 import { formatBRL } from '../../utils/formatters';
@@ -80,7 +80,7 @@ export const CryptoOrderPad: React.FC<CryptoOrderPadProps> = ({
           onClick={() => setSide('buy')}
           className={`py-2 rounded-lg text-xs font-bold transition-all ${
             side === 'buy'
-              ? 'bg-[#10B981] text-white shadow-md shadow-emerald-500/20'
+              ? 'bg-[#38BDF8] text-white shadow-md shadow-sky-500/20'
               : 'text-[#94A3B8] hover:text-white'
           }`}
         >
@@ -188,7 +188,7 @@ export const CryptoOrderPad: React.FC<CryptoOrderPadProps> = ({
           </div>
           <div className="border-t border-[#1E293B] pt-1.5 flex justify-between text-white font-bold text-sm">
             <span>Total da Ordem:</span>
-            <span className={side === 'buy' ? 'text-[#10B981]' : 'text-[#F43F5E]'}>
+            <span className={side === 'buy' ? 'text-[#38BDF8]' : 'text-[#F43F5E]'}>
               {quoteCurrency === 'BRL' ? 'R$' : '$'} {total.toFixed(2)}
             </span>
           </div>
@@ -200,7 +200,7 @@ export const CryptoOrderPad: React.FC<CryptoOrderPadProps> = ({
           disabled={isSubmitting || numQty <= 0}
           className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-lg transition-all ${
             side === 'buy'
-              ? 'bg-[#10B981] hover:bg-emerald-600 shadow-emerald-500/20'
+              ? 'bg-[#38BDF8] hover:bg-sky-600 shadow-sky-500/20'
               : 'bg-[#F43F5E] hover:bg-rose-600 shadow-rose-500/20'
           } disabled:opacity-50`}
         >

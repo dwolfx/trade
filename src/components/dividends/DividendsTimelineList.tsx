@@ -1,7 +1,7 @@
 import React from 'react';
 import { DividendCalendarItem } from '../../types/dividend';
 import { PortfolioPosition } from '../../types/market';
-import { Calendar, Zap, Building2, TrendingUp, Sparkles, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, Zap, Building2, TrendingUp, Sparkles, CheckCircle2, Clock, Globe } from 'lucide-react';
 
 interface DividendsTimelineListProps {
   items: DividendCalendarItem[];
@@ -29,7 +29,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
         <Calendar size={36} className="text-[#64748B]" />
         <h3 className="text-base font-bold text-white">Nenhum provento encontrado</h3>
         <p className="text-xs text-[#94A3B8] max-w-md">
-          Não encontramos nenhum dividendo ou rendimento para o filtro e sub-filtro selecionados neste mês. Tente alternar para "Todo o Mercado B3" ou limpar a busca.
+          Não encontramos nenhum dividendo ou rendimento para o filtro selecionado neste mês. Tente alternar para "Todo o Mercado" ou limpar a busca.
         </p>
       </div>
     );
@@ -43,6 +43,8 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
         const userQty = userPosition ? userPosition.quantity : 0;
         const userTotal = userQty * item.valuePerShare;
         const isFii = item.category === 'fii';
+        const isGlobal = item.category === 'internacional';
+        const currencyPrefix = item.currency === 'USD' ? 'US$' : 'R$';
 
         return (
           <div
@@ -52,6 +54,8 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                 ? 'bg-gradient-to-r from-amber-950/20 via-[#0F1523] to-[#161F33] border-amber-500/50 shadow-lg shadow-amber-950/15'
                 : isFii
                 ? 'bg-[#0F1523] hover:bg-[#121B24] border-emerald-500/30 hover:border-emerald-500/60'
+                : isGlobal
+                ? 'bg-[#0F1523] hover:bg-[#17162C] border-indigo-500/30 hover:border-indigo-500/60'
                 : 'bg-[#0F1523] hover:bg-[#131A2D] border-blue-500/25 hover:border-blue-500/50'
             }`}
           >
@@ -62,6 +66,8 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                 className={`w-14 h-14 rounded-xl border flex flex-col items-center justify-center shrink-0 ${
                   isFii
                     ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                    : isGlobal
+                    ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300'
                     : 'bg-blue-950/40 border-blue-500/40 text-sky-300'
                 }`}
               >
@@ -83,16 +89,24 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                     <span>${item.symbol}</span>
                   </button>
 
-                  {/* Distinct Category Tag: FII vs Stock */}
+                  {/* Distinct Category Tag */}
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider ${
                       isFii
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                        : isGlobal
+                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/50 shadow-sm'
                         : 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm'
                     }`}
                   >
-                    {isFii ? <Building2 size={12} /> : <TrendingUp size={12} />}
-                    {isFii ? 'FII · Imobiliário' : 'Stock · Ação B3'}
+                    {isFii ? (
+                      <Building2 size={12} />
+                    ) : isGlobal ? (
+                      <Globe size={12} />
+                    ) : (
+                      <TrendingUp size={12} />
+                    )}
+                    {isFii ? 'FII · Imobiliário' : isGlobal ? 'Global · US$' : 'Ação · B3'}
                   </span>
 
                   {/* Type */}
@@ -154,16 +168,16 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                   Valor por cota
                 </span>
                 <span className="text-sm font-mono font-black text-white">
-                  R$ {item.valuePerShare.toFixed(4).replace(/0+$/, '').replace(/\.$/, '')}
+                  {currencyPrefix} {item.valuePerShare.toFixed(4).replace(/0+$/, '').replace(/\.$/, '')}
                 </span>
 
                 {isOwned ? (
                   <span className="text-xs font-mono font-bold text-amber-300 block mt-0.5">
-                    Você recebe: R$ {userTotal.toFixed(2)}
+                    Você recebe: {currencyPrefix} {userTotal.toFixed(2)}
                   </span>
                 ) : (
                   <span className="text-[10px] font-mono text-[#94A3B8] block mt-0.5">
-                    100 cotas = R$ {(item.valuePerShare * 100).toFixed(2)}
+                    100 cotas = {currencyPrefix} {(item.valuePerShare * 100).toFixed(2)}
                   </span>
                 )}
               </div>
@@ -175,6 +189,8 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                 className={`px-3.5 py-2 rounded-xl text-white font-mono font-bold text-xs shadow-md flex items-center gap-1.5 active:scale-95 transition-all shrink-0 ${
                   isFii
                     ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
+                    : isGlobal
+                    ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20'
                     : 'bg-[#2962FF] hover:bg-[#1D4ED8] shadow-blue-500/20'
                 }`}
                 title={`Abrir boleta de negociação para ${item.symbol}`}

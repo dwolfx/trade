@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { NewsItem } from '../../types/news';
 import { StockAsset } from '../../types/market';
 import { InteractiveTickerText } from './InteractiveTickerText';

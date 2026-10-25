@@ -7,6 +7,7 @@ import { PortfolioStocksPerformance } from './PortfolioStocksPerformance';
 import { PortfolioDividendsSection } from './PortfolioDividendsSection';
 import { PortfolioAssetsList } from './PortfolioAssetsList';
 import { OrderModal } from '../order/OrderModal';
+import { PageHeader } from '../common/PageHeader';
 import {
   INITIAL_NON_EQUITY_ASSETS,
   UPCOMING_DIVIDENDS,
@@ -162,53 +163,37 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="w-full flex flex-col gap-6 py-2 animate-in fade-in duration-300">
-      {/* Page Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#2962FF] to-[#60A5FA] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-            <Wallet size={24} />
+      {/* Standardized Page Header */}
+      <PageHeader
+        icon={Wallet}
+        title="Minha Carteira Consolidada"
+        badge={{
+          text: mode === 'DEMO' ? 'SIMULADOR B3' : 'CONTA REAL B3',
+          variant: mode === 'DEMO' ? 'amber' : 'sky',
+        }}
+        subtitle="Visão consolidada do seu patrimônio: Ações, FIIs, Renda Fixa e Dividendos"
+        rightActions={
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('bolsa')}
+              className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+            >
+              <ArrowLeft size={14} />
+              <span>Voltar ao Home Broker</span>
+            </button>
+            <button
+              onClick={() => {
+                setTradingSymbol(undefined);
+                setIsOrderModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2"
+            >
+              <PlusCircle size={14} />
+              <span>Nova Ordem</span>
+            </button>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-white tracking-tight">
-                Minha Carteira Consolidada
-              </h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black border transition-colors ${
-                mode === 'DEMO'
-                  ? 'bg-amber-500/15 text-[#F59E0B] border-amber-500/40 ring-1 ring-amber-400/20'
-                  : 'bg-sky-500/15 text-[#38BDF8] border-sky-500/40 ring-1 ring-sky-400/20'
-              }`}>
-                {mode === 'DEMO' ? '⚠️ MODO SIMULADOR (DEMO)' : '🛡️ CONTA REAL B3 (LIVE)'}
-              </span>
-            </div>
-            <p className="text-xs text-[#94A3B8]">
-              Visão 360° do seu patrimônio: Ações, FIIs, Renda Fixa, Day Trade e Dividendos
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Action buttons */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('bolsa')}
-            className="px-4 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
-          >
-            <ArrowLeft size={14} />
-            <span>Voltar ao Home Broker</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setTradingSymbol(undefined);
-              setIsOrderModalOpen(true);
-            }}
-            className="px-4 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2"
-          >
-            <PlusCircle size={14} />
-            <span>Nova Ordem de Compra</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 1. KPIs Row */}
       <PortfolioKPIs

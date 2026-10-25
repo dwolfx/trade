@@ -78,7 +78,7 @@ export const DividendsStatsHeader: React.FC<DividendsStatsHeaderProps> = ({
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xl font-mono font-bold text-white flex items-center gap-2">
-                ${nextUserEvent.symbol}
+                {nextUserEvent.symbol}
                 <span className="text-xs font-normal text-[#94A3B8]">({nextUserEvent.type})</span>
               </span>
               <button
@@ -88,7 +88,7 @@ export const DividendsStatsHeader: React.FC<DividendsStatsHeaderProps> = ({
                 Ver detalhes →
               </button>
             </div>
-            <p className="text-[11px] text-emerald-400 font-mono mt-1">
+            <p className="text-[11px] text-sky-400 font-mono mt-1">
               R$ {nextUserEvent.valuePerShare.toFixed(2)} / cota · Total: R${' '}
               {((userPortfolioMap.get(nextUserEvent.symbol.toUpperCase())?.quantity || 0) * nextUserEvent.valuePerShare).toFixed(2)}
             </p>
@@ -114,7 +114,7 @@ export const DividendsStatsHeader: React.FC<DividendsStatsHeaderProps> = ({
           <span className="text-xs text-[#94A3B8]">proventos mapeados</span>
         </div>
         <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#94A3B8]">
-          <span className="flex items-center gap-1 text-emerald-400">
+          <span className="flex items-center gap-1 text-sky-400">
             <Building2 size={12} />
             {fiiCount} FIIs
           </span>
@@ -127,13 +127,13 @@ export const DividendsStatsHeader: React.FC<DividendsStatsHeaderProps> = ({
       </div>
 
       {/* Card 4: Foco em Renda Passiva */}
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F1523] to-[#162338] border border-emerald-500/30 shadow-md">
+      <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F1523] to-[#162338] border border-sky-500/30 shadow-md">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-emerald-400 flex items-center gap-1.5">
+          <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-sky-400 flex items-center gap-1.5">
             <Building2 size={14} />
             FIIs: Renda Isenta Mensal
           </span>
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
             IR 0%
           </span>
         </div>

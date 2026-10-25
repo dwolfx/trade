@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X, Building2, TrendingUp, Sparkles, Globe, Clock, Filter } from 'lucide-react';
+import { Search, X, Building2, TrendingUp, Sparkles, Globe, Clock, Heart, Filter } from 'lucide-react';
 import { DividendOriginFilter, DividendCategoryFilter } from '../../types/dividend';
 
 interface DividendsFilterBarProps {
@@ -14,8 +14,10 @@ interface DividendsFilterBarProps {
     total: number;
     fii: number;
     acao: number;
+    internacional: number;
     datacomAberta: number;
     carteiraTotal: number;
+    favoritosTotal: number;
     mercadoTotal: number;
   };
 }
@@ -33,21 +35,24 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
     total: 0,
     fii: 0,
     acao: 0,
+    internacional: 0,
     datacomAberta: 0,
     carteiraTotal: 0,
+    favoritosTotal: 0,
     mercadoTotal: 0,
   };
 
   return (
     <div className="flex flex-col gap-3.5 bg-[#0F1523] p-4 rounded-2xl border border-[#1E293B]">
-      {/* Row 1: Nível 1 - Filtro Principal (Minha Carteira vs Todo Mercado B3) + Busca */}
-      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-        {/* Origin Level 1 Switcher */}
-        <div className="flex items-center gap-1.5 bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B] shrink-0 self-start sm:self-auto">
+      {/* Row 1: Nível 1 - 3 Filtros de Origem (Minha Carteira / Meus Favoritos / Todo o Mercado) + Busca */}
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+        {/* Origin Level 1 Switcher (3 Tabs) */}
+        <div className="flex items-center gap-1.5 bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B] shrink-0 overflow-x-auto scrollbar-none">
+          {/* 1. Minha Carteira */}
           <button
             type="button"
             onClick={() => onSelectOrigin('carteira')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all shrink-0 ${
               originFilter === 'carteira'
                 ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-md shadow-amber-500/20 ring-1 ring-amber-400/30'
                 : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
@@ -64,10 +69,32 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             </span>
           </button>
 
+          {/* 2. Meus Favoritos */}
+          <button
+            type="button"
+            onClick={() => onSelectOrigin('favoritos')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all shrink-0 ${
+              originFilter === 'favoritos'
+                ? 'bg-gradient-to-r from-rose-600 to-pink-500 text-white shadow-md shadow-rose-500/20 ring-1 ring-rose-400/30'
+                : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+            }`}
+          >
+            <Heart size={13} className={originFilter === 'favoritos' ? 'fill-white text-white' : 'text-rose-400'} />
+            <span>Meus Favoritos</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                originFilter === 'favoritos' ? 'bg-black/25 text-white' : 'bg-rose-500/15 text-rose-300'
+              }`}
+            >
+              {safeCounts.favoritosTotal}
+            </span>
+          </button>
+
+          {/* 3. Todo o Mercado */}
           <button
             type="button"
             onClick={() => onSelectOrigin('mercado')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all shrink-0 ${
               originFilter === 'mercado'
                 ? 'bg-[#2962FF] text-white shadow-md shadow-blue-500/20 ring-1 ring-blue-400/30'
                 : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
@@ -92,7 +119,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por ticker (MXRF11, PETR4, HGLG11) ou nome..."
+            placeholder="Buscar por ticker (MXRF11, PETR4, AAPL) ou empresa..."
             className="w-full pl-9 pr-9 py-2 rounded-xl bg-[#161F33] border border-[#1E293B] hover:border-slate-700 focus:border-[#2962FF] text-xs font-mono text-white placeholder-[#64748B] focus:outline-none transition-colors"
           />
           {searchQuery && (
@@ -111,7 +138,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <span className="text-[11px] font-mono font-semibold text-[#64748B] shrink-0 mr-1 uppercase flex items-center gap-1">
             <Filter size={11} />
-            Sub-filtro:
+            Classe:
           </span>
 
           {/* Todos */}
@@ -141,7 +168,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             }`}
           >
             <Building2 size={12} className={categoryFilter === 'fii' ? 'text-emerald-300' : 'text-[#64748B]'} />
-            <span>Fundos Imobiliários (FIIs)</span>
+            <span>FIIs (Imobiliários)</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                 categoryFilter === 'fii' ? 'bg-emerald-500/30 text-emerald-200' : 'bg-black/30 text-slate-400'
@@ -151,7 +178,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             </span>
           </button>
 
-          {/* Sub-filtro Ações */}
+          {/* Sub-filtro Ações B3 */}
           <button
             type="button"
             onClick={() => onSelectCategory('acao')}
@@ -162,13 +189,34 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             }`}
           >
             <TrendingUp size={12} className={categoryFilter === 'acao' ? 'text-sky-300' : 'text-[#64748B]'} />
-            <span>Ações (Stocks)</span>
+            <span>Ações B3</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                 categoryFilter === 'acao' ? 'bg-sky-500/30 text-sky-200' : 'bg-black/30 text-slate-400'
               }`}
             >
               {safeCounts.acao}
+            </span>
+          </button>
+
+          {/* Sub-filtro Internacionais (Stocks) */}
+          <button
+            type="button"
+            onClick={() => onSelectCategory('internacional')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
+              categoryFilter === 'internacional'
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 shadow-sm ring-1 ring-indigo-500/20'
+                : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
+            }`}
+          >
+            <Globe size={12} className={categoryFilter === 'internacional' ? 'text-indigo-300' : 'text-[#64748B]'} />
+            <span>Internacionais (US$)</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                categoryFilter === 'internacional' ? 'bg-indigo-500/30 text-indigo-200' : 'bg-black/30 text-slate-400'
+              }`}
+            >
+              {safeCounts.internacional}
             </span>
           </button>
 
@@ -195,14 +243,18 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
         </div>
 
         {/* Legend Hint */}
-        <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono text-[#64748B] shrink-0">
+        <div className="hidden xl:flex items-center gap-3 text-[11px] font-mono text-[#64748B] shrink-0">
           <span className="flex items-center gap-1 text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            FII (Verde)
+            FII
           </span>
           <span className="flex items-center gap-1 text-[#60A5FA]">
             <span className="w-2 h-2 rounded-full bg-[#60A5FA]" />
-            Ação (Azul)
+            Ação B3
+          </span>
+          <span className="flex items-center gap-1 text-indigo-400">
+            <span className="w-2 h-2 rounded-full bg-indigo-400" />
+            Global (US$)
           </span>
         </div>
       </div>

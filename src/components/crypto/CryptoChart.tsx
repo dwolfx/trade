@@ -3,7 +3,7 @@ import { CryptoAsset, CryptoCandle, CryptoQuoteCurrency, CryptoTimeframe } from 
 import { fetchCryptoCandles } from '../../services/binanceService';
 import { formatBRL } from '../../utils/formatters';
 import { MiniCryptoSlotChart } from './MiniCryptoSlotChart';
-import { LayoutGrid, ChevronDown, Check, ArrowRight, Loader2 } from 'lucide-react';
+import { LayoutGrid, ChevronDown, Check, ArrowRight, Loader2, Zap } from 'lucide-react';
 
 interface CryptoChartProps {
   asset: CryptoAsset;
@@ -18,6 +18,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   allAssets,
   quoteCurrency,
   onSelectAsset,
+  onOpenOrder,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [timeframe, setTimeframe] = useState<CryptoTimeframe>('1D');
@@ -306,66 +307,61 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
 
   return (
     <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-4 shadow-sm relative">
-      {/* Chart Top Header & Controls - Exactly matching Bolsa de Valores structure */}
+      {/* Chart Top Header & Controls - COPIED DIRECTLY FROM BOLSA DE VALORES */}
       <div className="flex flex-col gap-3.5 border-b border-[#1E293B] pb-3.5">
-        {/* Row 1: Identity on Left, Price & Variation on Right */}
+        {/* Row 1: Ticker, Name, Price & Variation (Clean separation, no overlap) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
-          {/* Identity: Icon, Ticker, Company Name with EXACT Fixed Width/Height to prevent resizing jitter */}
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-amber-500/15 text-[#F59E0B] font-bold text-xs flex items-center justify-center font-mono">
-                  {getCryptoIcon(asset.baseAsset)}
-                </div>
-                <span className="text-lg sm:text-xl font-black text-white font-mono tracking-tight leading-none">
-                  {asset.baseAsset}
-                </span>
-                <span className="text-xs text-[#64748B] font-mono hidden sm:inline">
-                  /{quoteCurrency} · BINANCE
-                </span>
-              </div>
-
-              {/* Exact Fixed Width & Height copied from Bolsa de Valores (prevents shrinking & expanding!) */}
-              <span
-                className="w-[200px] sm:w-[250px] lg:w-[290px] h-[28px] text-[11px] text-[#94A3B8] font-medium leading-[14px] block mt-1"
-                style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-                title={asset.name}
-              >
-                {asset.name}
+          {/* Identity: Icon, Ticker, Company Name */}
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold">{getCryptoIcon(asset.baseAsset)}</span>
+              <span className="text-lg sm:text-xl font-black text-white font-mono tracking-tight leading-none">
+                {asset.baseAsset}
+              </span>
+              <span className="text-xs text-[#64748B] font-mono hidden sm:inline">
+                /{quoteCurrency} · BINANCE
               </span>
             </div>
+            <span
+              className="text-xs text-[#94A3B8] font-medium truncate mt-1 max-w-[280px] sm:max-w-md block"
+              title={asset.name}
+            >
+              {asset.name}
+            </span>
+          </div>
 
-            {/* Price & Variation (Guaranteed Single Line, exactly like Bolsa de Valores) */}
-            <div className="flex items-baseline gap-2 pl-3.5 border-l border-[#1E293B] shrink-0">
+          {/* Price & Variation + Optional Mobile Trade Button */}
+          <div className="flex items-center justify-between sm:justify-end gap-3 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[#1E293B]/40">
+            <div className="flex items-baseline gap-2">
               <span className="text-xl sm:text-2xl font-black font-mono text-white whitespace-nowrap">
                 {formatPrice(asset.price)}
               </span>
               <span
                 className={`text-xs font-bold font-mono px-2 py-0.5 rounded whitespace-nowrap ${
-                  isPositive ? 'bg-sky-500/10 text-[#38BDF8]' : 'bg-rose-500/10 text-[#F43F5E]'
+                  isPositive
+                    ? 'bg-sky-500/10 text-[#38BDF8]'
+                    : 'bg-rose-500/10 text-[#F43F5E]'
                 }`}
               >
                 {isPositive ? '+' : ''}{asset.changePercent24h.toFixed(2)}%
               </span>
             </div>
-          </div>
 
-          {/* 24/7 Status Badge */}
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#34D399] bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 self-start sm:self-center">
-            <span className="w-2 h-2 rounded-full bg-[#34D399] animate-pulse"></span>
-            <span>24/7 ONLINE</span>
+            {onOpenOrder && (
+              <button
+                onClick={onOpenOrder}
+                className="lg:hidden px-3 py-1.5 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-white text-xs font-bold font-sans shadow-md shadow-blue-500/20 flex items-center gap-1 active:scale-95 transition-all"
+              >
+                <Zap size={13} className="fill-white" />
+                <span>Operar</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Row 2: Timeframe Buttons on Left, Multi-Chart (2x2) Toggle on Right */}
+        {/* Row 2: Timeframe Buttons & Multi-Chart Toggle (Clean layout with zero clipping) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          {/* Timeframe Buttons */}
+          {/* Timeframe Buttons: fits mobile width without horizontal scrollbar */}
           <div className="flex items-center bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B] w-full sm:w-auto justify-between sm:justify-start">
             {timeframes.map(tf => (
               <button
@@ -383,7 +379,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
             ))}
           </div>
 
-          {/* Multi-Chart (2x2) Toggle */}
+          {/* Multi-Chart Toggle */}
           <button
             onClick={() => setIsMultiChart(prev => !prev)}
             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap w-full sm:w-auto transition-all ${
@@ -393,18 +389,21 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
             }`}
           >
             <LayoutGrid size={14} />
-            <span>{isMultiChart ? '1 Gráfico' : 'Multi-Gráfico (2×2)'}</span>
+            <span>{isMultiChart ? 'Voltar para 1 Gráfico' : 'Multi-Gráfico (2×2)'}</span>
           </button>
         </div>
       </div>
 
-      {/* OHLCV Banner */}
+      {/* OHLCV Banner on hover + Status */}
       {!isMultiChart && (
         <div className="h-6 flex items-center justify-between text-[11px] font-mono text-[#94A3B8] px-1">
           {hoverInfo ? (
             <div className="flex items-center gap-4 flex-wrap">
               <span className="text-[#60A5FA] font-bold">
-                📅 {new Date(hoverInfo.candle.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                📅 {new Date(hoverInfo.candle.time).toLocaleDateString('pt-BR')}
+                {(timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h' || timeframe === '4h') && (
+                  ` às ${new Date(hoverInfo.candle.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                )}
               </span>
               <span>A: <strong className="text-white">{formatPrice(hoverInfo.candle.open)}</strong></span>
               <span>MÁX: <strong className="text-[#38BDF8]">{formatPrice(hoverInfo.candle.high)}</strong></span>
@@ -418,13 +417,24 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
                 <span>MÁX 24H: <strong className="text-white">{formatPrice(asset.high24h)}</strong></span>
                 <span>MÍN 24H: <strong className="text-white">{formatPrice(asset.low24h)}</strong></span>
                 <span>VOL 24H: <strong className="text-white">{asset.volume24h.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} {asset.baseAsset}</strong></span>
+                <span className="text-xs px-2 py-0.5 rounded bg-[#161F33] text-[#60A5FA] font-bold">
+                  {timeframes.find(t => t.id === timeframe)?.desc || timeframe}
+                </span>
               </div>
 
-              {isLoading && (
-                <span className="flex items-center gap-1 text-xs text-[#60A5FA]">
-                  <Loader2 size={12} className="animate-spin" /> Atualizando Binance...
-                </span>
-              )}
+              {/* Status */}
+              <div className="flex items-center gap-2">
+                {isLoading ? (
+                  <span className="flex items-center gap-1.5 text-xs text-[#60A5FA]">
+                    <Loader2 size={12} className="animate-spin" /> Atualizando...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#34D399] bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                    <span className="w-2 h-2 rounded-full bg-[#34D399] animate-pulse"></span>
+                    24/7 ONLINE
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -432,7 +442,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
 
       {/* Main Single Chart OR Multi-Chart 2x2 Grid */}
       {!isMultiChart ? (
-        <div className="relative w-full h-[330px] rounded-xl overflow-hidden bg-[#0B0F19] border border-[#1E293B]">
+        <div className="relative w-full h-[320px] rounded-xl overflow-hidden bg-[#0B0F19] border border-[#1E293B]">
           <canvas
             ref={canvasRef}
             onMouseMove={handleMouseMove}

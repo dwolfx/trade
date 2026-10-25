@@ -6,6 +6,7 @@ import { CryptoChart } from './CryptoChart';
 import { CryptoOrderPad } from './CryptoOrderPad';
 import { CryptoTable } from './CryptoTable';
 import { Coins, Flame, ArrowLeft } from 'lucide-react';
+import { PageHeader } from '../common/PageHeader';
 import { ActiveNav } from '../../types/market';
 
 interface CryptoPageProps {
@@ -64,80 +65,69 @@ export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
-      {/* Top Banner & Control Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0F1523] border border-[#1E293B] rounded-2xl p-4 sm:p-5 shadow-sm">
-        <div className="flex items-center gap-3.5">
-          {onNavigate && (
-            <button
-              onClick={() => onNavigate('bolsa')}
-              className="w-9 h-9 rounded-xl bg-[#141C2E] border border-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#1E293B] flex items-center justify-center transition-colors shrink-0"
-              title="Voltar para Bolsa de Valores"
-            >
-              <ArrowLeft size={16} />
-            </button>
-          )}
+      {/* Standardized Page Header */}
+      <PageHeader
+        icon={Coins}
+        iconGradient="from-purple-600 to-indigo-500"
+        title="Criptoativos 24/7"
+        badge={{
+          text: 'AO VIVO 24/7',
+          variant: 'sky',
+          pulse: true,
+        }}
+        subtitle="Mercado global sem interrupção · Liquidez em tempo real Binance Spot"
+        rightActions={
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('bolsa')}
+                className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+              >
+                <ArrowLeft size={14} />
+                <span className="hidden sm:inline">Voltar à Bolsa</span>
+              </button>
+            )}
 
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-            <Coins size={22} />
-          </div>
+            {fearAndGreed && (
+              <div
+                className="flex items-center gap-2 bg-[#0F1523] border border-[#1E293B] px-3 py-1.5 rounded-xl text-xs"
+                title="Índice de Medo e Ganância do Mercado Cripto"
+              >
+                <Flame size={14} className="text-[#F59E0B]" />
+                <span className="text-[#94A3B8] font-medium hidden sm:inline">Sentimento:</span>
+                <strong className="text-white font-mono">{fearAndGreed.value}/100</strong>
+                <span className="text-[11px] text-[#F59E0B] font-bold">
+                  ({fearAndGreed.classification})
+                </span>
+              </div>
+            )}
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                Criptoativos 24/7
-              </h1>
-              <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#34D399] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse"></span>
-                ONLINE
-              </span>
+            {/* Currency Toggle (BRL vs USDT) */}
+            <div className="flex items-center bg-[#0F1523] p-1 rounded-xl border border-[#1E293B]">
+              <button
+                onClick={() => setQuoteCurrency('BRL')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
+                  quoteCurrency === 'BRL'
+                    ? 'bg-[#2962FF] text-white shadow-sm'
+                    : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+                }`}
+              >
+                🇧🇷 BRL (R$)
+              </button>
+              <button
+                onClick={() => setQuoteCurrency('USDT')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
+                  quoteCurrency === 'USDT'
+                    ? 'bg-[#2962FF] text-white shadow-sm'
+                    : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+                }`}
+              >
+                🇺🇸 USDT ($)
+              </button>
             </div>
-            <p className="text-xs text-[#94A3B8]">
-              Mercado global aberto 24 horas por dia, 7 dias por semana · Liquidez Binance Spot
-            </p>
           </div>
-        </div>
-
-        {/* Right side: Fear & Greed pill + Currency Switcher */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {fearAndGreed && (
-            <div
-              className="flex items-center gap-2 bg-[#0B0F19] border border-[#1E293B] px-3 py-1.5 rounded-xl text-xs"
-              title="Índice de Medo e Ganância do Mercado Cripto"
-            >
-              <Flame size={14} className="text-[#F59E0B]" />
-              <span className="text-[#94A3B8] font-medium hidden sm:inline">Sentimento:</span>
-              <strong className="text-white font-mono">{fearAndGreed.value}/100</strong>
-              <span className="text-[11px] text-[#F59E0B] font-bold">
-                {fearAndGreed.classification}
-              </span>
-            </div>
-          )}
-
-          {/* Currency Toggle (BRL vs USDT) */}
-          <div className="flex items-center bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B]">
-            <button
-              onClick={() => setQuoteCurrency('BRL')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
-                quoteCurrency === 'BRL'
-                  ? 'bg-[#2962FF] text-white shadow-sm'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
-              }`}
-            >
-              🇧🇷 BRL (R$)
-            </button>
-            <button
-              onClick={() => setQuoteCurrency('USDT')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
-                quoteCurrency === 'USDT'
-                  ? 'bg-[#2962FF] text-white shadow-sm'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
-              }`}
-            >
-              🇺🇸 USDT ($)
-            </button>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Featured Cards (BTC, ETH, SOL, USDT) */}
       <CryptoFeaturedCards

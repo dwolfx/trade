@@ -1,7 +1,7 @@
 import React from 'react';
 import { DividendCalendarItem } from '../../types/dividend';
 import { PortfolioPosition } from '../../types/market';
-import { Sparkles, Building2, TrendingUp } from 'lucide-react';
+import { Sparkles, Building2, TrendingUp, Globe } from 'lucide-react';
 
 interface DividendsMonthlyGridProps {
   year: number;
@@ -139,25 +139,27 @@ export const DividendsMonthlyGrid: React.FC<DividendsMonthlyGridProps> = ({
                 )}
               </div>
 
-              {/* Day Events Badges (Differentiated between FII and Stock) */}
+              {/* Day Events Badges (Differentiated between FII, Stock and International) */}
               <div className="flex flex-col gap-1 overflow-y-auto max-h-[80px] scrollbar-none my-1">
                 {dayEvents.slice(0, 3).map((item) => {
                   const isOwned = userPortfolioMap.has(item.symbol.toUpperCase());
                   const isFii = item.category === 'fii';
+                  const isGlobal = item.category === 'internacional';
+                  const currencyPrefix = item.currency === 'USD' ? 'US$' : 'R$';
 
                   return (
                     <div
                       key={item.id}
                       className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold flex items-center justify-between gap-1 truncate transition-all ${
                         isOwned
-                          ? isFii
-                            ? 'bg-emerald-950/80 text-emerald-200 border border-amber-400/60 shadow-sm ring-1 ring-amber-400/30'
-                            : 'bg-blue-950/80 text-sky-200 border border-amber-400/60 shadow-sm ring-1 ring-amber-400/30'
+                          ? 'bg-gradient-to-r from-amber-950/60 to-[#0F1523] text-amber-200 border border-amber-400/60 shadow-sm ring-1 ring-amber-400/30'
                           : isFii
                           ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400'
+                          : isGlobal
+                          ? 'bg-indigo-950/50 text-indigo-300 border border-indigo-500/40 hover:border-indigo-400'
                           : 'bg-sky-950/40 text-sky-300 border border-sky-500/40 hover:border-sky-400'
                       }`}
-                      title={`${isFii ? 'FII' : 'AÇÃO'}: ${item.symbol} (${item.type}) - R$ ${item.valuePerShare.toFixed(2)} / cota`}
+                      title={`${item.symbol} (${item.type}) - ${currencyPrefix} ${item.valuePerShare.toFixed(2)}`}
                     >
                       <span className="truncate flex items-center gap-1">
                         {isOwned && <span className="text-amber-400 font-black">★</span>}
@@ -165,16 +167,20 @@ export const DividendsMonthlyGrid: React.FC<DividendsMonthlyGridProps> = ({
                           <span className="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-300 font-extrabold uppercase shrink-0">
                             FII
                           </span>
+                        ) : isGlobal ? (
+                          <span className="text-[9px] px-1 rounded bg-indigo-500/20 text-indigo-300 font-extrabold uppercase shrink-0">
+                            US$
+                          </span>
                         ) : (
                           <span className="text-[9px] px-1 rounded bg-sky-500/20 text-sky-300 font-extrabold uppercase shrink-0">
-                            AÇÃO
+                            B3
                           </span>
                         )}
                         <span className="truncate">{item.symbol}</span>
                       </span>
 
                       <span className="text-[9px] shrink-0 font-mono opacity-90">
-                        R${item.valuePerShare.toFixed(2)}
+                        {currencyPrefix}{item.valuePerShare.toFixed(2)}
                       </span>
                     </div>
                   );
@@ -218,10 +224,17 @@ export const DividendsMonthlyGrid: React.FC<DividendsMonthlyGridProps> = ({
           </span>
 
           <span className="flex items-center gap-1.5">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 flex items-center gap-1">
+              <Globe size={10} /> US$
+            </span>
+            <span className="text-[#94A3B8]">Ações Globais</span>
+          </span>
+
+          <span className="flex items-center gap-1.5">
             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 flex items-center gap-1">
               <Sparkles size={10} className="fill-amber-300" /> ★
             </span>
-            <span className="text-[#94A3B8]">Ativo da Sua Carteira</span>
+            <span className="text-[#94A3B8]">Na Minha Carteira</span>
           </span>
         </div>
 

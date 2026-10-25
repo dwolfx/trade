@@ -37,8 +37,8 @@ export const DividendsMonthBar: React.FC<DividendsMonthBarProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 bg-gradient-to-r from-[#0F1523] via-[#161F33] to-[#0F1523] rounded-2xl border border-blue-500/30 shadow-lg">
-      {/* Left: Prominent Month Navigation with Arrows & Quick Pills */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Left: Prominent Month Navigation with only Arrows & Month Title */}
+      <div className="flex items-center gap-2">
         {/* Arrow Left */}
         <button
           type="button"
@@ -51,7 +51,7 @@ export const DividendsMonthBar: React.FC<DividendsMonthBarProps> = ({
         </button>
 
         {/* Big Month Title */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-blue-500/30">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0F1523] border border-blue-500/30">
           <Calendar size={16} className="text-[#60A5FA]" />
           <span className="text-base sm:text-lg font-mono font-black text-white tracking-tight">
             {currentMonthLabel}
@@ -73,27 +73,6 @@ export const DividendsMonthBar: React.FC<DividendsMonthBarProps> = ({
         >
           <ChevronRight size={18} />
         </button>
-
-        {/* Quick Month Direct Selectors */}
-        <div className="hidden md:flex items-center gap-1 pl-2 border-l border-[#1E293B]">
-          {availableMonths.map((m) => {
-            const isSelected = m.key === currentMonthKey;
-            return (
-              <button
-                key={m.key}
-                type="button"
-                onClick={() => onSelectMonth(m.key)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
-                  isSelected
-                    ? 'bg-[#2962FF] text-white shadow-sm'
-                    : 'text-[#94A3B8] hover:text-white hover:bg-[#1E293B]'
-                }`}
-              >
-                {m.label.split(' ')[0]}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Right: Event count badge & View Mode switcher */}

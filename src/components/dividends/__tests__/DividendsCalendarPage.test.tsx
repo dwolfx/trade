@@ -12,12 +12,12 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     );
 
     expect(screen.getByText(/Calendário & Mapa de Dividendos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Pinga-Pinga Mensal B3/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pinga-Pinga B3 & Internacional/i)).toBeInTheDocument();
     expect(screen.getByText(/Previsto na Carteira/i)).toBeInTheDocument();
     expect(screen.getByText(/Próximo Pinga-Pinga/i)).toBeInTheDocument();
   });
 
-  it('renders Level 1 origin filter tabs (Minha Carteira vs Todo o Mercado B3)', () => {
+  it('renders 3 Level 1 origin filter tabs (Minha Carteira, Meus Favoritos, Todo o Mercado)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -25,10 +25,11 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     );
 
     expect(screen.getByRole('button', { name: /Minha Carteira/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Todo o Mercado B3/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Meus Favoritos/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Todo o Mercado/i })).toBeInTheDocument();
   });
 
-  it('renders monthly calendar grid with week days and visual legend for FII vs Ação', () => {
+  it('renders monthly calendar grid with week days and visual legend for FII, Ação B3 and US$', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -43,6 +44,7 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     // Visual legend in footer
     expect(screen.getByText(/Fundos Imobiliários \(Rendimento Isento\)/i)).toBeInTheDocument();
     expect(screen.getByText(/Ações \/ Stocks \(Dividendo & JCP\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ações Globais/i)).toBeInTheDocument();
   });
 
   it('switches between grid (Calendário) and list (Lista / Agenda) views', () => {
@@ -60,15 +62,15 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(screen.getAllByText(/Valor por cota/i).length).toBeGreaterThan(0);
   });
 
-  it('filters by Level 1 Mercado B3 and Level 2 Sub-filtro FIIs', () => {
+  it('filters by Level 1 Todo o Mercado and Level 2 Sub-filtro FIIs', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    // 1. Switch to Todo o Mercado B3
-    const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado B3/i });
+    // 1. Switch to Todo o Mercado
+    const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado/i });
     fireEvent.click(mercadoBtn);
 
     // 2. Switch to List view
@@ -76,7 +78,7 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     fireEvent.click(listBtn);
 
     // 3. Sub-filter by FIIs
-    const fiiFilterBtn = screen.getByRole('button', { name: /Fundos Imobiliários \(FIIs\)/i });
+    const fiiFilterBtn = screen.getByRole('button', { name: /FIIs \(Imobiliários\)/i });
     fireEvent.click(fiiFilterBtn);
 
     // FIIs should be visible
@@ -88,7 +90,33 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(screen.queryByText(/\$PETR4/i)).not.toBeInTheDocument();
   });
 
-  it('filters by Minha Carteira and Sub-filtro Ações (Stocks)', () => {
+  it('filters by Level 1 Todo o Mercado and Level 2 Sub-filtro Internacionais (US$)', () => {
+    render(
+      <MarketProvider>
+        <DividendsCalendarPage onNavigate={() => {}} />
+      </MarketProvider>
+    );
+
+    const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado/i });
+    fireEvent.click(mercadoBtn);
+
+    const listBtn = screen.getByRole('button', { name: /Lista \/ Agenda/i });
+    fireEvent.click(listBtn);
+
+    const intlBtn = screen.getByRole('button', { name: /Internacionais \(US\$\)/i });
+    fireEvent.click(intlBtn);
+
+    // International stocks should be visible
+    expect(screen.getAllByText(/\$AAPL/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/\$KO/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/\$JNJ/i).length).toBeGreaterThan(0);
+
+    // Brazilian Stock or FII should not be visible in list
+    expect(screen.queryByText(/FII · Imobiliário/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Ação · B3/i)).not.toBeInTheDocument();
+  });
+
+  it('filters by Minha Carteira and Sub-filtro Ações B3', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -99,14 +127,14 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     const listBtn = screen.getByRole('button', { name: /Lista \/ Agenda/i });
     fireEvent.click(listBtn);
 
-    // Sub-filter by Ações
-    const acoesBtn = screen.getByRole('button', { name: /Ações \(Stocks\)/i });
+    // Sub-filter by Ações B3
+    const acoesBtn = screen.getByRole('button', { name: /Ações B3/i });
     fireEvent.click(acoesBtn);
 
     // PETR4 should be visible as it is owned in portfolio
     expect(screen.getAllByText(/\$PETR4/i).length).toBeGreaterThan(0);
 
-    // FII HGLG11 should not be visible in Ações sub-filter
+    // FII should not be visible in Ações sub-filter
     expect(screen.queryByText(/FII · Imobiliário/i)).not.toBeInTheDocument();
   });
 
@@ -118,7 +146,7 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     );
 
     // Select Mercado to have full pool
-    const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado B3/i });
+    const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado/i });
     fireEvent.click(mercadoBtn);
 
     const listBtn = screen.getByRole('button', { name: /Lista \/ Agenda/i });
@@ -128,7 +156,7 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     fireEvent.change(searchInput, { target: { value: 'TAEE11' } });
 
     expect(screen.getByText(/\$TAEE11/i)).toBeInTheDocument();
-    expect(screen.queryByText(/\$PETR4/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\$KO/i)).not.toBeInTheDocument();
   });
 
   it('opens order modal when clicking Operar button', async () => {

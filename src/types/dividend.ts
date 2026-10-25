@@ -1,4 +1,4 @@
-export type DividendCategory = 'acao' | 'fii';
+export type DividendCategory = 'acao' | 'fii' | 'internacional';
 export type DividendType = 'Dividendo' | 'JCP' | 'Rendimento';
 export type DividendStatus = 'previsto' | 'pago' | 'confirmado';
 
@@ -13,11 +13,13 @@ export interface DividendCalendarItem {
   dateCom: string; // ISO format "YYYY-MM-DD"
   dateComDisplay: string; // "DD/MM/YYYY"
   valuePerShare: number;
+  currency?: 'BRL' | 'USD';
+  exchange?: 'B3' | 'NYSE' | 'NASDAQ';
   yieldPercent?: number; // e.g. 1.08%
   status: DividendStatus;
   description?: string;
 }
 
-export type DividendOriginFilter = 'carteira' | 'mercado';
-export type DividendCategoryFilter = 'all' | 'fii' | 'acao' | 'datacom_aberta';
+export type DividendOriginFilter = 'carteira' | 'favoritos' | 'mercado';
+export type DividendCategoryFilter = 'all' | 'fii' | 'acao' | 'internacional' | 'datacom_aberta';
 export type DividendFilterScope = 'all' | 'carteira' | 'fii' | 'acao' | 'datacom_aberta';

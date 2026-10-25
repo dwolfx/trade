@@ -242,6 +242,57 @@ export const MOCK_DIVIDEND_CALENDAR: DividendCalendarItem[] = [
     status: 'confirmado',
     description: 'Distribuição semestral de dividendos da maior geradora privada de energia 100% renovável.'
   },
+  {
+    id: 'div-nov-us-01',
+    symbol: 'AAPL',
+    name: 'Apple Inc.',
+    category: 'internacional',
+    exchange: 'NASDAQ',
+    currency: 'USD',
+    type: 'Dividendo',
+    paymentDate: '2026-11-14',
+    paymentDateDisplay: '14/11/2026',
+    dateCom: '2026-11-07',
+    dateComDisplay: '07/11/2026',
+    valuePerShare: 0.25,
+    yieldPercent: 0.52,
+    status: 'confirmado',
+    description: 'Dividendo trimestral da Apple pago em dólar (US$) aos acionistas globais.'
+  },
+  {
+    id: 'div-nov-us-02',
+    symbol: 'KO',
+    name: 'The Coca-Cola Company',
+    category: 'internacional',
+    exchange: 'NYSE',
+    currency: 'USD',
+    type: 'Dividendo',
+    paymentDate: '2026-11-20',
+    paymentDateDisplay: '20/11/2026',
+    dateCom: '2026-11-01',
+    dateComDisplay: '01/11/2026',
+    valuePerShare: 0.485,
+    yieldPercent: 3.10,
+    status: 'confirmado',
+    description: 'Dividend King histórico com mais de 60 anos consecutivos de aumento de proventos.'
+  },
+  {
+    id: 'div-nov-us-03',
+    symbol: 'JNJ',
+    name: 'Johnson & Johnson',
+    category: 'internacional',
+    exchange: 'NYSE',
+    currency: 'USD',
+    type: 'Dividendo',
+    paymentDate: '2026-11-25',
+    paymentDateDisplay: '25/11/2026',
+    dateCom: '2026-11-15',
+    dateComDisplay: '15/11/2026',
+    valuePerShare: 1.24,
+    yieldPercent: 2.95,
+    status: 'confirmado',
+    description: 'Dividendo trimestral consolidado de gigante global farmacêutica e de saúde.'
+  },
 
   // --- DEZEMBRO 2026 (Próximo Mês / Oportunidades & Data-Com Abertas) ---
   {

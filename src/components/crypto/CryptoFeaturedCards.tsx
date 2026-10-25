@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { CryptoAsset, CryptoQuoteCurrency } from '../../types/crypto';
 import { TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 import { formatBRL } from '../../utils/formatters';
@@ -62,8 +62,8 @@ export const CryptoFeaturedCards: React.FC<CryptoFeaturedCardsProps> = ({
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base shadow-sm ${
                   asset.baseAsset === 'BTC' ? 'bg-amber-500/20 text-[#F59E0B] border border-amber-500/30' :
                   asset.baseAsset === 'ETH' ? 'bg-indigo-500/20 text-[#818CF8] border border-indigo-500/30' :
-                  asset.baseAsset === 'SOL' ? 'bg-emerald-500/20 text-[#34D399] border border-emerald-500/30' :
-                  'bg-teal-500/20 text-[#2DD4BF] border border-teal-500/30'
+                  asset.baseAsset === 'SOL' ? 'bg-sky-500/20 text-[#38BDF8] border border-sky-500/30' :
+                  'bg-blue-500/20 text-[#2DD4BF] border border-blue-500/30'
                 }`}>
                   {getCryptoIcon(asset.baseAsset)}
                 </div>
@@ -95,7 +95,7 @@ export const CryptoFeaturedCards: React.FC<CryptoFeaturedCardsProps> = ({
               <span
                 className={`flex items-center gap-1 text-xs font-bold font-mono px-2 py-0.5 rounded-lg shrink-0 ${
                   isPositive
-                    ? 'bg-emerald-500/10 text-[#10B981] border border-emerald-500/20'
+                    ? 'bg-sky-500/10 text-[#38BDF8] border border-sky-500/20'
                     : 'bg-rose-500/10 text-[#F43F5E] border border-rose-500/20'
                 }`}
               >
