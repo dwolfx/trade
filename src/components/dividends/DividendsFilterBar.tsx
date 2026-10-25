@@ -39,14 +39,13 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
   onToggleViewMode,
   counts,
 }) => {
-  const safeCounts = {
+  const safeCounts = counts || {
     total: 0,
     fii: 0,
     acao: 0,
     datacomAberta: 0,
     carteiraTotal: 0,
     mercadoTotal: 0,
-    ...(counts || {}),
   };
   const currentMonthIndex = availableMonths.findIndex((m) => m.key === currentMonthKey);
 
@@ -161,7 +160,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
               originFilter === 'carteira' ? 'bg-black/25 text-white' : 'bg-amber-500/15 text-amber-300'
             }`}>
-              {counts.carteiraTotal}
+              {safeCounts.carteiraTotal}
             </span>
           </button>
 
@@ -179,7 +178,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
               originFilter === 'mercado' ? 'bg-black/25 text-white' : 'bg-[#1E293B] text-[#94A3B8]'
             }`}>
-              {counts.mercadoTotal}
+              {safeCounts.mercadoTotal}
             </span>
           </button>
         </div>
@@ -215,7 +214,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
         >
           <span>Todos</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 text-slate-300">
-            {counts.total}
+            {safeCounts.total}
           </span>
         </button>
 
@@ -234,7 +233,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
           <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
             categoryFilter === 'fii' ? 'bg-emerald-500/30 text-emerald-200' : 'bg-black/30 text-slate-400'
           }`}>
-            {counts.fii}
+            {safeCounts.fii}
           </span>
         </button>
 
@@ -253,7 +252,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
           <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
             categoryFilter === 'acao' ? 'bg-sky-500/30 text-sky-200' : 'bg-black/30 text-slate-400'
           }`}>
-            {counts.acao}
+            {safeCounts.acao}
           </span>
         </button>
 
@@ -272,7 +271,7 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
           <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
             categoryFilter === 'datacom_aberta' ? 'bg-purple-500/30 text-purple-200' : 'bg-black/30 text-slate-400'
           }`}>
-            {counts.datacomAberta}
+            {safeCounts.datacomAberta}
           </span>
         </button>
       </div>

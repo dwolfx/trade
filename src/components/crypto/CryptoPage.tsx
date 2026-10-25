@@ -152,7 +152,9 @@ export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
         <div className="lg:col-span-8 flex flex-col gap-6 min-w-0">
           <CryptoChart
             asset={activeAsset}
+            allAssets={assets}
             quoteCurrency={quoteCurrency}
+            onSelectAsset={setActiveAsset}
           />
           <CryptoTable
             assets={assets}
