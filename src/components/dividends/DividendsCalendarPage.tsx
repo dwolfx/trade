@@ -5,6 +5,7 @@ import { DividendOriginFilter, DividendCategoryFilter } from '../../types/divide
 import { MOCK_DIVIDEND_CALENDAR } from '../../data/mockDividendData';
 import { DividendsStatsHeader } from './DividendsStatsHeader';
 import { DividendsFilterBar } from './DividendsFilterBar';
+import { DividendsMonthBar } from './DividendsMonthBar';
 import { DividendsMonthlyGrid } from './DividendsMonthlyGrid';
 import { DividendsTimelineList } from './DividendsTimelineList';
 import { DividendDayInspector } from './DividendDayInspector';
@@ -186,23 +187,28 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
         onSelectUpcoming={handleSelectUpcoming}
       />
 
-      {/* Filter and Navigation Bar with 2-level filter hierarchy */}
+      {/* Filter Bar with 2-level filter hierarchy (Origin + Sub-filter Category) */}
       <DividendsFilterBar
-        currentMonthKey={currentMonthKey}
-        availableMonths={availableMonths}
-        onSelectMonth={(key) => {
-          setCurrentMonthKey(key);
-          setSelectedDate(null);
-        }}
         originFilter={originFilter}
         onSelectOrigin={setOriginFilter}
         categoryFilter={categoryFilter}
         onSelectCategory={setCategoryFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        counts={counts}
+      />
+
+      {/* Prominent Month Selector & View Mode Bar DIRECTLY ABOVE the Calendar */}
+      <DividendsMonthBar
+        currentMonthKey={currentMonthKey}
+        availableMonths={availableMonths}
+        onSelectMonth={(key) => {
+          setCurrentMonthKey(key);
+          setSelectedDate(null);
+        }}
         viewMode={viewMode}
         onToggleViewMode={setViewMode}
-        counts={counts}
+        filteredCount={filteredItems.length}
       />
 
       {/* Main View: Grid vs List */}

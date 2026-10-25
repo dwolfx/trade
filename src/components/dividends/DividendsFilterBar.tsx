@@ -1,19 +1,14 @@
 import React from 'react';
-import { Search, X, Calendar, List, ChevronLeft, ChevronRight, Building2, TrendingUp, Sparkles, Globe, Clock } from 'lucide-react';
+import { Search, X, Building2, TrendingUp, Sparkles, Globe, Clock, Filter } from 'lucide-react';
 import { DividendOriginFilter, DividendCategoryFilter } from '../../types/dividend';
 
 interface DividendsFilterBarProps {
-  currentMonthKey: string; // e.g. "2026-11"
-  availableMonths: { key: string; label: string }[];
-  onSelectMonth: (monthKey: string) => void;
   originFilter: DividendOriginFilter;
   onSelectOrigin: (origin: DividendOriginFilter) => void;
   categoryFilter: DividendCategoryFilter;
   onSelectCategory: (category: DividendCategoryFilter) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  viewMode: 'grid' | 'list';
-  onToggleViewMode: (mode: 'grid' | 'list') => void;
   // Sub-filter counts based on current origin
   counts: {
     total: number;
@@ -26,17 +21,12 @@ interface DividendsFilterBarProps {
 }
 
 export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
-  currentMonthKey,
-  availableMonths,
-  onSelectMonth,
   originFilter,
   onSelectOrigin,
   categoryFilter,
   onSelectCategory,
   searchQuery,
   onSearchChange,
-  viewMode,
-  onToggleViewMode,
   counts,
 }) => {
   const safeCounts = counts || {
@@ -47,50 +37,51 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
     carteiraTotal: 0,
     mercadoTotal: 0,
   };
-  const currentMonthIndex = availableMonths.findIndex((m) => m.key === currentMonthKey);
-
-  const handlePrevMonth = () => {
-    if (currentMonthIndex > 0) {
-      onSelectMonth(availableMonths[currentMonthIndex - 1].key);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonthIndex < availableMonths.length - 1) {
-      onSelectMonth(availableMonths[currentMonthIndex + 1].key);
-    }
-  };
-
-  const currentMonthLabel = availableMonths[currentMonthIndex]?.label || currentMonthKey;
 
   return (
     <div className="flex flex-col gap-3.5 bg-[#0F1523] p-4 rounded-2xl border border-[#1E293B]">
-      {/* Row 1: Month Picker, Search Input & View Mode Toggle */}
-      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
-        {/* Month Selector with Arrows */}
-        <div className="flex items-center gap-1.5 bg-[#161F33] p-1 rounded-xl border border-[#1E293B] shrink-0 self-start sm:self-auto">
+      {/* Row 1: Nível 1 - Filtro Principal (Minha Carteira vs Todo Mercado B3) + Busca */}
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+        {/* Origin Level 1 Switcher */}
+        <div className="flex items-center gap-1.5 bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B] shrink-0 self-start sm:self-auto">
           <button
             type="button"
-            onClick={handlePrevMonth}
-            disabled={currentMonthIndex <= 0}
-            className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-            title="Mês anterior"
+            onClick={() => onSelectOrigin('carteira')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              originFilter === 'carteira'
+                ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-md shadow-amber-500/20 ring-1 ring-amber-400/30'
+                : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+            }`}
           >
-            <ChevronLeft size={16} />
+            <Sparkles size={13} className={originFilter === 'carteira' ? 'fill-white' : 'text-amber-400'} />
+            <span>Minha Carteira</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                originFilter === 'carteira' ? 'bg-black/25 text-white' : 'bg-amber-500/15 text-amber-300'
+              }`}
+            >
+              {safeCounts.carteiraTotal}
+            </span>
           </button>
 
-          <span className="px-3 py-1 font-mono font-bold text-xs text-white min-w-[130px] text-center tracking-wide">
-            {currentMonthLabel}
-          </span>
-
           <button
             type="button"
-            onClick={handleNextMonth}
-            disabled={currentMonthIndex >= availableMonths.length - 1}
-            className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-            title="Próximo mês"
+            onClick={() => onSelectOrigin('mercado')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              originFilter === 'mercado'
+                ? 'bg-[#2962FF] text-white shadow-md shadow-blue-500/20 ring-1 ring-blue-400/30'
+                : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+            }`}
           >
-            <ChevronRight size={16} />
+            <Globe size={13} />
+            <span>Todo o Mercado B3</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                originFilter === 'mercado' ? 'bg-black/25 text-white' : 'bg-[#1E293B] text-[#94A3B8]'
+              }`}
+            >
+              {safeCounts.mercadoTotal}
+            </span>
           </button>
         </div>
 
@@ -113,167 +104,107 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             </button>
           )}
         </div>
-
-        {/* Grid vs List View Mode Switcher */}
-        <div className="flex items-center gap-1 bg-[#161F33] p-1 rounded-xl border border-[#1E293B] shrink-0 self-end lg:self-auto">
-          <button
-            type="button"
-            onClick={() => onToggleViewMode('grid')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              viewMode === 'grid'
-                ? 'bg-[#2962FF] text-white shadow-md shadow-blue-500/20'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E293B]'
-            }`}
-          >
-            <Calendar size={13} />
-            <span>Calendário</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onToggleViewMode('list')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              viewMode === 'list'
-                ? 'bg-[#2962FF] text-white shadow-md shadow-blue-500/20'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E293B]'
-            }`}
-          >
-            <List size={13} />
-            <span>Lista / Agenda</span>
-          </button>
-        </div>
       </div>
 
-      {/* Row 2: Nível 1 - Filtro Principal (Minha Carteira vs Todo Mercado B3) */}
-      <div className="pt-2 border-t border-[#1E293B]/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B] shrink-0">
+      {/* Row 2: Nível 2 - Sub-filtros por Classe de Ativo */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-[#1E293B]/60">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <span className="text-[11px] font-mono font-semibold text-[#64748B] shrink-0 mr-1 uppercase flex items-center gap-1">
+            <Filter size={11} />
+            Sub-filtro:
+          </span>
+
+          {/* Todos */}
           <button
             type="button"
-            onClick={() => onSelectOrigin('carteira')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              originFilter === 'carteira'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-md shadow-amber-500/20 ring-1 ring-amber-400/30'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+            onClick={() => onSelectCategory('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
+              categoryFilter === 'all'
+                ? 'bg-[#1E293B] text-white border border-slate-600 shadow-sm'
+                : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
             }`}
           >
-            <Sparkles size={13} className={originFilter === 'carteira' ? 'fill-white' : 'text-amber-400'} />
-            <span>Minha Carteira</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-              originFilter === 'carteira' ? 'bg-black/25 text-white' : 'bg-amber-500/15 text-amber-300'
-            }`}>
-              {safeCounts.carteiraTotal}
+            <span>Todos</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 text-slate-300">
+              {safeCounts.total}
             </span>
           </button>
 
+          {/* Sub-filtro FIIs */}
           <button
             type="button"
-            onClick={() => onSelectOrigin('mercado')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              originFilter === 'mercado'
-                ? 'bg-[#2962FF] text-white shadow-md shadow-blue-500/20 ring-1 ring-blue-400/30'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+            onClick={() => onSelectCategory('fii')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
+              categoryFilter === 'fii'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/20'
+                : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
             }`}
           >
-            <Globe size={13} />
-            <span>Todo o Mercado B3</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-              originFilter === 'mercado' ? 'bg-black/25 text-white' : 'bg-[#1E293B] text-[#94A3B8]'
-            }`}>
-              {safeCounts.mercadoTotal}
+            <Building2 size={12} className={categoryFilter === 'fii' ? 'text-emerald-300' : 'text-[#64748B]'} />
+            <span>Fundos Imobiliários (FIIs)</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                categoryFilter === 'fii' ? 'bg-emerald-500/30 text-emerald-200' : 'bg-black/30 text-slate-400'
+              }`}
+            >
+              {safeCounts.fii}
+            </span>
+          </button>
+
+          {/* Sub-filtro Ações */}
+          <button
+            type="button"
+            onClick={() => onSelectCategory('acao')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
+              categoryFilter === 'acao'
+                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm ring-1 ring-sky-500/20'
+                : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
+            }`}
+          >
+            <TrendingUp size={12} className={categoryFilter === 'acao' ? 'text-sky-300' : 'text-[#64748B]'} />
+            <span>Ações (Stocks)</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                categoryFilter === 'acao' ? 'bg-sky-500/30 text-sky-200' : 'bg-black/30 text-slate-400'
+              }`}
+            >
+              {safeCounts.acao}
+            </span>
+          </button>
+
+          {/* Sub-filtro Data-COM Aberta */}
+          <button
+            type="button"
+            onClick={() => onSelectCategory('datacom_aberta')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
+              categoryFilter === 'datacom_aberta'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm ring-1 ring-purple-500/20'
+                : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
+            }`}
+          >
+            <Clock size={12} className={categoryFilter === 'datacom_aberta' ? 'text-purple-300' : 'text-[#64748B]'} />
+            <span>Data-COM Aberta</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                categoryFilter === 'datacom_aberta' ? 'bg-purple-500/30 text-purple-200' : 'bg-black/30 text-slate-400'
+              }`}
+            >
+              {safeCounts.datacomAberta}
             </span>
           </button>
         </div>
 
         {/* Legend Hint */}
-        <div className="flex items-center gap-3 text-[11px] font-mono text-[#64748B]">
+        <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono text-[#64748B] shrink-0">
           <span className="flex items-center gap-1 text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            FII (Imobiliário)
+            FII (Verde)
           </span>
           <span className="flex items-center gap-1 text-[#60A5FA]">
             <span className="w-2 h-2 rounded-full bg-[#60A5FA]" />
-            Ação (Stock)
+            Ação (Azul)
           </span>
         </div>
-      </div>
-
-      {/* Row 3: Nível 2 - Sub-filtros por Classe de Ativo */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
-        <span className="text-[11px] font-mono font-semibold text-[#64748B] shrink-0 mr-1 uppercase">
-          Sub-filtro:
-        </span>
-
-        {/* Todos */}
-        <button
-          type="button"
-          onClick={() => onSelectCategory('all')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
-            categoryFilter === 'all'
-              ? 'bg-[#1E293B] text-white border border-slate-600 shadow-sm'
-              : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
-          }`}
-        >
-          <span>Todos</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 text-slate-300">
-            {safeCounts.total}
-          </span>
-        </button>
-
-        {/* Sub-filtro FIIs */}
-        <button
-          type="button"
-          onClick={() => onSelectCategory('fii')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
-            categoryFilter === 'fii'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/20'
-              : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
-          }`}
-        >
-          <Building2 size={12} className={categoryFilter === 'fii' ? 'text-emerald-300' : 'text-[#64748B]'} />
-          <span>Fundos Imobiliários (FIIs)</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-            categoryFilter === 'fii' ? 'bg-emerald-500/30 text-emerald-200' : 'bg-black/30 text-slate-400'
-          }`}>
-            {safeCounts.fii}
-          </span>
-        </button>
-
-        {/* Sub-filtro Ações */}
-        <button
-          type="button"
-          onClick={() => onSelectCategory('acao')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
-            categoryFilter === 'acao'
-              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm ring-1 ring-sky-500/20'
-              : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
-          }`}
-        >
-          <TrendingUp size={12} className={categoryFilter === 'acao' ? 'text-sky-300' : 'text-[#64748B]'} />
-          <span>Ações (Stocks)</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-            categoryFilter === 'acao' ? 'bg-sky-500/30 text-sky-200' : 'bg-black/30 text-slate-400'
-          }`}>
-            {safeCounts.acao}
-          </span>
-        </button>
-
-        {/* Sub-filtro Data-COM Aberta */}
-        <button
-          type="button"
-          onClick={() => onSelectCategory('datacom_aberta')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
-            categoryFilter === 'datacom_aberta'
-              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm ring-1 ring-purple-500/20'
-              : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
-          }`}
-        >
-          <Clock size={12} className={categoryFilter === 'datacom_aberta' ? 'text-purple-300' : 'text-[#64748B]'} />
-          <span>Data-COM Aberta</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-            categoryFilter === 'datacom_aberta' ? 'bg-purple-500/30 text-purple-200' : 'bg-black/30 text-slate-400'
-          }`}>
-            {safeCounts.datacomAberta}
-          </span>
-        </button>
       </div>
     </div>
   );

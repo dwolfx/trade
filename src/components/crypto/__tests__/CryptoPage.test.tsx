@@ -81,4 +81,24 @@ describe('CryptoPage Functional Tests', () => {
       expect(screen.getAllByText('SOL').length).toBeGreaterThan(0);
     });
   });
+
+  it('should toggle multi-chart 2x2 mode and render 4 quadrants', async () => {
+    render(
+      <MarketProvider>
+        <CryptoPage />
+      </MarketProvider>
+    );
+
+    const multiBtn = screen.getByRole('button', { name: /Multi-Gráfico \(2×2\)/i });
+    expect(multiBtn).toBeInTheDocument();
+
+    fireEvent.click(multiBtn);
+
+    // After clicking, button says '1 Gráfico' and 4 slots are visible
+    expect(screen.getByText('1 Gráfico')).toBeInTheDocument();
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('#2')).toBeInTheDocument();
+    expect(screen.getByText('#3')).toBeInTheDocument();
+    expect(screen.getByText('#4')).toBeInTheDocument();
+  });
 });
