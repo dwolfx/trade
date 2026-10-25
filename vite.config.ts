@@ -16,6 +16,11 @@ export default defineConfig({
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
+      },
+      '/api/binance': {
+        target: 'https://api.binance.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/binance/, '')
       }
     }
   }

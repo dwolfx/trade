@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useMarket } from '../context/MarketContext';
 import {
   Eye,
@@ -13,8 +13,14 @@ import {
   Zap,
   Coins,
   CalendarDays,
+  User,
+  Link2,
+  ShieldCheck,
+  ChevronDown,
 } from 'lucide-react';
 import { ActiveNav } from '../types/market';
+import { SettingsModal } from './settings/SettingsModal';
+import { SettingsTab } from '../types/settings';
 
 interface HeaderTopbarProps {
   activeNav: ActiveNav;
@@ -39,7 +45,21 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab>('perfil');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const currentBalance = mode === 'DEMO' ? demoBalance : liveBalance;
 
@@ -262,7 +282,10 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
 
           {/* Settings Icon (Desktop >= lg) */}
           <button
-            onClick={() => setShowSettingsModal(true)}
+            onClick={() => {
+              setSettingsInitialTab('terminal');
+              setShowSettingsModal(true);
+            }}
             className="hidden lg:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F1523] border border-[#1E293B] hover:bg-[#161F33] text-[#94A3B8] hover:text-white items-center justify-center transition-colors"
             title="Configurações do Terminal"
           >
@@ -270,19 +293,141 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
           </button>
 
           {/* Avatar Victor Hugo (Desktop >= sm) */}
-          <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[#1E293B]">
-            <div
-              onClick={() => setShowSettingsModal(true)}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#2962FF] to-[#3B82F6] flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow-md cursor-pointer relative group"
-              title="Perfil Victor Hugo"
+          <div ref={userMenuRef} className="hidden sm:flex items-center gap-2 pl-2 border-l border-[#1E293B] relative">
+            <button
+              type="button"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-[#161F33] transition-colors cursor-pointer group"
+              title="Menu Victor Hugo"
+              aria-expanded={isUserMenuOpen}
             >
-              <span>VH</span>
-              <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-[#0B0F19] rounded-full transition-colors ${
-                  mode === 'DEMO' ? 'bg-[#F59E0B]' : 'bg-[#38BDF8]'
+              <div
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#2962FF] to-[#3B82F6] flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow-md relative"
+              >
+                <span>VH</span>
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-[#0B0F19] rounded-full transition-colors ${
+                    mode === 'DEMO' ? 'bg-[#F59E0B]' : 'bg-[#38BDF8]'
+                  }`}
+                />
+              </div>
+              <ChevronDown
+                size={14}
+                className={`text-[#94A3B8] transition-transform duration-200 ${
+                  isUserMenuOpen ? 'rotate-180 text-white' : 'group-hover:text-white'
                 }`}
-              ></span>
-            </div>
+              />
+            </button>
+
+            {/* User Dropdown Menu */}
+            {isUserMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-72 bg-[#0F1523] border border-[#1E293B] rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-top-2">
+                {/* Header User Card */}
+                <div className="p-3 bg-[#141C2E] rounded-xl border border-[#1E293B] mb-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">Victor Hugo</span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-blue-500/20 text-[#60A5FA] border border-blue-500/30">
+                      PRO TRADER
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-[#94A3B8] block truncate mt-0.5">
+                    victor9009@gmail.com
+                  </span>
+                  <div className="mt-2 pt-2 border-t border-[#1E293B]/60 flex items-center justify-between text-[10px]">
+                    <span className="text-[#64748B]">Ambiente Ativo:</span>
+                    <span
+                      className={
+                        mode === 'DEMO' ? 'text-amber-400 font-bold' : 'text-[#38BDF8] font-bold'
+                      }
+                    >
+                      Conta {mode}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dropdown Options */}
+                <div className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsInitialTab('perfil');
+                      setShowSettingsModal(true);
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white hover:bg-[#1E293B] transition-colors text-left"
+                  >
+                    <User size={15} className="text-[#60A5FA]" />
+                    <span>Meu Perfil & Documentos</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsInitialTab('conexoes');
+                      setShowSettingsModal(true);
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white hover:bg-[#1E293B] transition-colors text-left"
+                  >
+                    <Link2 size={15} className="text-[#38BDF8]" />
+                    <div className="flex-1 flex items-center justify-between">
+                      <span>Conectar Contas (B3/Cripto)</span>
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-blue-500/20 text-[#60A5FA] rounded">
+                        Open Finance
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsInitialTab('seguranca');
+                      setShowSettingsModal(true);
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white hover:bg-[#1E293B] transition-colors text-left"
+                  >
+                    <ShieldCheck size={15} className="text-[#A78BFA]" />
+                    <span>Segurança & Senha</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsInitialTab('terminal');
+                      setShowSettingsModal(true);
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white hover:bg-[#1E293B] transition-colors text-left"
+                  >
+                    <Settings size={15} className="text-[#F59E0B]" />
+                    <span>Preferências do Terminal</span>
+                  </button>
+                </div>
+
+                {/* Divider */}
+                <div className="my-1.5 border-t border-[#1E293B]" />
+
+                {/* Quick Switch Mode */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode(mode === 'DEMO' ? 'LIVE' : 'DEMO');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white hover:bg-[#1E293B] transition-colors text-left"
+                >
+                  <span>Mudar para {mode === 'DEMO' ? 'LIVE' : 'DEMO'}</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                      mode === 'DEMO' ? 'text-[#38BDF8] bg-sky-500/10' : 'text-[#F59E0B] bg-amber-500/10'
+                    }`}
+                  >
+                    {mode === 'DEMO' ? 'CONTA REAL' : 'SIMULADOR'}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Hamburger Menu Button (< xl) */}
@@ -319,8 +464,16 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
 
             {/* User Profile Header in Drawer */}
             <div className="flex items-center justify-between pb-4 border-b border-[#1E293B]">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#2962FF] to-[#3B82F6] flex items-center justify-center font-bold text-white text-base shadow-md relative">
+              <div
+                onClick={() => {
+                  setSettingsInitialTab('perfil');
+                  setShowSettingsModal(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 cursor-pointer group"
+                title="Abrir Perfil e Configurações"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#2962FF] to-[#3B82F6] flex items-center justify-center font-bold text-white text-base shadow-md relative group-hover:scale-105 transition-transform">
                   <span>VH</span>
                   <span
                     className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#0B0F19] rounded-full ${
@@ -329,7 +482,10 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
                   />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">Victor Hugo</div>
+                  <div className="text-sm font-bold text-white group-hover:text-[#60A5FA] transition-colors flex items-center gap-1.5">
+                    <span>Victor Hugo</span>
+                    <span className="text-[10px] text-[#60A5FA]">⚙</span>
+                  </div>
                   <div className="text-[11px] text-[#94A3B8] flex items-center gap-1.5">
                     <span>Product Designer</span>
                     <span>•</span>
@@ -572,52 +728,11 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
       )}
 
       {/* Settings Modal (Global) */}
-      {showSettingsModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-[#1E293B]">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Settings size={18} className="text-[#60A5FA]" /> Configurações do TradeCraft
-              </h3>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="text-[#94A3B8] hover:text-white text-lg font-bold"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="py-4 space-y-4 text-left text-sm">
-              <div>
-                <label className="text-xs text-[#94A3B8] block mb-1">Ambiente de Operação</label>
-                <div className="p-3 bg-[#141C2E] rounded-xl border border-[#1E293B] text-xs text-[#F8FAFC]">
-                  Modo Atual: <strong className="text-white">{mode}</strong> (Simulador Realista B3 com Emolumentos)
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-[#94A3B8] block mb-1">Corretagem & Emolumentos</label>
-                <div className="p-3 bg-[#141C2E] rounded-xl border border-[#1E293B] text-xs text-[#94A3B8]">
-                  Emolumentos B3: <span className="text-white font-mono">0,030%</span> | Corretagem TradeCraft: <span className="text-[#38BDF8] font-bold">ZERO</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-[#94A3B8] block mb-1">Co-Piloto Maya IA</label>
-                <div className="p-3 bg-[#141C2E] rounded-xl border border-[#1E293B] flex items-center justify-between text-xs text-white">
-                  <span>Alertas Inteligentes de Rompimento</span>
-                  <span className="text-[#38BDF8] font-bold">ATIVO</span>
-                </div>
-              </div>
-            </div>
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="px-4 py-2 bg-[#2962FF] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl transition-all"
-              >
-                Salvar e Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        initialTab={settingsInitialTab}
+      />
     </>
   );
 };

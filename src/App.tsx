@@ -9,10 +9,11 @@ import { PositionsDrawer } from './components/PositionsDrawer';
 import { OrderModal } from './components/order/OrderModal';
 import { PortfolioPage } from './components/portfolio/PortfolioPage';
 import { NewsPage } from './components/news/NewsPage';
+import { CryptoPage } from './components/crypto/CryptoPage';
+import { DividendsCalendarPage } from './components/dividends/DividendsCalendarPage';
 import { useMarket } from './context/MarketContext';
 import { useNavigationRouter } from './hooks/useNavigationRouter';
 import {
-  Coins,
   CalendarDays,
   Zap,
   CheckCircle2,
@@ -183,42 +184,14 @@ export const AppContent: React.FC = () => {
           </div>
         )}
 
-        {/* Cripto Global */}
+        {/* Cripto 24/7 Global */}
         {activeNav === 'cripto' && (
-          <div className="max-w-4xl mx-auto w-full py-12 text-center flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-3xl bg-[#161F33] border border-[#1E293B] flex items-center justify-center text-purple-400">
-              <Coins size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-white">Criptoativos 24/7 (Fase 4)</h2>
-            <p className="text-sm text-[#94A3B8] max-w-lg">
-              BTC, ETH, SOL e pares em Reais (BRL) com livro unificado e custódia segura multi-assinada.
-            </p>
-            <button
-              onClick={() => setActiveNav('bolsa')}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-[#2962FF] text-white font-bold text-xs"
-            >
-              Voltar para Bolsa de Valores
-            </button>
-          </div>
+          <CryptoPage onNavigate={setActiveNav} />
         )}
 
-        {/* Dividendos Preview */}
+        {/* Calendário & Mapa de Dividendos */}
         {activeNav === 'dividendos' && (
-          <div className="max-w-4xl mx-auto w-full py-12 text-center flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-3xl bg-[#161F33] border border-[#1E293B] flex items-center justify-center text-[#38BDF8]">
-              <CalendarDays size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-white">Calendário & Mapa de Calor de Dividendos (Fase 2)</h2>
-            <p className="text-sm text-[#94A3B8] max-w-lg">
-              Previsão mensal e anual de todos os seus proventos, cálculo de Yield on Cost (YoC) e Auto-Reinvestimento Bola de Neve.
-            </p>
-            <button
-              onClick={() => setActiveNav('bolsa')}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-[#2962FF] text-white font-bold text-xs"
-            >
-              Voltar para Bolsa de Valores
-            </button>
-          </div>
+          <DividendsCalendarPage onNavigate={setActiveNav} />
         )}
       </main>
 
