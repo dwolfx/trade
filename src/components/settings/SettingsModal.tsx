@@ -74,7 +74,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       label: 'Conectar Contas',
       description: 'B3, Cripto & Bolsas Globais',
       icon: Link2,
-      badge: `${connectedAccountsCount} ativas`,
+      badge: connectedAccountsCount > 0 ? `${connectedAccountsCount} ativas` : undefined,
     },
     {
       id: 'seguranca' as SettingsTab,

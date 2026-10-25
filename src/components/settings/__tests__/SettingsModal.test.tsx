@@ -15,8 +15,8 @@ describe('SettingsModal Integration & Tab Navigation', () => {
     // Click on "Conectar Contas" tab
     const conexoesBtns = screen.getAllByRole('button', { name: /Conectar Contas/i });
     fireEvent.click(conexoesBtns[0]);
-    expect(screen.getByText('Conexões Criptografadas & Open Finance')).toBeInTheDocument();
-    expect(screen.getByText('Open Finance B3 (Bolsa Oficial)')).toBeInTheDocument();
+    expect(screen.getByText('Central de Conexões Financeiras')).toBeInTheDocument();
+    expect(screen.getByText('Área do Investidor B3')).toBeInTheDocument();
 
     // Click on "Segurança & Acesso" tab
     const segurancaBtns = screen.getAllByRole('button', { name: /Segurança & Acesso/i });

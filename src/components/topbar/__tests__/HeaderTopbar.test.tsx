@@ -130,6 +130,6 @@ describe('HeaderTopbar Functional Tests', () => {
 
     // Modal opened
     expect(screen.getByText('Central de Configurações & Administração')).toBeInTheDocument();
-    expect(screen.getByText('Conexões Criptografadas & Open Finance')).toBeInTheDocument();
+    expect(screen.getByText('Central de Conexões Financeiras')).toBeInTheDocument();
   });
 });

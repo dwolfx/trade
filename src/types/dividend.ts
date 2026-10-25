@@ -18,4 +18,6 @@ export interface DividendCalendarItem {
   description?: string;
 }
 
+export type DividendOriginFilter = 'carteira' | 'mercado';
+export type DividendCategoryFilter = 'all' | 'fii' | 'acao' | 'datacom_aberta';
 export type DividendFilterScope = 'all' | 'carteira' | 'fii' | 'acao' | 'datacom_aberta';

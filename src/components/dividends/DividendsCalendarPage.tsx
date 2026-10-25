@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMarket } from '../../context/MarketContext';
 import { ActiveNav } from '../../types/market';
-import { DividendFilterScope } from '../../types/dividend';
+import { DividendOriginFilter, DividendCategoryFilter } from '../../types/dividend';
 import { MOCK_DIVIDEND_CALENDAR } from '../../data/mockDividendData';
 import { DividendsStatsHeader } from './DividendsStatsHeader';
 import { DividendsFilterBar } from './DividendsFilterBar';
@@ -19,7 +19,7 @@ interface DividendsCalendarPageProps {
 export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ onNavigate }) => {
   const { portfolio, selectOrCreateAsset } = useMarket();
 
-  // Selected month
+  // Selected month options
   const availableMonths = useMemo(
     () => [
       { key: '2026-10', label: 'Outubro 2026' },
@@ -30,7 +30,10 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
   );
 
   const [currentMonthKey, setCurrentMonthKey] = useState<string>('2026-11');
-  const [scope, setScope] = useState<DividendFilterScope>('all');
+  // Level 1: Scope filter (Minha Carteira vs Todo o Mercado B3)
+  const [originFilter, setOriginFilter] = useState<DividendOriginFilter>('carteira');
+  // Level 2: Category sub-filter (Todos vs FIIs vs Ações vs Data-COM Aberta)
+  const [categoryFilter, setCategoryFilter] = useState<DividendCategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -59,32 +62,52 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
     return availableMonths.find((m) => m.key === currentMonthKey)?.label || currentMonthKey;
   }, [availableMonths, currentMonthKey]);
 
-  // All items for the selected month (unfiltered, used by stats header)
+  // All items for the selected month (unfiltered)
   const monthAllItems = useMemo(() => {
     return MOCK_DIVIDEND_CALENDAR.filter((item) => item.paymentDate.startsWith(currentMonthKey));
   }, [currentMonthKey]);
 
-  // Filtered items based on scope and search
+  const todayStr = '2026-10-25'; // simulated anchor date
+
+  // Compute sub-filter counts dynamically based on active originFilter
+  const counts = useMemo(() => {
+    const carteiraItems = monthAllItems.filter((item) =>
+      userPortfolioMap.has(item.symbol.toUpperCase())
+    );
+    const pool = originFilter === 'carteira' ? carteiraItems : monthAllItems;
+
+    return {
+      carteiraTotal: carteiraItems.length,
+      mercadoTotal: monthAllItems.length,
+      total: pool.length,
+      fii: pool.filter((item) => item.category === 'fii').length,
+      acao: pool.filter((item) => item.category === 'acao').length,
+      datacomAberta: pool.filter((item) => item.dateCom >= todayStr).length,
+    };
+  }, [monthAllItems, originFilter, userPortfolioMap]);
+
+  // Filtered items based on origin, category sub-filter, and search
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    const todayStr = '2026-10-25'; // simulated anchor date
 
     return monthAllItems.filter((item) => {
-      // Scope filter
-      if (scope === 'carteira' && !userPortfolioMap.has(item.symbol.toUpperCase())) {
-        return false;
-      }
-      if (scope === 'fii' && item.category !== 'fii') {
-        return false;
-      }
-      if (scope === 'acao' && item.category !== 'acao') {
-        return false;
-      }
-      if (scope === 'datacom_aberta' && item.dateCom < todayStr) {
+      // 1. Level 1 Origin Filter
+      if (originFilter === 'carteira' && !userPortfolioMap.has(item.symbol.toUpperCase())) {
         return false;
       }
 
-      // Search query
+      // 2. Level 2 Category Sub-filter
+      if (categoryFilter === 'fii' && item.category !== 'fii') {
+        return false;
+      }
+      if (categoryFilter === 'acao' && item.category !== 'acao') {
+        return false;
+      }
+      if (categoryFilter === 'datacom_aberta' && item.dateCom < todayStr) {
+        return false;
+      }
+
+      // 3. Search query
       if (query) {
         const inSymbol = item.symbol.toLowerCase().includes(query);
         const inName = item.name.toLowerCase().includes(query);
@@ -93,7 +116,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
 
       return true;
     });
-  }, [monthAllItems, scope, searchQuery, userPortfolioMap]);
+  }, [monthAllItems, originFilter, categoryFilter, searchQuery, userPortfolioMap]);
 
   // Handlers
   const handleOpenOrder = async (symbol: string) => {
@@ -163,7 +186,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
         onSelectUpcoming={handleSelectUpcoming}
       />
 
-      {/* Filter and Navigation Bar */}
+      {/* Filter and Navigation Bar with 2-level filter hierarchy */}
       <DividendsFilterBar
         currentMonthKey={currentMonthKey}
         availableMonths={availableMonths}
@@ -171,13 +194,15 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
           setCurrentMonthKey(key);
           setSelectedDate(null);
         }}
-        scope={scope}
-        onSelectScope={setScope}
+        originFilter={originFilter}
+        onSelectOrigin={setOriginFilter}
+        categoryFilter={categoryFilter}
+        onSelectCategory={setCategoryFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         viewMode={viewMode}
         onToggleViewMode={setViewMode}
-        userPortfolioCount={userPortfolioMap.size}
+        counts={counts}
       />
 
       {/* Main View: Grid vs List */}
@@ -190,7 +215,6 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
             userPortfolioMap={userPortfolioMap}
             selectedDate={selectedDate}
             onSelectDate={(dateStr) => setSelectedDate(dateStr)}
-            
           />
 
           {/* Selected Day Inspector */}

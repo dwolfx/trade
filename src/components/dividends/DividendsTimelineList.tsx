@@ -29,7 +29,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
         <Calendar size={36} className="text-[#64748B]" />
         <h3 className="text-base font-bold text-white">Nenhum provento encontrado</h3>
         <p className="text-xs text-[#94A3B8] max-w-md">
-          Não encontramos nenhum dividendo ou rendimento para os filtros selecionados neste mês. Tente alterar o mês ou o termo de busca.
+          Não encontramos nenhum dividendo ou rendimento para o filtro e sub-filtro selecionados neste mês. Tente alternar para "Todo o Mercado B3" ou limpar a busca.
         </p>
       </div>
     );
@@ -42,24 +42,33 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
         const userPosition = userPortfolioMap.get(item.symbol.toUpperCase());
         const userQty = userPosition ? userPosition.quantity : 0;
         const userTotal = userQty * item.valuePerShare;
+        const isFii = item.category === 'fii';
 
         return (
           <div
             key={item.id}
             className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
               isOwned
-                ? 'bg-gradient-to-r from-blue-950/30 via-[#0F1523] to-[#161F33] border-blue-500/40 shadow-lg shadow-blue-950/20'
-                : 'bg-[#0F1523] hover:bg-[#131A2D] border-[#1E293B]'
+                ? 'bg-gradient-to-r from-amber-950/20 via-[#0F1523] to-[#161F33] border-amber-500/50 shadow-lg shadow-amber-950/15'
+                : isFii
+                ? 'bg-[#0F1523] hover:bg-[#121B24] border-emerald-500/30 hover:border-emerald-500/60'
+                : 'bg-[#0F1523] hover:bg-[#131A2D] border-blue-500/25 hover:border-blue-500/50'
             }`}
           >
             {/* Left: Date Badge + Info */}
             <div className="flex items-start sm:items-center gap-3.5">
               {/* Payment Date Box */}
-              <div className="w-14 h-14 rounded-xl bg-[#161F33] border border-[#1E293B] flex flex-col items-center justify-center shrink-0">
-                <span className="text-[10px] font-mono uppercase font-bold text-[#64748B]">
+              <div
+                className={`w-14 h-14 rounded-xl border flex flex-col items-center justify-center shrink-0 ${
+                  isFii
+                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                    : 'bg-blue-950/40 border-blue-500/40 text-sky-300'
+                }`}
+              >
+                <span className="text-[10px] font-mono uppercase font-bold opacity-80">
                   {new Date(item.paymentDate + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short' })}
                 </span>
-                <span className="text-lg font-mono font-black text-white leading-none">
+                <span className="text-lg font-mono font-black leading-none">
                   {item.paymentDate.split('-')[2]}
                 </span>
               </div>
@@ -74,16 +83,16 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                     <span>${item.symbol}</span>
                   </button>
 
-                  {/* Category Pill */}
+                  {/* Distinct Category Tag: FII vs Stock */}
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                      item.category === 'fii'
-                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                        : 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider ${
+                      isFii
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                        : 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm'
                     }`}
                   >
-                    {item.category === 'fii' ? <Building2 size={11} /> : <TrendingUp size={11} />}
-                    {item.category === 'fii' ? 'FII' : 'Ação'}
+                    {isFii ? <Building2 size={12} /> : <TrendingUp size={12} />}
+                    {isFii ? 'FII · Imobiliário' : 'Stock · Ação B3'}
                   </span>
 
                   {/* Type */}
@@ -101,23 +110,15 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                         : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                     }`}
                   >
-                    {item.status === 'pago' ? (
-                      <CheckCircle2 size={11} />
-                    ) : (
-                      <Clock size={11} />
-                    )}
-                    {item.status === 'pago'
-                      ? 'Pago'
-                      : item.status === 'confirmado'
-                      ? 'Confirmado'
-                      : 'Previsto'}
+                    {item.status === 'pago' ? <CheckCircle2 size={11} /> : <Clock size={11} />}
+                    {item.status === 'pago' ? 'Pago' : item.status === 'confirmado' ? 'Confirmado' : 'Previsto'}
                   </span>
 
                   {/* Star Owned Badge */}
                   {isOwned && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm animate-pulse">
                       <Sparkles size={11} className="fill-amber-300" />
-                      Em Carteira ({userQty} cotas)
+                      ★ Em Carteira ({userQty} cotas)
                     </span>
                   )}
                 </div>
@@ -138,7 +139,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                   {item.yieldPercent && (
                     <>
                       <span>·</span>
-                      <span className="text-emerald-400">DY: {item.yieldPercent.toFixed(2)}%</span>
+                      <span className="text-emerald-400 font-bold">DY: {item.yieldPercent.toFixed(2)}%</span>
                     </>
                   )}
                 </div>
@@ -157,7 +158,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                 </span>
 
                 {isOwned ? (
-                  <span className="text-xs font-mono font-bold text-emerald-400 block mt-0.5">
+                  <span className="text-xs font-mono font-bold text-amber-300 block mt-0.5">
                     Você recebe: R$ {userTotal.toFixed(2)}
                   </span>
                 ) : (
@@ -171,7 +172,11 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenOrder(item.symbol)}
-                className="px-3.5 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-white font-mono font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
+                className={`px-3.5 py-2 rounded-xl text-white font-mono font-bold text-xs shadow-md flex items-center gap-1.5 active:scale-95 transition-all shrink-0 ${
+                  isFii
+                    ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
+                    : 'bg-[#2962FF] hover:bg-[#1D4ED8] shadow-blue-500/20'
+                }`}
                 title={`Abrir boleta de negociação para ${item.symbol}`}
               >
                 <Zap size={13} className="fill-white text-white" />
