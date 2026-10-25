@@ -154,7 +154,7 @@ export const DividendsMonthlyGrid: React.FC<DividendsMonthlyGridProps> = ({
                         isOwned
                           ? 'bg-gradient-to-r from-amber-950/60 to-[#0F1523] text-amber-200 border border-amber-400/60 shadow-sm ring-1 ring-amber-400/30'
                           : isFii
-                          ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400'
+                          ? 'bg-purple-950/60 text-purple-300 border border-purple-500/40 hover:border-purple-400'
                           : isGlobal
                           ? 'bg-indigo-950/50 text-indigo-300 border border-indigo-500/40 hover:border-indigo-400'
                           : 'bg-sky-950/40 text-sky-300 border border-sky-500/40 hover:border-sky-400'
@@ -164,7 +164,7 @@ export const DividendsMonthlyGrid: React.FC<DividendsMonthlyGridProps> = ({
                       <span className="truncate flex items-center gap-1">
                         {isOwned && <span className="text-amber-400 font-black">★</span>}
                         {isFii ? (
-                          <span className="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-300 font-extrabold uppercase shrink-0">
+                          <span className="text-[9px] px-1 rounded bg-purple-500/20 text-purple-300 font-extrabold uppercase shrink-0">
                             FII
                           </span>
                         ) : isGlobal ? (
@@ -210,7 +210,7 @@ export const DividendsMonthlyGrid: React.FC<DividendsMonthlyGridProps> = ({
       <div className="p-3 bg-[#161F33]/60 border-t border-[#1E293B] flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-[#94A3B8]">
         <div className="flex items-center gap-4 flex-wrap">
           <span className="flex items-center gap-1.5">
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center gap-1">
               <Building2 size={10} /> FII
             </span>
             <span className="text-[#94A3B8]">Fundos Imobiliários (Rendimento Isento)</span>

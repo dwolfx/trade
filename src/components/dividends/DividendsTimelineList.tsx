@@ -53,7 +53,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
               isOwned
                 ? 'bg-gradient-to-r from-amber-950/20 via-[#0F1523] to-[#161F33] border-amber-500/50 shadow-lg shadow-amber-950/15'
                 : isFii
-                ? 'bg-[#0F1523] hover:bg-[#121B24] border-emerald-500/30 hover:border-emerald-500/60'
+                ? 'bg-[#0F1523] hover:bg-[#18112C] border-purple-500/30 hover:border-purple-500/60'
                 : isGlobal
                 ? 'bg-[#0F1523] hover:bg-[#17162C] border-indigo-500/30 hover:border-indigo-500/60'
                 : 'bg-[#0F1523] hover:bg-[#131A2D] border-blue-500/25 hover:border-blue-500/50'
@@ -65,7 +65,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
               <div
                 className={`w-14 h-14 rounded-xl border flex flex-col items-center justify-center shrink-0 ${
                   isFii
-                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                    ? 'bg-purple-950/40 border-purple-500/40 text-purple-300'
                     : isGlobal
                     ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300'
                     : 'bg-blue-950/40 border-blue-500/40 text-sky-300'
@@ -93,7 +93,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider ${
                       isFii
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-sm'
                         : isGlobal
                         ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/50 shadow-sm'
                         : 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm'
@@ -120,7 +120,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                       item.status === 'pago'
                         ? 'bg-slate-500/15 text-slate-400 border border-slate-500/20'
                         : item.status === 'confirmado'
-                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
                         : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                     }`}
                   >
@@ -153,7 +153,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                   {item.yieldPercent && (
                     <>
                       <span>·</span>
-                      <span className="text-emerald-400 font-bold">DY: {item.yieldPercent.toFixed(2)}%</span>
+                      <span className="text-sky-400 font-bold">DY: {item.yieldPercent.toFixed(2)}%</span>
                     </>
                   )}
                 </div>
@@ -188,7 +188,7 @@ export const DividendsTimelineList: React.FC<DividendsTimelineListProps> = ({
                 onClick={() => onOpenOrder(item.symbol)}
                 className={`px-3.5 py-2 rounded-xl text-white font-mono font-bold text-xs shadow-md flex items-center gap-1.5 active:scale-95 transition-all shrink-0 ${
                   isFii
-                    ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
+                    ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20'
                     : isGlobal
                     ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20'
                     : 'bg-[#2962FF] hover:bg-[#1D4ED8] shadow-blue-500/20'

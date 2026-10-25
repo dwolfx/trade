@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { DividendCalendarItem } from '../../types/dividend';
 import { PortfolioPosition } from '../../types/market';
 import { X, Calendar, Zap, Building2, TrendingUp, Sparkles } from 'lucide-react';
@@ -95,7 +95,7 @@ export const DividendDayInspector: React.FC<DividendDayInspectorProps> = ({
                       <span
                         className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
                           item.category === 'fii'
-                            ? 'bg-sky-500/15 text-sky-300'
+                            ? 'bg-purple-500/15 text-purple-300'
                             : 'bg-sky-500/15 text-sky-300'
                         }`}
                       >

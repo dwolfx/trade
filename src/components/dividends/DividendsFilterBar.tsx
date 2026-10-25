@@ -186,15 +186,15 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             onClick={() => onSelectCategory('fii')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
               categoryFilter === 'fii'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/20'
+                ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm ring-1 ring-purple-500/20'
                 : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
             }`}
           >
-            <Building2 size={12} className={categoryFilter === 'fii' ? 'text-emerald-300' : 'text-[#64748B]'} />
+            <Building2 size={12} className={categoryFilter === 'fii' ? 'text-purple-300' : 'text-[#64748B]'} />
             <span>FIIs (Imobiliários)</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                categoryFilter === 'fii' ? 'bg-emerald-500/30 text-emerald-200' : 'bg-black/30 text-slate-400'
+                categoryFilter === 'fii' ? 'bg-purple-500/30 text-purple-200' : 'bg-black/30 text-slate-400'
               }`}
             >
               {safeCounts.fii}
@@ -249,15 +249,15 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
             onClick={() => onSelectCategory('datacom_aberta')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all shrink-0 ${
               categoryFilter === 'datacom_aberta'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm ring-1 ring-purple-500/20'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm ring-1 ring-amber-500/20'
                 : 'bg-[#161F33]/70 text-[#94A3B8] hover:text-white hover:bg-[#1E293B] border border-transparent'
             }`}
           >
-            <Clock size={12} className={categoryFilter === 'datacom_aberta' ? 'text-purple-300' : 'text-[#64748B]'} />
+            <Clock size={12} className={categoryFilter === 'datacom_aberta' ? 'text-amber-300' : 'text-[#64748B]'} />
             <span>Data-COM Aberta</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                categoryFilter === 'datacom_aberta' ? 'bg-purple-500/30 text-purple-200' : 'bg-black/30 text-slate-400'
+                categoryFilter === 'datacom_aberta' ? 'bg-amber-500/30 text-amber-200' : 'bg-black/30 text-slate-400'
               }`}
             >
               {safeCounts.datacomAberta}
@@ -267,8 +267,8 @@ export const DividendsFilterBar: React.FC<DividendsFilterBarProps> = ({
 
         {/* Legend Hint */}
         <div className="hidden xl:flex items-center gap-3 text-[11px] font-mono text-[#64748B] shrink-0">
-          <span className="flex items-center gap-1 text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <span className="flex items-center gap-1 text-purple-400">
+            <span className="w-2 h-2 rounded-full bg-purple-400" />
             FII
           </span>
           <span className="flex items-center gap-1 text-[#60A5FA]">

@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useMarket } from '../context/MarketContext';
 import { Timeframe } from '../types/market';
-import { LayoutGrid, ChevronDown, Check, ArrowRight, Loader2, Zap } from 'lucide-react';
+import { ChevronDown, Check, ArrowRight, Loader2 } from 'lucide-react';
 import { BrazilFlag } from './common/BrazilFlag';
+import { ChartHeader } from './chart/ChartHeader';
 import { formatBRL, formatPercent } from '../utils/formatters';
 import { MiniSlotCandleChart } from './chart/MiniSlotCandleChart';
 import { THEME_COLORS } from '../styles/theme';
@@ -263,93 +264,44 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
 
   return (
     <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-4 shadow-sm relative">
-      {/* Chart Top Header & Controls */}
-      <div className="flex flex-col gap-3.5 border-b border-[#1E293B] pb-3.5">
-        {/* Row 1: Ticker, Name, Price & Variation (Clean separation, no overlap) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
-          {/* Identity: Flag, Ticker, Company Name */}
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2">
-              <BrazilFlag size="md" />
-              <span className="text-lg sm:text-xl font-black text-white font-mono tracking-tight leading-none">
-                {activeAsset.symbol}
-              </span>
-              <span className="text-xs text-[#64748B] font-mono hidden sm:inline">· B3</span>
-            </div>
-            <span
-              className="text-xs text-[#94A3B8] font-medium truncate mt-1 max-w-[280px] sm:max-w-md block"
-              title={activeAsset.name}
-            >
-              {activeAsset.name}
+      {/* Chart Top Header & Controls - Componentized */}
+      <ChartHeader
+        icon={<BrazilFlag size="md" />}
+        symbol={activeAsset.symbol}
+        exchangeLabel="· B3"
+        name={activeAsset.name}
+        priceFormatted={formatBRL(activeAsset.price)}
+        changePercentFormatted={formatPercent(activeAsset.changePercent)}
+        isPositive={isPositive}
+        onOpenOrder={onOpenOrder ? () => onOpenOrder(activeAsset.symbol) : undefined}
+        timeframes={timeframes}
+        activeTimeframe={timeframe}
+        onSelectTimeframe={setTimeframe}
+        statusBadge={
+          isLoadingCandles ? (
+            <span className="flex items-center gap-1.5 text-xs text-[#60A5FA]">
+              <Loader2 size={12} className="animate-spin" /> Carregando...
             </span>
-          </div>
+          ) : marketStatus.isOpen ? (
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#38BDF8] bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
+              <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping"></span>
+              {marketStatus.badgeText}
+            </span>
+          ) : (
+            <span
+              className="flex items-center gap-1.5 text-[11px] font-bold text-[#F43F5E] bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20"
+              title={marketStatus.message}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#F43F5E]"></span>
+              {marketStatus.badgeText}
+            </span>
+          )
+        }
+        isMultiChart={isMultiChart}
+        onToggleMultiChart={() => setIsMultiChart(prev => !prev)}
+      />
 
-          {/* Price & Variation + Optional Mobile Trade Button */}
-          <div className="flex items-center justify-between sm:justify-end gap-3 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[#1E293B]/40">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-black font-mono text-white whitespace-nowrap">
-                {formatBRL(activeAsset.price)}
-              </span>
-              <span
-                className={`text-xs font-bold font-mono px-2 py-0.5 rounded whitespace-nowrap ${
-                  isPositive
-                    ? 'bg-sky-500/10 text-[#38BDF8]'
-                    : 'bg-rose-500/10 text-[#F43F5E]'
-                }`}
-              >
-                {formatPercent(activeAsset.changePercent)}
-              </span>
-            </div>
-
-            {/* Mobile Trade Action Button */}
-            {onOpenOrder && (
-              <button
-                onClick={() => onOpenOrder(activeAsset.symbol)}
-                className="lg:hidden px-3 py-1.5 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-white text-xs font-bold font-sans shadow-md shadow-blue-500/20 flex items-center gap-1 active:scale-95 transition-all"
-              >
-                <Zap size={13} className="fill-white" />
-                <span>Operar</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Row 2: Timeframe Buttons & Multi-Chart Toggle (Clean layout with zero clipping) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          {/* Timeframe Buttons: fits mobile width without horizontal scrollbar */}
-          <div className="flex items-center bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B] w-full sm:w-auto justify-between sm:justify-start">
-            {timeframes.map(tf => (
-              <button
-                key={tf.id}
-                onClick={() => setTimeframe(tf.id)}
-                title={tf.desc}
-                className={`flex-1 sm:flex-none px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold font-mono transition-all text-center ${
-                  timeframe === tf.id
-                    ? 'bg-[#2962FF] text-white shadow-sm'
-                    : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
-                }`}
-              >
-                {tf.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Multi-Chart Toggle */}
-          <button
-            onClick={() => setIsMultiChart(prev => !prev)}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap w-full sm:w-auto transition-all ${
-              isMultiChart
-                ? 'bg-[#2962FF] text-white border-blue-400 shadow-sm'
-                : 'bg-[#0B0F19] text-[#94A3B8] border-[#1E293B] hover:text-white hover:bg-[#161F33]'
-            }`}
-          >
-            <LayoutGrid size={14} />
-            <span>{isMultiChart ? 'Voltar para 1 Gráfico' : 'Multi-Gráfico (2×2)'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* OHLCV Banner on hover + Market Status (B3 Aberta vs Fechada) */}
+      {/* OHLCV Banner on hover (when not in multi-chart) */}
       {!isMultiChart && (
         <div className="h-6 flex items-center justify-between text-[11px] font-mono text-[#94A3B8] px-1">
           {hoverInfo ? (
@@ -367,34 +319,13 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
               <span>VOL: <strong className="text-white">{(hoverInfo.candle.volume / 1000).toFixed(0)}k</strong></span>
             </div>
           ) : (
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-4 text-[#64748B]">
-                <span>MÁX DIA: <strong className="text-white">R$ {activeAsset.high.toFixed(2)}</strong></span>
-                <span>MÍN DIA: <strong className="text-white">R$ {activeAsset.low.toFixed(2)}</strong></span>
-                <span>VOL: <strong className="text-white">{activeAsset.volume}</strong></span>
-                <span className="text-xs px-2 py-0.5 rounded bg-[#161F33] text-[#60A5FA] font-bold">
-                  {timeframes.find(t => t.id === timeframe)?.desc || timeframe}
-                </span>
-              </div>
-
-              {/* Bug 4: B3 Market Open / Closed Real-time Indicator */}
-              <div className="flex items-center gap-2">
-                {isLoadingCandles ? (
-                  <span className="flex items-center gap-1.5 text-xs text-[#60A5FA]">
-                    <Loader2 size={12} className="animate-spin" /> Carregando candles...
-                  </span>
-                ) : marketStatus.isOpen ? (
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#38BDF8] bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
-                    <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping"></span>
-                    {marketStatus.badgeText}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#F43F5E] bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20" title={marketStatus.message}>
-                    <span className="w-2 h-2 rounded-full bg-[#F43F5E]"></span>
-                    {marketStatus.badgeText}
-                  </span>
-                )}
-              </div>
+            <div className="flex items-center gap-4 text-[#64748B]">
+              <span>MÁX DIA: <strong className="text-white">R$ {activeAsset.high.toFixed(2)}</strong></span>
+              <span>MÍN DIA: <strong className="text-white">R$ {activeAsset.low.toFixed(2)}</strong></span>
+              <span>VOL: <strong className="text-white">{activeAsset.volume}</strong></span>
+              <span className="text-xs px-2 py-0.5 rounded bg-[#161F33] text-[#60A5FA] font-bold">
+                {timeframes.find(t => t.id === timeframe)?.desc || timeframe}
+              </span>
             </div>
           )}
         </div>

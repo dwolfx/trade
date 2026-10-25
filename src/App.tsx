@@ -11,6 +11,7 @@ import { PortfolioPage } from './components/portfolio/PortfolioPage';
 import { NewsPage } from './components/news/NewsPage';
 import { CryptoPage } from './components/crypto/CryptoPage';
 import { DividendsCalendarPage } from './components/dividends/DividendsCalendarPage';
+import { PageHeader } from './components/common/PageHeader';
 import { useMarket } from './context/MarketContext';
 import { useNavigationRouter } from './hooks/useNavigationRouter';
 import {
@@ -20,6 +21,7 @@ import {
   TrendingUp,
   Briefcase,
   Newspaper,
+  ArrowLeft,
 } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
@@ -105,6 +107,26 @@ export const AppContent: React.FC = () => {
       <main className="tc-container flex-1 py-4 sm:py-6 pb-24 xl:pb-8 flex flex-col gap-6">
         {activeNav === 'bolsa' && (
           <>
+            {/* Standardized Page Header */}
+            <PageHeader
+              icon={TrendingUp}
+              title="Bolsa de Valores B3"
+              badge={{
+                text: 'MERCADO AO VIVO',
+                variant: 'sky',
+                pulse: true,
+              }}
+              subtitle="Cotações em tempo real, candlesticks e livro de ofertas de Ações e FIIs"
+              rightActions={
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-[#1E293B] text-xs font-mono text-[#94A3B8]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
+                    <span>DMA2 Conectado</span>
+                  </span>
+                </div>
+              }
+            />
+
             {/* Search Input & Exchange Selector Dropdown */}
             <SearchAndExchange />
 
@@ -167,20 +189,37 @@ export const AppContent: React.FC = () => {
 
         {/* Daytrade Cockpit Preview */}
         {activeNav === 'daytrade' && (
-          <div className="max-w-4xl mx-auto w-full py-12 text-center flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-3xl bg-[#161F33] border border-[#1E293B] flex items-center justify-center text-[#2962FF]">
-              <Zap size={32} />
+          <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
+            <PageHeader
+              icon={Zap}
+              iconGradient="from-amber-500 to-amber-600"
+              title="Day Trade Cockpit"
+              badge={{
+                text: 'FASE 3 · EM DESENVOLVIMENTO',
+                variant: 'amber',
+              }}
+              subtitle="Ambiente de alta densidade para mini-índice (WIN) e mini-dólar (WDO) com margem reduzida"
+              rightActions={
+                <button
+                  onClick={() => setActiveNav('bolsa')}
+                  className="px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-white transition-all flex items-center gap-2"
+                >
+                  <ArrowLeft size={14} />
+                  <span>Voltar à Bolsa</span>
+                </button>
+              }
+            />
+
+            <div className="p-8 rounded-3xl bg-[#0F1523] border border-[#1E293B] text-center max-w-2xl mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-[#F59E0B] flex items-center justify-center mx-auto">
+                <Zap size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-white">Cockpit de Alta Densidade B3</h3>
+              <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
+                Em breve você terá acesso ao SuperDOM vertical, Times & Trades com agressão de mercado e
+                roteamento DMA com Trailing Stop automático.
+              </p>
             </div>
-            <h2 className="text-2xl font-bold text-white">Cockpit de Alta Densidade · Day Trade (Fase 3)</h2>
-            <p className="text-sm text-[#94A3B8] max-w-lg">
-              Em breve você poderá operar com SuperDOM, Times & Trades de alta frequência, e robôs automatizados com Kill Switch diário.
-            </p>
-            <button
-              onClick={() => setActiveNav('bolsa')}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-[#2962FF] text-white font-bold text-xs"
-            >
-              Voltar para Bolsa de Valores
-            </button>
           </div>
         )}
 

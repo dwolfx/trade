@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { CryptoAsset, CryptoQuoteCurrency } from '../../types/crypto';
 import { TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 import { formatBRL } from '../../utils/formatters';
@@ -63,7 +63,7 @@ export const CryptoFeaturedCards: React.FC<CryptoFeaturedCardsProps> = ({
                   asset.baseAsset === 'BTC' ? 'bg-amber-500/20 text-[#F59E0B] border border-amber-500/30' :
                   asset.baseAsset === 'ETH' ? 'bg-indigo-500/20 text-[#818CF8] border border-indigo-500/30' :
                   asset.baseAsset === 'SOL' ? 'bg-sky-500/20 text-[#38BDF8] border border-sky-500/30' :
-                  'bg-blue-500/20 text-[#2DD4BF] border border-blue-500/30'
+                  'bg-blue-500/20 text-sky-300 border border-blue-500/30'
                 }`}>
                   {getCryptoIcon(asset.baseAsset)}
                 </div>
@@ -83,7 +83,7 @@ export const CryptoFeaturedCards: React.FC<CryptoFeaturedCardsProps> = ({
               </div>
 
               {isActive && (
-                <span className="w-2.5 h-2.5 rounded-full bg-[#34D399] animate-pulse"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse"></span>
               )}
             </div>
 
