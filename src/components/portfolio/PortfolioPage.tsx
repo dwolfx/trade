@@ -14,7 +14,7 @@ import {
   RECENT_PAID_DIVIDENDS,
 } from '../../data/mockPortfolioData';
 import { ActiveNav } from '../../types/market';
-import { Wallet, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 
 interface PortfolioPageProps {
   onNavigate: (nav: ActiveNav) => void;
@@ -163,16 +163,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = () => {
 
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
-      {/* Standardized Page Header */}
+      {/* Centralized Page Header */}
       <PageHeader
-        icon={Wallet}
-        title="Minha Carteira Consolidada"
+        page="carteira"
         badge={{
           text: mode === 'DEMO' ? 'SIMULADOR B3' : 'CONTA REAL B3',
           variant: mode === 'DEMO' ? 'amber' : 'sky',
           pulse: true,
         }}
-        subtitle="Visão consolidada do seu patrimônio: Ações, FIIs, Renda Fixa e Dividendos"
         rightActions={
           <button
             onClick={() => {

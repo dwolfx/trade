@@ -12,7 +12,6 @@ import { DividendDayInspector } from './DividendDayInspector';
 import { DividendSimulatorCard } from './DividendSimulatorCard';
 import { OrderModal } from '../order/OrderModal';
 import { PageHeader } from '../common/PageHeader';
-import { CalendarDays } from 'lucide-react';
 
 interface DividendsCalendarPageProps {
   onNavigate: (nav: ActiveNav) => void;
@@ -203,17 +202,8 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
 
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
-      {/* Page Header */}
-      <PageHeader
-        icon={CalendarDays}
-        title="Calendário & Mapa de Dividendos"
-        badge={{
-          text: 'Pinga-Pinga B3 & Internacional',
-          variant: 'sky',
-          pulse: true,
-        }}
-        subtitle="Previsão de proventos de Ações e FIIs da sua custódia, favoritos e mapa de datas-com de todo o mercado"
-      />
+      {/* Centralized Page Header */}
+      <PageHeader page="dividendos" />
 
       {/* Top Stats Cards */}
       <DividendsStatsHeader

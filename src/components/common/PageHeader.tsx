@@ -1,27 +1,117 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, Wallet, Coins, CalendarDays, Newspaper, Zap } from 'lucide-react';
+import { ActiveNav } from '../../types/market';
+
+export interface PageDefinition {
+  title: string;
+  subtitle: string;
+  icon: LucideIcon;
+  badge?: {
+    text: string;
+    variant?: 'sky' | 'amber' | 'blue';
+    pulse?: boolean;
+  };
+}
+
+/**
+ * SINGLE SOURCE OF TRUTH (Design System Registry)
+ * Todas as páginas, seus títulos, ícones, subtítulos e badges padrão
+ * estão consolidados neste único registro central.
+ */
+export const PAGES_REGISTRY: Record<ActiveNav, PageDefinition> = {
+  bolsa: {
+    icon: TrendingUp,
+    title: 'Bolsa de Valores B3',
+    subtitle: 'Cotações em tempo real, candlesticks e livro de ofertas de Ações e FIIs',
+    badge: {
+      text: 'MERCADO AO VIVO',
+      variant: 'sky',
+      pulse: true,
+    },
+  },
+  carteira: {
+    icon: Wallet,
+    title: 'Minha Carteira Consolidada',
+    subtitle: 'Visão consolidada do seu patrimônio: Ações, FIIs, Renda Fixa e Dividendos',
+    badge: {
+      text: 'CONTA REAL B3',
+      variant: 'sky',
+      pulse: true,
+    },
+  },
+  cripto: {
+    icon: Coins,
+    title: 'Criptoativos 24/7',
+    subtitle: 'Mercado global sem interrupção · Liquidez em tempo real Binance Spot',
+    badge: {
+      text: 'AO VIVO 24/7',
+      variant: 'sky',
+      pulse: true,
+    },
+  },
+  dividendos: {
+    icon: CalendarDays,
+    title: 'Calendário & Mapa de Dividendos',
+    subtitle: 'Previsão de proventos de Ações e FIIs da sua custódia, favoritos e mapa de datas-com de todo o mercado',
+    badge: {
+      text: 'Pinga-Pinga B3 & Internacional',
+      variant: 'sky',
+      pulse: true,
+    },
+  },
+  noticias: {
+    icon: Newspaper,
+    title: 'Terminal de Notícias & Fatos Relevantes',
+    subtitle: 'Agregador de baixa latência: InfoMoney, G1 Economia, Brazil Journal e CoinDesk',
+    badge: {
+      text: 'AO VIVO',
+      variant: 'sky',
+      pulse: true,
+    },
+  },
+  daytrade: {
+    icon: Zap,
+    title: 'Day Trade Cockpit',
+    subtitle: 'Ambiente de alta densidade para mini-índice (WIN) e mini-dólar (WDO) com margem reduzida',
+    badge: {
+      text: 'FASE 3 · EM DESENVOLVIMENTO',
+      variant: 'amber',
+      pulse: true,
+    },
+  },
+};
 
 export interface PageHeaderProps {
-  icon: LucideIcon;
+  page?: ActiveNav;
+  icon?: LucideIcon;
   iconGradient?: string;
-  title: string;
+  title?: string;
+  subtitle?: string;
   badge?: {
     text: string;
     variant?: 'sky' | 'amber' | 'blue' | 'purple';
     pulse?: boolean;
   };
-  subtitle: string;
   rightActions?: React.ReactNode;
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
-  icon: Icon,
+  page,
+  icon: explicitIcon,
   iconGradient = 'from-[#2962FF] to-[#1D4ED8]',
-  title,
-  badge,
-  subtitle,
+  title: explicitTitle,
+  subtitle: explicitSubtitle,
+  badge: explicitBadge,
   rightActions,
 }) => {
+  // Resolve metadata from central registry if page id is provided
+  const config = page ? PAGES_REGISTRY[page] : undefined;
+
+  const Icon = explicitIcon || config?.icon || TrendingUp;
+  const title = explicitTitle || config?.title || '';
+  const subtitle = explicitSubtitle || config?.subtitle || '';
+  const badge = explicitBadge !== undefined ? explicitBadge : config?.badge;
+
   const getBadgeStyle = () => {
     switch (badge?.variant) {
       case 'amber':

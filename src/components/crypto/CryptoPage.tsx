@@ -5,7 +5,7 @@ import { CryptoFeaturedCards } from './CryptoFeaturedCards';
 import { CryptoChart } from './CryptoChart';
 import { CryptoOrderPad } from './CryptoOrderPad';
 import { CryptoTable } from './CryptoTable';
-import { Coins, Flame } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { PageHeader } from '../common/PageHeader';
 import { ActiveNav } from '../../types/market';
 
@@ -65,16 +65,9 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
-      {/* Standardized Page Header */}
+      {/* Centralized Page Header */}
       <PageHeader
-        icon={Coins}
-        title="Criptoativos 24/7"
-        badge={{
-          text: 'AO VIVO 24/7',
-          variant: 'sky',
-          pulse: true,
-        }}
-        subtitle="Mercado global sem interrupção · Liquidez em tempo real Binance Spot"
+        page="cripto"
         rightActions={
           <div className="flex items-center gap-2.5 flex-wrap">
             {fearAndGreed && (

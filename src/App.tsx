@@ -108,16 +108,9 @@ export const AppContent: React.FC = () => {
       <main className="tc-container flex-1 py-4 sm:py-6 pb-24 xl:pb-8 flex flex-col gap-6">
         {activeNav === 'bolsa' && (
           <>
-            {/* Standardized Page Header */}
+            {/* Centralized Page Header */}
             <PageHeader
-              icon={TrendingUp}
-              title="Bolsa de Valores B3"
-              badge={{
-                text: 'MERCADO AO VIVO',
-                variant: 'sky',
-                pulse: true,
-              }}
-              subtitle="Cotações em tempo real, candlesticks e livro de ofertas de Ações e FIIs"
+              page="bolsa"
               rightActions={
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-[#1E293B] text-xs font-mono text-[#94A3B8]">
@@ -191,16 +184,7 @@ export const AppContent: React.FC = () => {
         {/* Daytrade Cockpit Preview */}
         {activeNav === 'daytrade' && (
           <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
-            <PageHeader
-              icon={Zap}
-              title="Day Trade Cockpit"
-              badge={{
-                text: 'FASE 3 · EM DESENVOLVIMENTO',
-                variant: 'amber',
-                pulse: true,
-              }}
-              subtitle="Ambiente de alta densidade para mini-índice (WIN) e mini-dólar (WDO) com margem reduzida"
-            />
+            <PageHeader page="daytrade" />
 
             <EmptyState
               icon={Zap}

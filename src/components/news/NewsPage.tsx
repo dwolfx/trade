@@ -8,7 +8,7 @@ import { NewsItemCard } from './NewsItemCard';
 import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
 import { ActiveNav } from '../../types/market';
-import { Search, Filter, Newspaper, RefreshCw, Loader2, ChevronDown, CheckCheck } from 'lucide-react';
+import { Search, Filter, RefreshCw, Loader2, ChevronDown, CheckCheck } from 'lucide-react';
 import { fetchLiveNews } from '../../services/newsService';
 import { PageHeader } from '../common/PageHeader';
 import { SearchBar } from '../common/SearchBar';
@@ -240,15 +240,14 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
       {/* Standardized Page Header */}
+      {/* Centralized Page Header */}
       <PageHeader
-        icon={Newspaper}
-        title="Terminal de Notícias & Fatos Relevantes"
+        page="noticias"
         badge={
           isLive
             ? { text: `AO VIVO (${totalLive})`, variant: 'sky', pulse: true }
             : { text: 'CACHE LOCAL', variant: 'blue' }
         }
-        subtitle="Agregador de baixa latência: InfoMoney, G1 Economia, Brazil Journal e CoinDesk"
         rightActions={
           <button
             onClick={handleRefresh}
