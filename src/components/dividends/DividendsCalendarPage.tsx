@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMarket } from '../../context/MarketContext';
 import { ActiveNav } from '../../types/market';
-import { DividendOriginFilter, DividendCategoryFilter } from '../../types/dividend';
+import { DividendOrigin, DividendCategoryFilter } from '../../types/dividend';
 import { MOCK_DIVIDEND_CALENDAR } from '../../data/mockDividendData';
 import { DividendsStatsHeader } from './DividendsStatsHeader';
 import { DividendsFilterBar } from './DividendsFilterBar';
@@ -31,8 +31,8 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
   );
 
   const [currentMonthKey, setCurrentMonthKey] = useState<string>('2026-11');
-  // Level 1: Scope filter (Minha Carteira vs Meus Favoritos vs Todo o Mercado)
-  const [originFilter, setOriginFilter] = useState<DividendOriginFilter>('carteira');
+  // Level 1: Scope filter - MULTI-SELECTABLE ARRAY! (Carteira, Favoritos, Mercado can be combined!)
+  const [selectedOrigins, setSelectedOrigins] = useState<DividendOrigin[]>(['carteira']);
   // Level 2: Category sub-filter (Todos vs FIIs vs Ações vs Internacionais vs Data-COM Aberta)
   const [categoryFilter, setCategoryFilter] = useState<DividendCategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -57,6 +57,31 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
     return new Set((favoriteSymbols || []).map((s) => s.toUpperCase()));
   }, [favoriteSymbols]);
 
+  // Toggle origin handler (allows adding Carteira + Favoritos simultaneously)
+  const handleToggleOrigin = (origin: DividendOrigin) => {
+    setSelectedOrigins((prev) => {
+      if (origin === 'mercado') {
+        if (prev.includes('mercado')) {
+          return ['carteira'];
+        }
+        return ['mercado'];
+      }
+
+      // If clicking carteira or favoritos:
+      let next = prev.filter((o) => o !== 'mercado');
+      if (next.includes(origin)) {
+        next = next.filter((o) => o !== origin);
+      } else {
+        next = [...next, origin];
+      }
+
+      if (next.length === 0) {
+        return ['mercado'];
+      }
+      return next;
+    });
+  };
+
   // Year and month numbers from currentMonthKey "YYYY-MM"
   const [yearNum, monthNum] = useMemo(() => {
     const [y, m] = currentMonthKey.split('-').map(Number);
@@ -75,7 +100,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
 
   const todayStr = '2026-10-25'; // simulated anchor date
 
-  // Compute sub-filter counts dynamically based on active originFilter (Carteira vs Favoritos vs Mercado)
+  // Compute sub-filter counts dynamically based on active origins (Carteira, Favoritos, Mercado)
   const counts = useMemo(() => {
     const carteiraItems = monthAllItems.filter((item) =>
       userPortfolioMap.has(item.symbol.toUpperCase())
@@ -85,10 +110,15 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
     );
 
     let pool = monthAllItems;
-    if (originFilter === 'carteira') {
-      pool = carteiraItems;
-    } else if (originFilter === 'favoritos') {
-      pool = favoritosItems;
+    if (!selectedOrigins.includes('mercado')) {
+      const activeIds = new Set<string>();
+      if (selectedOrigins.includes('carteira')) {
+        carteiraItems.forEach((i) => activeIds.add(i.id));
+      }
+      if (selectedOrigins.includes('favoritos')) {
+        favoritosItems.forEach((i) => activeIds.add(i.id));
+      }
+      pool = monthAllItems.filter((i) => activeIds.has(i.id));
     }
 
     return {
@@ -101,19 +131,23 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
       internacional: pool.filter((item) => item.category === 'internacional').length,
       datacomAberta: pool.filter((item) => item.dateCom >= todayStr).length,
     };
-  }, [monthAllItems, originFilter, userPortfolioMap, favoritesSet]);
+  }, [monthAllItems, selectedOrigins, userPortfolioMap, favoritesSet]);
 
-  // Filtered items based on origin, category sub-filter, and search
+  // Filtered items based on multi-selected origins, category sub-filter, and search
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return monthAllItems.filter((item) => {
-      // 1. Level 1 Origin Filter (Minha Carteira / Meus Favoritos / Todo o Mercado)
-      if (originFilter === 'carteira' && !userPortfolioMap.has(item.symbol.toUpperCase())) {
-        return false;
-      }
-      if (originFilter === 'favoritos' && !favoritesSet.has(item.symbol.toUpperCase())) {
-        return false;
+      // 1. Level 1 Multi-origin Filter (Carteira + Favoritos combined!)
+      const isCarteira = userPortfolioMap.has(item.symbol.toUpperCase());
+      const isFavorito = favoritesSet.has(item.symbol.toUpperCase());
+
+      if (!selectedOrigins.includes('mercado')) {
+        const matchesCarteira = selectedOrigins.includes('carteira') && isCarteira;
+        const matchesFavorito = selectedOrigins.includes('favoritos') && isFavorito;
+        if (!matchesCarteira && !matchesFavorito) {
+          return false;
+        }
       }
 
       // 2. Level 2 Category Sub-filter
@@ -139,7 +173,7 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
 
       return true;
     });
-  }, [monthAllItems, originFilter, categoryFilter, searchQuery, userPortfolioMap, favoritesSet]);
+  }, [monthAllItems, selectedOrigins, categoryFilter, searchQuery, userPortfolioMap, favoritesSet]);
 
   // Handlers
   const handleOpenOrder = async (symbol: string) => {
@@ -209,10 +243,10 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
         onSelectUpcoming={handleSelectUpcoming}
       />
 
-      {/* Filter Bar with 3-Level Origin (Carteira, Favoritos, Todo o Mercado) + Category Sub-filters */}
+      {/* Filter Bar with Multiple-select Origin (Carteira + Favoritos simultaneously) + Category Sub-filters */}
       <DividendsFilterBar
-        originFilter={originFilter}
-        onSelectOrigin={setOriginFilter}
+        selectedOrigins={selectedOrigins}
+        onToggleOrigin={handleToggleOrigin}
         categoryFilter={categoryFilter}
         onSelectCategory={setCategoryFilter}
         searchQuery={searchQuery}

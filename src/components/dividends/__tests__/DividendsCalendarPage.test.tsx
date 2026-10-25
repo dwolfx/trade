@@ -17,16 +17,30 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(screen.getByText(/Próximo Pinga-Pinga/i)).toBeInTheDocument();
   });
 
-  it('renders 3 Level 1 origin filter tabs (Minha Carteira, Meus Favoritos, Todo o Mercado)', () => {
+  it('renders 3 origin filter buttons with multi-select capability (Carteira + Favoritos simultaneously)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    expect(screen.getByRole('button', { name: /Minha Carteira/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Meus Favoritos/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Todo o Mercado/i })).toBeInTheDocument();
+    const carteiraBtn = screen.getByRole('button', { name: /Minha Carteira/i });
+    const favoritosBtn = screen.getByRole('button', { name: /Meus Favoritos/i });
+    const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado/i });
+
+    expect(carteiraBtn).toBeInTheDocument();
+    expect(favoritosBtn).toBeInTheDocument();
+    expect(mercadoBtn).toBeInTheDocument();
+
+    // Default: Carteira is active
+    expect(carteiraBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(favoritosBtn).toHaveAttribute('aria-pressed', 'false');
+
+    // Click Meus Favoritos -> ADDS it (does not replace!)
+    fireEvent.click(favoritosBtn);
+
+    expect(carteiraBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(favoritosBtn).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('renders monthly calendar grid with week days and visual legend for FII, Ação B3 and US$', () => {
