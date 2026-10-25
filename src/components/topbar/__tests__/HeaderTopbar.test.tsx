@@ -103,4 +103,33 @@ describe('HeaderTopbar Functional Tests', () => {
     // Drawer closes after navigation
     expect(screen.queryByText('Victor Hugo')).not.toBeInTheDocument();
   });
+
+  it('should toggle user profile dropdown when clicking avatar VH and open settings modal', () => {
+    render(
+      <MarketProvider>
+        <HeaderTopbar activeNav="bolsa" setActiveNav={() => {}} onOpenPositions={() => {}} />
+      </MarketProvider>
+    );
+
+    // Initial: dropdown closed
+    expect(screen.queryByText('victor9009@gmail.com')).not.toBeInTheDocument();
+
+    // Click VH avatar button
+    const avatarBtn = screen.getByTitle('Menu Victor Hugo');
+    fireEvent.click(avatarBtn);
+
+    // Dropdown opened with options
+    expect(screen.getByText('victor9009@gmail.com')).toBeInTheDocument();
+    expect(screen.getByText('Meu Perfil & Documentos')).toBeInTheDocument();
+    expect(screen.getByText('Conectar Contas (B3/Cripto)')).toBeInTheDocument();
+    expect(screen.getByText('Segurança & Senha')).toBeInTheDocument();
+
+    // Click "Conectar Contas (B3/Cripto)" to open modal
+    const conexoesOption = screen.getByText('Conectar Contas (B3/Cripto)');
+    fireEvent.click(conexoesOption);
+
+    // Modal opened
+    expect(screen.getByText('Central de Configurações & Administração')).toBeInTheDocument();
+    expect(screen.getByText('Conexões Criptografadas & Open Finance')).toBeInTheDocument();
+  });
 });
