@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useMarket } from '../context/MarketContext';
 import { FeaturedTab, StockAsset } from '../types/market';
-import { Star, TrendingUp, TrendingDown, ArrowUpRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, TrendingUp, TrendingDown, ArrowUpRight, Search, ChevronLeft, ChevronRight, Briefcase, Flame } from 'lucide-react';
+import { EmptyState } from './common/EmptyState';
 
 export const FeaturedCards: React.FC = () => {
   const {
@@ -300,27 +301,37 @@ export const FeaturedCards: React.FC = () => {
         )}
       </div>
       ) : (
-        /* Clean Empty State */
-        <div className="p-8 bg-[#0F1523] border border-[#1E293B] rounded-2xl flex flex-col items-center justify-center text-center">
-          <div className="w-12 h-12 rounded-2xl bg-[#141C2E] flex items-center justify-center text-[#64748B] mb-3">
-            {featuredTab === 'recent' && <Search size={22} />}
-            {featuredTab === 'favorites' && <Star size={22} />}
-            {featuredTab === 'portfolio' && <span className="text-xl">💼</span>}
-            {featuredTab === 'most_traded' && <span className="text-xl">🔥</span>}
-          </div>
-          <h4 className="text-sm font-bold text-white mb-1">
-            {featuredTab === 'recent' && 'Nenhuma pesquisa recente'}
-            {featuredTab === 'favorites' && 'Nenhum favorito selecionado'}
-            {featuredTab === 'portfolio' && 'Nenhum ativo na carteira'}
-            {featuredTab === 'most_traded' && 'Nenhum ativo disponível'}
-          </h4>
-          <p className="text-xs text-[#94A3B8] max-w-sm">
-            {featuredTab === 'recent' && 'Os ativos que você pesquisar na barra de busca acima aparecerão aqui automaticamente.'}
-            {featuredTab === 'favorites' && 'Clique na estrelinha (⭐) de qualquer ativo no gráfico ou na tabela para adicioná-lo aos seus favoritos.'}
-            {featuredTab === 'portfolio' && 'Compre ações pela boleta ao lado para acompanhar seus ativos em custódia aqui.'}
-            {featuredTab === 'most_traded' && 'Carregando destaques do pregão.'}
-          </p>
-        </div>
+        /* Clean Componentized Empty State */
+        <EmptyState
+          icon={
+            featuredTab === 'recent'
+              ? Search
+              : featuredTab === 'favorites'
+              ? Star
+              : featuredTab === 'portfolio'
+              ? Briefcase
+              : Flame
+          }
+          title={
+            featuredTab === 'recent'
+              ? 'Nenhuma pesquisa recente'
+              : featuredTab === 'favorites'
+              ? 'Nenhum favorito selecionado'
+              : featuredTab === 'portfolio'
+              ? 'Nenhum ativo na carteira'
+              : 'Nenhum ativo disponível'
+          }
+          description={
+            featuredTab === 'recent'
+              ? 'Os ativos que você pesquisar na barra de busca acima aparecerão aqui automaticamente.'
+              : featuredTab === 'favorites'
+              ? 'Clique na estrelinha (⭐) de qualquer ativo no gráfico ou na tabela para adicioná-lo aos seus favoritos.'
+              : featuredTab === 'portfolio'
+              ? 'Compre ações pela boleta ao lado para acompanhar seus ativos em custódia aqui.'
+              : 'Carregando destaques do pregão.'
+          }
+          className="py-10"
+        />
       )}
     </div>
   );

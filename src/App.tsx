@@ -12,6 +12,7 @@ import { NewsPage } from './components/news/NewsPage';
 import { CryptoPage } from './components/crypto/CryptoPage';
 import { DividendsCalendarPage } from './components/dividends/DividendsCalendarPage';
 import { PageHeader } from './components/common/PageHeader';
+import { EmptyState } from './components/common/EmptyState';
 import { useMarket } from './context/MarketContext';
 import { useNavigationRouter } from './hooks/useNavigationRouter';
 import {
@@ -210,16 +211,17 @@ export const AppContent: React.FC = () => {
               }
             />
 
-            <div className="p-8 rounded-3xl bg-[#0F1523] border border-[#1E293B] text-center max-w-2xl mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-[#F59E0B] flex items-center justify-center mx-auto">
-                <Zap size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-white">Cockpit de Alta Densidade B3</h3>
-              <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-                Em breve você terá acesso ao SuperDOM vertical, Times & Trades com agressão de mercado e
-                roteamento DMA com Trailing Stop automático.
-              </p>
-            </div>
+            <EmptyState
+              icon={Zap}
+              title="Cockpit de Alta Densidade B3 (Em Desenvolvimento)"
+              description="Em breve você terá acesso ao SuperDOM vertical, Times & Trades com agressão de mercado e roteamento DMA com Trailing Stop automático."
+              action={{
+                label: 'Voltar ao Home Broker',
+                onClick: () => setActiveNav('bolsa'),
+                icon: ArrowLeft,
+              }}
+              className="max-w-2xl mx-auto py-16"
+            />
           </div>
         )}
 

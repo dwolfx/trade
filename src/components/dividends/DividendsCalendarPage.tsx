@@ -11,7 +11,8 @@ import { DividendsTimelineList } from './DividendsTimelineList';
 import { DividendDayInspector } from './DividendDayInspector';
 import { DividendSimulatorCard } from './DividendSimulatorCard';
 import { OrderModal } from '../order/OrderModal';
-import { CalendarDays, ArrowLeft, Sparkles } from 'lucide-react';
+import { PageHeader } from '../common/PageHeader';
+import { CalendarDays, ArrowLeft } from 'lucide-react';
 
 interface DividendsCalendarPageProps {
   onNavigate: (nav: ActiveNav) => void;
@@ -203,37 +204,26 @@ export const DividendsCalendarPage: React.FC<DividendsCalendarPageProps> = ({ on
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1E293B]">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600/30 to-indigo-400/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-lg shadow-purple-500/10">
-            <CalendarDays size={26} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                Calendário & Mapa de Dividendos
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
-              </h1>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30">
-                <Sparkles size={11} className="fill-sky-300" />
-                Pinga-Pinga B3 & Internacional
-              </span>
-            </div>
-            <p className="text-xs text-[#94A3B8] mt-1">
-              Previsão de proventos de Ações e FIIs da sua custódia, favoritos e mapa de datas-com de todo o mercado
-            </p>
-          </div>
-        </div>
-
-        {/* Back to Home button */}
-        <button
-          onClick={() => onNavigate('bolsa')}
-          className="self-start sm:self-auto flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-mono font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
-        >
-          <ArrowLeft size={14} />
-          <span>Voltar ao Home Broker</span>
-        </button>
-      </div>
+      <PageHeader
+        icon={CalendarDays}
+        iconGradient="from-purple-600 to-indigo-500"
+        title="Calendário & Mapa de Dividendos"
+        badge={{
+          text: 'Pinga-Pinga B3 & Internacional',
+          variant: 'sky',
+          pulse: true,
+        }}
+        subtitle="Previsão de proventos de Ações e FIIs da sua custódia, favoritos e mapa de datas-com de todo o mercado"
+        rightActions={
+          <button
+            onClick={() => onNavigate('bolsa')}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-mono font-medium text-[#94A3B8] hover:text-white transition-all shadow-sm"
+          >
+            <ArrowLeft size={14} />
+            <span>Voltar ao Home Broker</span>
+          </button>
+        }
+      />
 
       {/* Top Stats Cards */}
       <DividendsStatsHeader
