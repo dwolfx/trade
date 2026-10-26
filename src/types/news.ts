@@ -1,6 +1,13 @@
 export type NewsCategory = 'todas' | 'carteira' | 'cvm' | 'acoes' | 'macro' | 'cripto';
 export type NewsSentiment = 'bullish' | 'bearish' | 'neutral';
 export type NewsSource = 'CVM / B3' | 'Brazil Journal' | 'InfoMoney' | 'Valor PRO' | 'Reuters' | 'CryptoPanic';
+export type NewsActionSignal = 'COMPRAR' | 'VENDER' | 'MANTER';
+
+export interface NewsItemAction {
+  signal: NewsActionSignal;
+  targetSymbol?: string;
+  reason?: string;
+}
 
 export interface NewsItem {
   id: string;
@@ -9,6 +16,7 @@ export interface NewsItem {
   content?: string;
   aiSummary?: string;
   keyTakeaways?: string[];
+  action?: NewsItemAction;
   imageUrl?: string;
   source: NewsSource;
   category: 'cvm' | 'acoes' | 'macro' | 'cripto';

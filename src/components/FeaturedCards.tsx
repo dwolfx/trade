@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useMarket } from '../context/MarketContext';
 import { FeaturedTab, StockAsset } from '../types/market';
-import { Star, TrendingUp, TrendingDown, ArrowUpRight, Search, ChevronLeft, ChevronRight, Briefcase, Flame } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Star, Briefcase, Flame } from 'lucide-react';
 import { EmptyState } from './common/EmptyState';
+import { AssetCard } from './common/AssetCard';
 
 export const FeaturedCards: React.FC = () => {
   const {
@@ -198,87 +199,20 @@ export const FeaturedCards: React.FC = () => {
             const isFav = favoriteSymbols.includes(asset.symbol);
 
             return (
-              <div
+              <AssetCard
                 key={asset.symbol}
+                symbol={asset.symbol}
+                name={asset.name}
+                priceFormatted={`R$ ${asset.price.toFixed(2)}`}
+                changePercent={asset.changePercent}
+                changePercentFormatted={isPositive ? `+${asset.changePercent.toFixed(2)}%` : `${asset.changePercent.toFixed(2)}%`}
+                volumeFormatted={`Vol ${asset.volume}`}
+                isActive={isActive}
+                isFavorite={isFav}
+                onToggleFavorite={() => toggleFavorite(asset.symbol)}
                 onClick={() => setActiveAsset(asset)}
-                className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer relative group flex flex-col justify-between ${
-                  isActive
-                    ? 'bg-[#141C2E] border-[#2962FF] ring-2 ring-blue-500/20 shadow-lg shadow-blue-500/10'
-                    : 'bg-[#0F1523] border-[#1E293B] hover:border-[#334155] hover:bg-[#121A2B]'
-                }`}
-              >
-                {/* Card Header: Ticker & Star */}
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 pr-1">
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="text-base sm:text-lg font-black tracking-tight text-white font-mono group-hover:text-[#60A5FA] transition-colors">
-                        {asset.symbol}
-                      </span>
-                      {isActive && (
-                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#38BDF8] animate-pulse"></span>
-                      )}
-                    </div>
-                    <span className="text-[10px] sm:text-xs text-[#94A3B8] block truncate max-w-[85px] xs:max-w-[120px] sm:max-w-[150px]">
-                      {asset.name}
-                    </span>
-                  </div>
-
-                  {/* Favorite Star Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(asset.symbol);
-                    }}
-                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
-                      isFav
-                        ? 'text-[#F59E0B] bg-amber-500/10 hover:bg-amber-500/20'
-                        : 'text-[#64748B] hover:text-[#94A3B8] hover:bg-[#1E293B]'
-                    }`}
-                    title={isFav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                  >
-                    <Star size={15} fill={isFav ? '#F59E0B' : 'none'} />
-                  </button>
-                </div>
-
-                {/* Price & Change Pill */}
-                <div className="my-2 sm:my-3 flex flex-col xs:flex-row xs:items-baseline justify-between gap-1">
-                  <span className="text-base sm:text-2xl font-bold font-mono tracking-tight text-white whitespace-nowrap">
-                    R$ {asset.price.toFixed(2)}
-                  </span>
-                  <span
-                    className={`flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-bold font-mono px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg self-start xs:self-auto ${
-                      isPositive
-                        ? 'bg-sky-500/10 text-[#38BDF8] border border-sky-500/20'
-                        : 'bg-rose-500/10 text-[#F43F5E] border border-rose-500/20'
-                    }`}
-                  >
-                    {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                    {isPositive ? `+${asset.changePercent.toFixed(2)}%` : `${asset.changePercent.toFixed(2)}%`}
-                  </span>
-                </div>
-
-                {/* Footer info & Action Button */}
-                <div className="pt-2 border-t border-[#1E293B]/70 flex items-center justify-between text-[10px] sm:text-[11px] gap-1">
-                  <span className="text-[#64748B] truncate max-w-[70px] sm:max-w-[140px]">
-                    Vol {asset.volume}
-                  </span>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveAsset(asset);
-                    }}
-                    className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg font-semibold flex items-center gap-1 transition-all text-[10px] sm:text-xs shrink-0 ${
-                      isActive
-                        ? 'bg-[#2962FF] text-white shadow-sm'
-                        : 'bg-[#161F33] text-[#94A3B8] group-hover:text-white group-hover:bg-[#1E293B]'
-                    }`}
-                  >
-                    <span>{isActive ? 'No Gráfico' : 'Ver'}</span>
-                    <ArrowUpRight size={11} />
-                  </button>
-                </div>
-              </div>
+                actionLabel={isActive ? 'No Gráfico' : 'Ver'}
+              />
             );
           })}
         </div>

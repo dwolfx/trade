@@ -5,8 +5,12 @@ import { CryptoFeaturedCards } from './CryptoFeaturedCards';
 import { CryptoChart } from './CryptoChart';
 import { CryptoOrderPad } from './CryptoOrderPad';
 import { CryptoTable } from './CryptoTable';
-import { Flame } from 'lucide-react';
+import { X } from 'lucide-react';
 import { PageHeader } from '../common/PageHeader';
+import { SearchAndExchange } from '../SearchAndExchange';
+import { MobileQuickTradeBar } from '../common/MobileQuickTradeBar';
+import { MarketSentimentBadge } from '../common/MarketSentimentBadge';
+import { formatBRL } from '../../utils/formatters';
 import { ActiveNav } from '../../types/market';
 
 interface CryptoPageProps {
@@ -31,6 +35,7 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
     category: 'top',
   }));
   const [fearAndGreed, setFearAndGreed] = useState<FearAndGreedData | null>(null);
+  const [isMobileOrderOpen, setIsMobileOrderOpen] = useState(false);
 
   // Load assets and Fear & Greed on mount & currency change
   useEffect(() => {
@@ -71,17 +76,11 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
         rightActions={
           <div className="flex items-center gap-2.5 flex-wrap">
             {fearAndGreed && (
-              <div
-                className="flex items-center gap-2 bg-[#0F1523] border border-[#1E293B] px-3 py-1.5 rounded-xl text-xs"
-                title="Índice de Medo e Ganância do Mercado Cripto"
-              >
-                <Flame size={14} className="text-[#F59E0B]" />
-                <span className="text-[#94A3B8] font-medium hidden sm:inline">Sentimento:</span>
-                <strong className="text-white font-mono">{fearAndGreed.value}/100</strong>
-                <span className="text-[11px] text-[#F59E0B] font-bold">
-                  ({fearAndGreed.classification})
-                </span>
-              </div>
+              <MarketSentimentBadge
+                value={fearAndGreed.value}
+                classification={fearAndGreed.classification}
+                title="Índice de Medo e Ganância do Mercado Cripto (Alternative.me)"
+              />
             )}
 
             {/* Currency Toggle (BRL vs USDT) */}
@@ -111,7 +110,10 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
         }
       />
 
-      {/* Featured Cards (BTC, ETH, SOL, USDT) */}
+      {/* Search Input & Exchange Selector Dropdown */}
+      <SearchAndExchange />
+
+      {/* Featured Cards with 4 Tabs & Carousel */}
       <CryptoFeaturedCards
         assets={assets}
         activeAsset={activeAsset}
@@ -127,6 +129,7 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
             allAssets={assets}
             quoteCurrency={quoteCurrency}
             onSelectAsset={setActiveAsset}
+            onOpenOrder={() => setIsMobileOrderOpen(true)}
           />
           <CryptoTable
             assets={assets}
@@ -144,6 +147,38 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
           />
         </div>
       </div>
+
+      {/* Mobile Floating Quick Trade Bar */}
+      <MobileQuickTradeBar
+        symbol={activeAsset.baseAsset}
+        priceFormatted={
+          quoteCurrency === 'BRL'
+            ? formatBRL(activeAsset.price)
+            : `$ ${activeAsset.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        }
+        changePercent={activeAsset.changePercent24h}
+        changePercentFormatted={`${activeAsset.changePercent24h >= 0 ? '+' : ''}${activeAsset.changePercent24h.toFixed(2)}%`}
+        icon="⚡"
+        onOpenOrder={() => setIsMobileOrderOpen(true)}
+      />
+
+      {/* Mobile Quick Order Modal */}
+      {isMobileOrderOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#0F1523] border border-[#1E293B] rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsMobileOrderOpen(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#161F33] text-[#94A3B8] hover:text-white flex items-center justify-center"
+            >
+              <X size={16} />
+            </button>
+            <CryptoOrderPad
+              asset={activeAsset}
+              quoteCurrency={quoteCurrency}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

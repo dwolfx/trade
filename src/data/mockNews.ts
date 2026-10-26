@@ -3,6 +3,11 @@ import { NewsItem } from '../types/news';
 export const INITIAL_NEWS: NewsItem[] = [
   {
     id: 'news-1',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'PETR4',
+      reason: 'Dividend yield elevado com aprovação de R$ 17,5 bi e geração sólida de caixa.',
+    },
     title: 'Petrobras (PETR4) aprova R$ 17,5 bilhões em dividendos extraordinários após recorde no pré-sal',
     summary: 'Conselho de Administração aprovou pagamento de proventos extraordinários equivalentes a R$ 1,35 por ação ordinária e preferencial. Data-com fixada para os próximos 15 dias.',
     aiSummary: 'Aprovação de R$ 17,5 bi em dividendos (R$ 1,35/ação) com sustentabilidade financeira mantida e forte gatilho de valorização para PETR4 no curto prazo.',
@@ -24,6 +29,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-2',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'WEGE3',
+      reason: 'Aquisição internacional estratégica fortalece margens e expansão em data centers de IA.',
+    },
     title: 'WEG (WEGE3) fecha aquisição bilionária de fabricante alemã de transformadores industriais',
     summary: 'A multinacional catarinense expande sua presença no mercado europeu e amplia capacidade de atendimento para data centers de inteligência artificial com nova planta de R$ 2,2 bilhões.',
     aiSummary: 'Expansão estratégica da WEG na Europa focada no fornecimento de energia crítica para data centers de IA, agregando margens elevadas ao backlog.',
@@ -45,6 +55,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-3',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'BBAS3',
+      reason: 'Crédito controlado e compromisso de payout de até 45% com P/L atrativo.',
+    },
     title: 'Banco do Brasil (BBAS3) reporta inadimplência sob controle no agronegócio e eleva guidance de payout',
     summary: 'Em teleconferência com investidores institucionais, diretoria do BB reitera resiliência da carteira agro e sinaliza distribuição de até 45% do lucro líquido no exercício.',
     aiSummary: 'Estabilização de crédito rural dissipa temores de provisões e reforça o compromisso de pagar até 45% de payout em dividendos para BBAS3.',
@@ -66,6 +81,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-4',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'HGLG11',
+      reason: 'Vacância mínima histórica (3,2%) e aumento de dividendo com locação atípica de 10 anos.',
+    },
     title: 'CSHG Logística (HGLG11) conclui locação de 100% de galpão em Extrema (MG) com novo contrato atípico',
     summary: 'Com a nova locação para gigante do e-commerce, vacância física do fundo recua para mínimos históricos de 3,2%, elevando o rendimento projetado por cota.',
     aiSummary: 'Ocupação recorde em galpão triple-A assegura receitas atípicas por 10 anos reajustadas por IPCA, com aumento iminente no dividendo mensal.',
@@ -87,6 +107,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-5',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'VALE3',
+      reason: 'Estímulo estatal chinês acelera demanda de minério e gera viés altamente positivo.',
+    },
     title: 'Minério de ferro salta 3,4% em Dalian com novos estímulos fiscais para infraestrutura na China',
     summary: 'Governo chinês autoriza emissão especial de títulos soberanos para impulsionar demanda por aço, puxando contratos futuros de minério e favorecendo mineradoras globais.',
     aiSummary: 'Estímulo estatal chinês acelera demanda de minério e gera viés altamente positivo para Vale (VALE3) e siderúrgicas brasileiras.',
@@ -108,6 +133,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-6',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'BTC',
+      reason: 'Fluxo institucional acelerado com queima de posições vendidas e aproximação de máxima.',
+    },
     title: 'Bitcoin supera US$ 98.000 com recorde de entradas em ETFs à vista e liquidação de posições vendidas',
     summary: 'ETFs de Bitcoin à vista nos EUA registraram influxo diário líquido superior a US$ 850 milhões, enquanto a dominância da maior criptomoeda atinge maior nível em 3 anos.',
     aiSummary: 'BTC aproxima-se dos US$ 100k com forte pressão compradora institucional e queima massiva de contratos futuros short.',
@@ -129,6 +159,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-7',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'ITUB4',
+      reason: 'ROE de 21% justifica revisão para cima de preço-alvo e atrai capital estrangeiro.',
+    },
     title: 'Itaú Unibanco (ITUB4) expande operações corporativas no exterior e amplia margem financeira',
     summary: 'Relatório do Goldman Sachs reitera recomendação de compra para ITUB4 com preço-alvo revisado para R$ 42,00, citando eficiência operacional e liderança no crédito consignado.',
     aiSummary: 'Rentabilidade superior com ROE de 21% justifica revisão para cima de preço-alvo e atrai capital estrangeiro para ITUB4.',
@@ -150,6 +185,10 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-8',
+    action: {
+      signal: 'MANTER',
+      reason: 'Postura cautelosa do Copom recomenda prudência em ativos cíclicos de construção.',
+    },
     title: 'Copom sinaliza cautela fiscal e juros futuros fecham com leve abertura na curva longa',
     summary: 'Mercado calibra expectativas para a trajetória da taxa Selic diante da volatilidade cambial e incertezas sobre as metas de superávit primário.',
     aiSummary: 'Postura cautelosa do Banco Central mantém juros altos por mais tempo, impactando ativos de risco e construção civil.',
@@ -171,6 +210,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-9',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'MXRF11',
+      reason: 'Previsibilidade de proventos mensais mesmo em momento de volatilidade de inflação.',
+    },
     title: 'Maxi Renda (MXRF11) divulga relatório gerencial com reserva de contingência e rendimento estável',
     summary: 'Fundo imobiliário mais popular da B3 mantém distribuição de dividendos e reforça alocação majoritária em CRIs com garantias reais e rating de baixo risco.',
     aiSummary: 'Estabilidade comprovada nos dividendos de MXRF11 com reserva financeira para sustentar proventos mesmo em cenários de deflação.',
@@ -192,6 +236,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-10',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'PRIO3',
+      reason: 'Lifting cost em mínimas históricas com geração massiva de caixa e recompra de ações.',
+    },
     title: 'PRIO (PRIO3) atinge nova máxima de extração no campo de Frade com redução de lifting cost',
     summary: 'Junior oil brasileira bate marca de 105 mil barris de óleo equivalente por dia com eficiência operacional líder e custo de extração de apenas US$ 6,80 por barril.',
     aiSummary: 'Eficiência de custos recorde consolida PRIO3 como a operadora independente mais rentável do Atlântico Sul, ampliando projeções de recompra de ações.',
@@ -213,6 +262,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-11',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'EMBR3',
+      reason: 'Carteira de pedidos firme até 2029 com recuperação de margens comerciais.',
+    },
     title: 'Embraer (EMBR3) fecha encomenda firme de 25 jatos E195-E2 com companhia aérea europeia',
     summary: 'Contrato avaliado em mais de US$ 2,1 bilhões eleva a carteira de pedidos firmes (backlog) para US$ 22,8 bilhões, o maior patamar da história da fabricante aeroespacial.',
     aiSummary: 'Novo supercontrato na aviação comercial consolida o turnaround da Embraer e garante visibilidade de receitas até 2029.',
@@ -234,6 +288,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-12',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'ETH',
+      reason: 'Redução substancial de gas fees atrai desenvolvedores e impulsiona TVL.',
+    },
     title: 'Ethereum (ETH) completa upgrade de escalabilidade e taxas de rede recuam para centavos',
     summary: 'Atualização da camada de consenso reduz drasticamente o custo de transação nas redes Layer 2, impulsionando a atividade de finanças descentralizadas (DeFi).',
     aiSummary: 'Redução substancial de gas fees atrai desenvolvedores e impulsiona o volume travado (TVL) no ecossistema Ethereum.',
@@ -255,6 +314,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-13',
+    action: {
+      signal: 'MANTER',
+      targetSymbol: 'RENT3',
+      reason: 'Recuperação de seminovos em andamento, monitorar fluxo de caixa livre nos próximos balanços.',
+    },
     title: 'Localiza (RENT3) acelera renovação de frota com desconto e melhora margem de seminovos',
     summary: 'Maior locadora da América Latina conclui venda de 45 mil veículos desmobilizados com spread positivo sobre valor contábil, reduzindo a depreciação por carro.',
     aiSummary: 'Normalização dos preços de seminovos reverte pressão nas margens e favorece recuperação do fluxo de caixa livre da Localiza.',
@@ -276,6 +340,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-14',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'SUZB3',
+      reason: 'Reajuste de preços de celulose e receita dolarizada robusta.',
+    },
     title: 'Suzano (SUZB3) eleva preço da celulose de eucalipto para Europa e América do Norte em US$ 30/t',
     summary: 'Restrição de oferta em fábricas do Hemisfério Norte e demanda firme de papéis sanitários sustentam novo reajuste da maior produtora global de celulose.',
     aiSummary: 'Reajuste de preços acima das expectativas reforça geração de caixa em dólar e protege balanço da Suzano.',
@@ -297,6 +366,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-15',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'SOL',
+      reason: 'Liderança em volume de trading de alta frequência e retenção de usuários no varejo.',
+    },
     title: 'Solana (SOL) ultrapassa Ethereum em volume diário de negociação em exchanges descentralizadas',
     summary: 'Alta velocidade e custos inferiores a centavos levam a rede Solana a registrar mais de US$ 4,2 bilhões em trades de DEXes em 24 horas, puxada por memes e DeFi.',
     aiSummary: 'Adoção explosiva de usuários no varejo consolida Solana como infraestrutura líder em volume de trading de alta frequência no ecossistema cripto.',
@@ -318,6 +392,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-16',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'ABEV3',
+      reason: 'Programa de recompra de R$ 2 bi sinaliza subavaliação e melhora EPS.',
+    },
     title: 'Ambev (ABEV3) anuncia recompra de até 40 milhões de ações e foco em marcas premium',
     summary: 'Diretoria aprova programa de cancelamento de ações em tesouraria após cervejas especiais e bebidas não alcoólicas registrarem expansão de 8% em receita líquida.',
     aiSummary: 'Recompra massiva sinaliza confiança na geração de caixa e melhora o retorno por ação dos detentores de ABEV3.',
@@ -339,6 +418,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-17',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'KNIP11',
+      reason: 'Proteção contra inflação resistente com rendimento real atrativo e isento de IR.',
+    },
     title: 'Kinea Índices de Preços (KNIP11) distribui R$ 0,98 por cota com proteção inflacionária ativada',
     summary: 'Maior FII de papel da B3 entrega rendimento equivalente a IPCA + 8,5% ao ano líquido, beneficiado pela inércia dos índices de preços ao consumidor.',
     aiSummary: 'KNIP11 comprova papel defensivo em momentos de inflação resistente, garantindo rentabilidade real atrativa e isenta de IR.',
@@ -360,6 +444,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-18',
+    action: {
+      signal: 'VENDER',
+      targetSymbol: 'PETR4',
+      reason: 'Correção abrupta nas cotações de petróleo no mercado internacional pressiona margens imediatas.',
+    },
     title: 'Petróleo Brent recua 1,8% com aumento de estoques nos EUA e incerteza sobre cortes da OPEP+',
     summary: 'Barris fecham negociados a US$ 74,20 com sinalização de aumento gradual da oferta por países do cartel a partir do próximo trimestre.',
     aiSummary: 'Correção nas cotações internacionais de petróleo pressiona petrolíferas estatais e independentes na sessão.',
@@ -381,6 +470,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-19',
+    action: {
+      signal: 'MANTER',
+      targetSymbol: 'BBDC4',
+      reason: 'Cortes de custos em execução, acompanhar entrega de rentabilidade nos próximos trimestres.',
+    },
     title: 'Bradesco (BBDC4) avança em plano de reestruturação de agências e corta R$ 1,5 bi em custos',
     summary: 'Banco acelera fechamento de pontos físicos com baixa rentabilidade e migra mais de 3 milhões de correntistas para atendimento 100% digitalizado.',
     aiSummary: 'Redução agressiva de despesas operacionais sinaliza recuperação gradual do ROE do Bradesco ao longo de 2026.',
@@ -402,6 +496,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-20',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'XPML11',
+      reason: 'Aquisições estratégicas em shoppings classe A ampliam dividendos projetados.',
+    },
     title: 'XP Malls (XPML11) assina compra de participação em shopping premium em São Paulo',
     summary: 'Fundo fecha aquisição de fatia estratégica em shopping de alta renda com cap rate estimado em 9,2%, financiado com recursos de emissão recente.',
     aiSummary: 'Expansão em ativos dominantes de alta renda fortalece o portfólio do XPML11 e aumenta a previsibilidade de dividendos.',
@@ -423,6 +522,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-21',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'VALE3',
+      reason: 'Entrada maciça de capital estrangeiro no Ibovespa favorece blue chips de grande liquidez.',
+    },
     title: 'Dólar fecha cotado a R$ 5,38 com fluxo positivo de investidores não residentes na B3',
     summary: 'Entrada de mais de R$ 4,5 bilhões de capital estrangeiro na Bolsa brasileira nas últimas duas semanas alivia pressão sobre a moeda americana.',
     aiSummary: 'Fluxo cambial comprador de ações brasileiras derruba o dólar e atrai apetite para ativos domésticos.',
@@ -444,6 +548,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-22',
+    action: {
+      signal: 'MANTER',
+      targetSymbol: 'MGLU3',
+      reason: 'Melhora de rentabilidade já precificada em parte; aguardar confirmação de volume no varejo.',
+    },
     title: 'Magazine Luiza (MGLU3) registra terceiro trimestre consecutivo de lucro líquido e expansão no marketplace',
     summary: 'Varejista consolida recuperação com alta de 18% no GMV de terceiros (3P) e rentabilização das operações de fintech e crédito Luiza.',
     aiSummary: 'Virada operacional consolidada afasta risco de solvência e recoloca MGLU3 no radar dos fundos de ações brasileiras.',
@@ -465,6 +574,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-23',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'PETR4',
+      reason: 'Ambiente externo de desaperto monetário favorece rali de fluxo em bolsas emergentes.',
+    },
     title: 'Federal Reserve mantém taxa de juros americana estável e Powell reforça probabilidade de corte em breve',
     summary: 'Banco Central dos EUA destaca progresso consistente na desinflação e desaceleração saudável no mercado de trabalho americano.',
     aiSummary: 'Expectativa de corte de juros pelo Fed enfraquece o dólar globalmente e estimula rali de bolsas emergentes como o Ibovespa.',
@@ -486,6 +600,11 @@ export const INITIAL_NEWS: NewsItem[] = [
   },
   {
     id: 'news-24',
+    action: {
+      signal: 'COMPRAR',
+      targetSymbol: 'GGBR4',
+      reason: 'Geração de caixa resiliente no mercado norte-americano sustenta proventos contínuos.',
+    },
     title: 'Gerdau (GGBR4) aprova R$ 1,2 bilhão em dividendos e juros sobre capital próprio',
     summary: 'Siderúrgica brasileira recompensa acionistas com rendimento adicional apoiada em forte demanda de aço na América do Norte.',
     aiSummary: 'Geração de caixa resiliente nos EUA garante fluxo contínuo de proventos para investidores de GGBR4.',

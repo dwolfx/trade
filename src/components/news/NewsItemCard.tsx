@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { NewsItem, NewsSource } from '../../types/news';
 import { InteractiveTickerText } from './InteractiveTickerText';
 import { ExternalLink, TrendingUp, TrendingDown, Minus, Clock, Share2, Check, Zap, Sparkles } from 'lucide-react';
@@ -165,15 +165,38 @@ export const NewsItemCard: React.FC<NewsItemCardProps> = ({
           <InteractiveTickerText text={item.summary} onSelectTicker={onOpenOrder} />
         </p>
 
-        {/* Quick AI Resumo Badge */}
-        {item.aiSummary && (
-          <div className="flex items-center gap-1.5 text-[11px] text-[#60A5FA] bg-blue-600/10 border border-blue-500/20 px-2.5 py-1 rounded-lg w-fit mb-3">
-            <Sparkles size={11} className="text-amber-400 shrink-0" />
-            <span className="font-medium truncate max-w-[240px] sm:max-w-xs">
-              Resumo executivo pronto (TL;DR)
-            </span>
-          </div>
-        )}
+        {/* Quick AI Resumo & Action Signal Badges */}
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          {item.action && (
+            <div
+              className={`flex items-center gap-1 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-lg border ${
+                item.action.signal === 'COMPRAR'
+                  ? 'bg-sky-500/15 text-[#38BDF8] border-sky-500/30'
+                  : item.action.signal === 'VENDER'
+                  ? 'bg-rose-500/15 text-[#F43F5E] border-rose-500/30'
+                  : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+              }`}
+            >
+              {item.action.signal === 'COMPRAR' ? (
+                <TrendingUp size={11} />
+              ) : item.action.signal === 'VENDER' ? (
+                <TrendingDown size={11} />
+              ) : (
+                <Minus size={11} />
+              )}
+              <span>{item.action.signal} {item.action.targetSymbol || ''}</span>
+            </div>
+          )}
+
+          {item.aiSummary && (
+            <div className="flex items-center gap-1.5 text-[11px] text-[#60A5FA] bg-blue-600/10 border border-blue-500/20 px-2.5 py-0.5 rounded-lg">
+              <Sparkles size={11} className="text-amber-400 shrink-0" />
+              <span className="font-medium truncate max-w-[200px]">
+                Resumo pronto
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom Footer: Ticker tags & Actions (Stops propagation to card modal) */}

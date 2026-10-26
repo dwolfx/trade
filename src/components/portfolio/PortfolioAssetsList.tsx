@@ -212,7 +212,10 @@ export const PortfolioAssetsList: React.FC<PortfolioAssetsListProps> = ({
               return (
                 <tr
                   key={item.id}
-                  className="hover:bg-[#141C2E]/60 transition-colors group text-xs font-mono"
+                  onClick={() => item.isEquity && onTradeAsset(item.symbol)}
+                  className={`hover:bg-[#141C2E]/70 transition-colors group text-xs font-mono ${
+                    item.isEquity ? 'cursor-pointer' : ''
+                  }`}
                 >
                   {/* Symbol & Name */}
                   <td className="py-3.5 pl-3">
@@ -312,7 +315,10 @@ export const PortfolioAssetsList: React.FC<PortfolioAssetsListProps> = ({
                       {item.isEquity ? (
                         <>
                           <button
-                            onClick={() => onTradeAsset(item.symbol)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onTradeAsset(item.symbol);
+                            }}
                             className="px-2.5 py-1.5 rounded-lg bg-[#161F33] hover:bg-[#2962FF] text-[#60A5FA] hover:text-white border border-blue-500/20 text-xs font-semibold transition-all flex items-center gap-1"
                             title="Operar no Gráfico & Boleta"
                           >
@@ -321,7 +327,10 @@ export const PortfolioAssetsList: React.FC<PortfolioAssetsListProps> = ({
                           </button>
 
                           <button
-                            onClick={() => onClosePosition(item.symbol, item.quantity, item.currentPrice)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onClosePosition(item.symbol, item.quantity, item.currentPrice);
+                            }}
                             className="px-2 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-[#F43F5E] border border-rose-500/20 text-xs font-semibold transition-all"
                             title="Zerar posição a mercado"
                           >

@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { CryptoAsset, CryptoCategory, CryptoQuoteCurrency } from '../../types/crypto';
 import { Search, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 import { formatBRL } from '../../utils/formatters';
+import { CategoryPills } from '../common/CategoryPills';
 
 interface CryptoTableProps {
   assets: CryptoAsset[];
@@ -50,21 +51,12 @@ export const CryptoTable: React.FC<CryptoTableProps> = ({
     <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-4 shadow-sm">
       {/* Table Header: Search & Category Pills */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {categories.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-[#1E293B] text-white shadow-sm border border-blue-500/20'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-[#141C2E]'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
+        <CategoryPills
+          categories={categories}
+          activeCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+          size="sm"
+        />
 
         {/* Search Input */}
         <div className="relative min-w-[220px]">

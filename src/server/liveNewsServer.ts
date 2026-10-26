@@ -73,8 +73,14 @@ const COMPANY_TICKER_MAP: Record<string, string[]> = {
 
 function cleanHtml(html: string): string {
   if (!html) return '';
-  return html
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1')
+  let s = html;
+  const cdataStart = s.indexOf('<![CDATA[');
+  if (cdataStart !== -1) {
+    s = s.substring(cdataStart + 9);
+    const cdataEnd = s.lastIndexOf(']]>');
+    if (cdataEnd !== -1) s = s.substring(0, cdataEnd);
+  }
+  return s
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
@@ -86,6 +92,69 @@ function cleanHtml(html: string): string {
     .replace(/&#8212;/gi, '-')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function cleanFullArticle(rawHtml: string): string {
+  if (!rawHtml) return '';
+  let s = rawHtml;
+  const cdataStart = s.indexOf('<![CDATA[');
+  if (cdataStart !== -1) {
+    s = s.substring(cdataStart + 9);
+    const cdataEnd = s.lastIndexOf(']]>');
+    if (cdataEnd !== -1) s = s.substring(0, cdataEnd);
+  }
+
+  s = s
+    .replace(/<br[^>]*>/gi, '\n')
+    .replace(/<\/(?:p|div|li|blockquote|h[1-6])>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#8217;/gi, "'")
+    .replace(/&#8220;/gi, '"')
+    .replace(/&#8221;/gi, '"')
+    .replace(/&#8211;/gi, '-')
+    .replace(/&#8212;/gi, '-');
+
+  const lines = s.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  return lines.join('\n\n');
+}
+
+function generateActionSignal(
+  sentiment: NewsSentiment,
+  tickers: string[],
+  category: NewsCategory
+): NewsItem['action'] {
+  const targetSymbol = tickers[0] || (category === 'cripto' ? 'BTC' : undefined);
+
+  if (sentiment === 'bullish') {
+    return {
+      signal: 'COMPRAR',
+      targetSymbol,
+      reason: targetSymbol
+        ? `Notícia com viés positivo / alta para ${targetSymbol}.`
+        : 'Cenário macro favorável a compras de risco.',
+    };
+  }
+
+  if (sentiment === 'bearish') {
+    return {
+      signal: 'VENDER',
+      targetSymbol,
+      reason: targetSymbol
+        ? `Pressão vendedora e viés baixista sobre ${targetSymbol}.`
+        : 'Aversão a risco e realização de lucros.',
+    };
+  }
+
+  return {
+    signal: 'MANTER',
+    targetSymbol,
+    reason: targetSymbol
+      ? `Fato neutro/monitorar comportamento de ${targetSymbol}.`
+      : 'Aguardar desdobramentos de mercado.',
+  };
 }
 
 function extractTickers(text: string): string[] {
@@ -178,6 +247,9 @@ export async function fetchAllRssFeeds(): Promise<NewsItem[]> {
         const titleMatch = itemXml.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
         const linkMatch = itemXml.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i);
         const descMatch = itemXml.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+        const contentMatch =
+          itemXml.match(/<content:encoded>([\s\S]*?)<\/content:encoded>/i) ||
+          itemXml.match(/<content>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/content>/i);
         const pubDateMatch = itemXml.match(/<pubDate>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/pubDate>/i);
 
         const imgMatch =
@@ -193,11 +265,13 @@ export async function fetchAllRssFeeds(): Promise<NewsItem[]> {
 
         const link = cleanHtml(linkMatch[1]);
         const description = cleanHtml(descMatch ? descMatch[1] : '');
+        const fullContent = contentMatch ? cleanFullArticle(contentMatch[1]) : '';
         const pubDate = pubDateMatch ? new Date(pubDateMatch[1]) : new Date();
         const timestamp = isNaN(pubDate.getTime()) ? Date.now() : pubDate.getTime();
 
-        const tickers = extractTickers(`${title} ${description}`);
-        const sentiment = detectSentiment(`${title} ${description}`);
+        const tickers = extractTickers(`${title} ${description} ${fullContent.slice(0, 500)}`);
+        const sentiment = detectSentiment(`${title} ${description} ${fullContent.slice(0, 500)}`);
+        const action = generateActionSignal(sentiment, tickers, feed.defaultCategory);
 
         // Extract image or use category fallback
         let imageUrl = imgMatch ? imgMatch[1].trim() : undefined;
@@ -211,21 +285,39 @@ export async function fetchAllRssFeeds(): Promise<NewsItem[]> {
 
         const isBreaking = Date.now() - timestamp < 45 * 60 * 1000;
 
-        const keyTakeaways: string[] = [
-          summary.slice(0, 120) + (summary.length > 120 ? '...' : ''),
-          tickers.length > 0
-            ? `Ativos diretamente impactados no pregão: ${tickers.join(', ')}.`
-            : `Matéria relevante com foco em ${feed.defaultCategory.toUpperCase()}.`,
-          `Publicado originalmente pelos canais oficiais do ${feed.source}.`,
-        ];
+        // Clean executive summary without source prefix
+        const executiveSummary = summary.replace(/^(?:Brazil Journal|InfoMoney|Valor PRO|Reuters|CVM \/ B3|CryptoPanic)\s*:\s*/i, '');
+
+        // Extract real, meaningful key takeaways from paragraphs
+        const contentParagraphs = fullContent
+          ? fullContent.split('\n\n').map((p) => p.trim()).filter((p) => p.length >= 35 && !p.toLowerCase().startsWith('salve-se'))
+          : [];
+
+        const keyTakeaways: string[] = [];
+        if (contentParagraphs.length >= 2) {
+          keyTakeaways.push(contentParagraphs[0]);
+          keyTakeaways.push(contentParagraphs[1]);
+          if (contentParagraphs[2]) {
+            keyTakeaways.push(contentParagraphs[2]);
+          }
+        } else {
+          keyTakeaways.push(executiveSummary);
+          if (tickers.length > 0) {
+            keyTakeaways.push(`Ativos com maior volatilidade e foco no pregão: ${tickers.join(', ')}.`);
+          }
+          if (action?.reason) {
+            keyTakeaways.push(`Direcionamento analítico: ${action.reason}`);
+          }
+        }
 
         allItems.push({
           id: `live-${feed.name.toLowerCase().replace(/\s+/g, '-')}-${i}-${timestamp}`,
           title,
           summary,
-          content: description || summary,
-          aiSummary: `${feed.source}: ${summary}`,
+          content: fullContent || description || summary,
+          aiSummary: executiveSummary,
           keyTakeaways,
+          action,
           imageUrl,
           source: feed.source,
           category: feed.defaultCategory as 'cvm' | 'acoes' | 'macro' | 'cripto',
@@ -234,7 +326,7 @@ export async function fetchAllRssFeeds(): Promise<NewsItem[]> {
           timestamp,
           relatedTickers: tickers,
           isBreaking,
-          readTime: '2 min de leitura',
+          readTime: fullContent ? `${Math.max(2, Math.ceil(fullContent.split(/\s+/).length / 180))} min de leitura` : '2 min de leitura',
           url: link,
         });
       }

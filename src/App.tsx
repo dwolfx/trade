@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { HeaderTopbar } from './components/HeaderTopbar';
 import { SearchAndExchange } from './components/SearchAndExchange';
 import { FeaturedCards } from './components/FeaturedCards';
@@ -13,6 +13,9 @@ import { CryptoPage } from './components/crypto/CryptoPage';
 import { DividendsCalendarPage } from './components/dividends/DividendsCalendarPage';
 import { PageHeader } from './components/common/PageHeader';
 import { EmptyState } from './components/common/EmptyState';
+import { MobileQuickTradeBar } from './components/common/MobileQuickTradeBar';
+import { MarketSentimentBadge } from './components/common/MarketSentimentBadge';
+import { calculateB3Sentiment } from './utils/sentimentCalculator';
 import { useMarket } from './context/MarketContext';
 import { useNavigationRouter } from './hooks/useNavigationRouter';
 import {
@@ -30,7 +33,8 @@ export const AppContent: React.FC = () => {
   const [isPositionsOpen, setIsPositionsOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [orderModalSymbol, setOrderModalSymbol] = useState<string>('PETR4');
-  const { toastMessage, mode, setMode, portfolio, activeAsset } = useMarket();
+  const { toastMessage, mode, setMode, portfolio, activeAsset, assets } = useMarket();
+  const b3Sentiment = useMemo(() => calculateB3Sentiment(assets), [assets]);
 
   const isDemo = mode === 'DEMO';
 
@@ -112,7 +116,15 @@ export const AppContent: React.FC = () => {
             <PageHeader
               page="bolsa"
               rightActions={
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <MarketSentimentBadge
+                    value={b3Sentiment.value}
+                    classification={b3Sentiment.classification}
+                    label="Sentimento B3:"
+                    colorClass={b3Sentiment.colorClass}
+                    title={b3Sentiment.description}
+                  />
+
                   <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-[#1E293B] text-xs font-mono text-[#94A3B8]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
                     <span>DMA2 Conectado</span>
@@ -141,33 +153,14 @@ export const AppContent: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile Floating Quick Trade Bar (Home / Bolsa view only) */}
-            <div className="lg:hidden fixed bottom-16 left-3 right-3 z-30 p-2 sm:p-2.5 rounded-2xl bg-[#0F1523]/95 border border-[#1E293B] backdrop-blur-md shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="flex items-center gap-2.5 min-w-0 pl-1">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-[#60A5FA] flex items-center justify-center font-bold font-mono text-xs shrink-0">
-                  ⚡
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-black font-mono text-white flex items-center gap-1.5 truncate">
-                    {activeAsset.symbol}
-                    <span className={`text-[10px] font-bold ${activeAsset.changePercent >= 0 ? 'text-[#38BDF8]' : 'text-[#F43F5E]'}`}>
-                      {activeAsset.changePercent >= 0 ? '+' : ''}{activeAsset.changePercent.toFixed(2)}%
-                    </span>
-                  </span>
-                  <span className="text-[11px] font-bold font-mono text-[#94A3B8]">
-                    R$ {activeAsset.price.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleOpenOrder(activeAsset.symbol)}
-                className="px-4 py-2 rounded-xl bg-[#2962FF] hover:bg-[#1D4ED8] text-white font-bold text-xs font-sans shadow-lg shadow-blue-500/25 flex items-center gap-1.5 shrink-0 active:scale-95 transition-all"
-              >
-                <Zap size={14} className="fill-white" />
-                <span>Operar Boleta</span>
-              </button>
-            </div>
+            {/* Mobile Floating Quick Trade Bar */}
+            <MobileQuickTradeBar
+              symbol={activeAsset.symbol}
+              priceFormatted={`R$ ${activeAsset.price.toFixed(2)}`}
+              changePercent={activeAsset.changePercent}
+              changePercentFormatted={`${activeAsset.changePercent >= 0 ? '+' : ''}${activeAsset.changePercent.toFixed(2)}%`}
+              onOpenOrder={() => handleOpenOrder(activeAsset.symbol)}
+            />
           </>
         )}
 

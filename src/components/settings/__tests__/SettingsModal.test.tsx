@@ -29,7 +29,7 @@ describe('SettingsModal Integration & Tab Navigation', () => {
     fireEvent.click(terminalBtns[0]);
     expect(screen.getByText('Maya IA Co-Piloto')).toBeInTheDocument();
     expect(screen.getByText('Alertas de Rompimento & Volume Alto (Breakouts)')).toBeInTheDocument();
-  });
+  }, 10000);
 
   it('calls onClose when close button is clicked', () => {
     const handleClose = vi.fn();

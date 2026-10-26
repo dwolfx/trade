@@ -48,7 +48,7 @@ describe('CryptoPage Functional Tests', () => {
 
     // After clicking USDT, active currency indicators reflect USDT
     await waitFor(() => {
-      expect(screen.getAllByText('/USDT').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/\/USDT/i).length).toBeGreaterThan(0);
     });
   });
 
