@@ -19,7 +19,22 @@ interface CryptoPageProps {
 
 export const CryptoPage: React.FC<CryptoPageProps> = () => {
   const [quoteCurrency, setQuoteCurrency] = useState<CryptoQuoteCurrency>('BRL');
-  const [assets, setAssets] = useState<CryptoAsset[]>([]);
+  const [assets, setAssets] = useState<CryptoAsset[]>(() =>
+    CRYPTO_CATALOG.map(c => ({
+      symbol: `${c.baseAsset}BRL`,
+      baseAsset: c.baseAsset,
+      quoteAsset: 'BRL',
+      name: c.name,
+      price: c.defaultPriceBRL,
+      changePercent24h: 1.25,
+      changeValue24h: c.defaultPriceBRL * 0.0125,
+      high24h: c.defaultPriceBRL * 1.02,
+      low24h: c.defaultPriceBRL * 0.98,
+      volume24h: 1500,
+      quoteVolume24h: 50000000,
+      category: c.category,
+    }))
+  );
   const [activeAsset, setActiveAsset] = useState<CryptoAsset>(() => ({
     symbol: 'BTCBRL',
     baseAsset: 'BTC',
