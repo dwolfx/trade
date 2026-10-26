@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CryptoAsset, CryptoQuoteCurrency, FearAndGreedData } from '../../types/crypto';
-import { fetchLiveCryptoAssets, fetchFearAndGreedIndex } from '../../services/binanceService';
+import { fetchLiveCryptoAssets, fetchFearAndGreedIndex, CRYPTO_CATALOG } from '../../services/binanceService';
 import { CryptoFeaturedCards } from './CryptoFeaturedCards';
 import { CryptoChart } from './CryptoChart';
 import { CryptoOrderPad } from './CryptoOrderPad';
