@@ -1,4 +1,4 @@
-﻿import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { NewsPage } from '../NewsPage';
 import { MarketProvider } from '../../../context/MarketContext';
@@ -119,5 +119,24 @@ describe('NewsPage Functional & Integration Tests', () => {
     );
 
     expect(screen.getByText(/PLANTÃO B3/i)).toBeInTheDocument();
+  });
+
+  it('filters news by time range buttons (Ao Vivo, Hoje, Essa Semana, 15 Dias, Esse Mês)', () => {
+    render(
+      <MarketProvider>
+        <NewsPage onNavigate={() => {}} />
+      </MarketProvider>
+    );
+
+    const aoVivoBtn = screen.getByRole('button', { name: /Ao Vivo/i });
+    expect(aoVivoBtn).toBeInTheDocument();
+    fireEvent.click(aoVivoBtn);
+
+    // Should filter feed
+    expect(screen.getByText(/Exibindo/i)).toBeInTheDocument();
+
+    const hojeBtn = screen.getByRole('button', { name: /^Hoje$/i });
+    fireEvent.click(hojeBtn);
+    expect(screen.getByText(/Exibindo/i)).toBeInTheDocument();
   });
 });

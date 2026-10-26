@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useMarket } from '../../context/MarketContext';
 import { INITIAL_NEWS } from '../../data/mockNews';
-import { NewsCategory, NewsItem, NewsSource } from '../../types/news';
+import { NewsCategory, NewsItem, NewsSource, NewsTimeRange } from '../../types/news';
 import { WatchlistNewsRadar } from './WatchlistNewsRadar';
 import { BreakingNewsTicker } from './BreakingNewsTicker';
 import { NewsItemCard } from './NewsItemCard';
 import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
 import { ActiveNav } from '../../types/market';
-import { Search, Filter, RefreshCw, Loader2, ChevronDown, CheckCheck } from 'lucide-react';
+import { Search, Filter, RefreshCw, Loader2, ChevronDown, CheckCheck, Clock } from 'lucide-react';
 import { fetchLiveNews } from '../../services/newsService';
 import { PageHeader } from '../common/PageHeader';
 import { SearchBar } from '../common/SearchBar';
@@ -27,6 +27,7 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
   const [isLive, setIsLive] = useState(false);
   const [totalLive, setTotalLive] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<NewsCategory>('todas');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<NewsTimeRange>('todas');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [readingNews, setReadingNews] = useState<NewsItem | null>(null);
@@ -135,8 +136,40 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
     const portfolioSet = new Set(portfolioSymbols.map((s) => s.toUpperCase()));
     const favoritesSet = new Set(favoriteSymbols.map((s) => s.toUpperCase()));
     const query = searchQuery.trim().toLowerCase();
+    const now = Date.now();
 
     return newsList.filter((item) => {
+      // Time Range filter
+      if (selectedTimeRange !== 'todas') {
+        const ageMs = now - item.timestamp;
+        if (selectedTimeRange === 'aovivo') {
+          // Ao vivo: últimas 2 horas ou marcada como breaking
+          if (ageMs > 2 * 60 * 60 * 1000 && !item.isBreaking) {
+            return false;
+          }
+        } else if (selectedTimeRange === 'hoje') {
+          // Hoje: últimas 24 horas
+          if (ageMs > 24 * 60 * 60 * 1000) {
+            return false;
+          }
+        } else if (selectedTimeRange === 'semana') {
+          // Essa semana: últimos 7 dias
+          if (ageMs > 7 * 24 * 60 * 60 * 1000) {
+            return false;
+          }
+        } else if (selectedTimeRange === '15dias') {
+          // Últimos 15 dias
+          if (ageMs > 15 * 24 * 60 * 60 * 1000) {
+            return false;
+          }
+        } else if (selectedTimeRange === 'mes') {
+          // Esse mês: últimos 30 dias
+          if (ageMs > 30 * 24 * 60 * 60 * 1000) {
+            return false;
+          }
+        }
+      }
+
       // Category filter
       if (selectedCategory === 'carteira') {
         const matchesWatched = item.relatedTickers.some(
@@ -166,12 +199,12 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
 
       return true;
     });
-  }, [newsList, selectedCategory, selectedSource, searchQuery, portfolioSymbols, favoriteSymbols]);
+  }, [newsList, selectedCategory, selectedTimeRange, selectedSource, searchQuery, portfolioSymbols, favoriteSymbols]);
 
   // Reset pagination on filter or search changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [selectedCategory, selectedSource, searchQuery]);
+  }, [selectedCategory, selectedTimeRange, selectedSource, searchQuery]);
 
   // Progressive load more
   const loadMore = useCallback(() => {
@@ -218,6 +251,15 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
   const progressPercent = filteredNews.length > 0
     ? Math.min(100, Math.round((visibleNews.length / filteredNews.length) * 100))
     : 100;
+
+  const timeRangeFilters: { id: NewsTimeRange; label: string; isLivePill?: boolean }[] = [
+    { id: 'todas', label: 'Todo o Período' },
+    { id: 'aovivo', label: 'Ao Vivo', isLivePill: true },
+    { id: 'hoje', label: 'Hoje' },
+    { id: 'semana', label: 'Essa Semana' },
+    { id: '15dias', label: 'Últimos 15 Dias' },
+    { id: 'mes', label: 'Esse Mês' },
+  ];
 
   const categories: { id: NewsCategory; label: string }[] = [
     { id: 'todas', label: 'Todas as Notícias' },
@@ -344,6 +386,37 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
             );
           })}
         </div>
+
+        {/* Row 3: Time Range Filter Bar (Ao Vivo, Hoje, Essa Semana, 15 Dias, Esse Mês) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-[#1E293B]/60 no-scrollbar">
+          <div className="flex items-center gap-1 text-[11px] font-mono text-[#64748B] uppercase font-bold shrink-0 mr-1">
+            <Clock size={12} className="text-[#38BDF8]" />
+            <span>Período:</span>
+          </div>
+
+          {timeRangeFilters.map((timeRange) => {
+            const isActive = selectedTimeRange === timeRange.id;
+            return (
+              <button
+                key={timeRange.id}
+                type="button"
+                onClick={() => setSelectedTimeRange(timeRange.id)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-all shrink-0 border ${
+                  isActive
+                    ? timeRange.isLivePill
+                      ? 'bg-sky-500/20 text-[#38BDF8] border-sky-400/50 shadow-md shadow-sky-500/20 ring-1 ring-sky-400/30'
+                      : 'bg-[#1E293B] text-white border-blue-400/50 shadow-sm'
+                    : 'bg-[#121A2B] text-[#94A3B8] border-[#1E293B] hover:text-white hover:border-slate-600'
+                }`}
+              >
+                {timeRange.isLivePill && (
+                  <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-pulse" />
+                )}
+                <span>{timeRange.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Feed Results Count & Progress Bar */}
@@ -352,10 +425,11 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
           <span>
             Exibindo <strong className="text-white">{visibleNews.length}</strong> de <strong className="text-white">{filteredNews.length}</strong> notícias ({progressPercent}%)
           </span>
-          {selectedCategory !== 'todas' && (
+          {(selectedCategory !== 'todas' || selectedTimeRange !== 'todas' || selectedSource !== 'all' || searchQuery) && (
             <button
               onClick={() => {
                 setSelectedCategory('todas');
+                setSelectedTimeRange('todas');
                 setSelectedSource('all');
                 setSearchQuery('');
               }}

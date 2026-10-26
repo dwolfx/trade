@@ -2,6 +2,7 @@ export type NewsCategory = 'todas' | 'carteira' | 'cvm' | 'acoes' | 'macro' | 'c
 export type NewsSentiment = 'bullish' | 'bearish' | 'neutral';
 export type NewsSource = 'CVM / B3' | 'Brazil Journal' | 'InfoMoney' | 'Valor PRO' | 'Reuters' | 'CryptoPanic';
 export type NewsActionSignal = 'COMPRAR' | 'VENDER' | 'MANTER';
+export type NewsTimeRange = 'aovivo' | 'hoje' | 'semana' | '15dias' | 'mes' | 'todas';
 
 export interface NewsItemAction {
   signal: NewsActionSignal;

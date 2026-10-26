@@ -2,16 +2,16 @@ import { Candle, Timeframe } from '../types/market';
 
 export async function fetchYahooCandles(symbol: string, timeframe: Timeframe): Promise<Candle[] | null> {
   let interval = '1d';
-  let range = '3mo';
+  let range = '1y';
 
   switch (timeframe) {
     case '1m':
       interval = '1m';
-      range = '1d';
+      range = '5d';
       break;
     case '5m':
       interval = '5m';
-      range = '1d';
+      range = '5d';
       break;
     case '15m':
       interval = '15m';
@@ -19,23 +19,23 @@ export async function fetchYahooCandles(symbol: string, timeframe: Timeframe): P
       break;
     case '1h':
       interval = '60m';
-      range = '5d';
+      range = '1mo';
       break;
     case '1D':
       interval = '1d';
-      range = '3mo';
+      range = '1y';
       break;
     case '1S':
       interval = '1wk';
-      range = '1y';
+      range = '2y';
       break;
     case '1M':
       interval = '1mo';
-      range = '2y';
+      range = '5y';
       break;
     case '1A':
       interval = '1mo';
-      range = '5y';
+      range = 'max';
       break;
   }
 
@@ -82,6 +82,9 @@ export async function fetchYahooCandles(symbol: string, timeframe: Timeframe): P
         });
       }
     }
+
+    // Always sort candles in strictly ascending chronological order
+    candles.sort((a, b) => a.time - b.time);
 
     return candles.length > 0 ? candles : null;
   } catch {

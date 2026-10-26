@@ -1,10 +1,47 @@
 import { Candle, Timeframe } from '../types/market';
 
+function getPreviousTradingTimestamp(currentTimestamp: number, intervalMs: number): number {
+  let prev = currentTimestamp - intervalMs;
+  const d = new Date(prev);
+  const timeInMinutes = d.getHours() * 60 + d.getMinutes();
+  const marketOpen = 10 * 60; // 10:00
+  const marketClose = 17 * 60; // 17:00
+
+  // If before market open, step back to 17:00 of the previous business day
+  if (timeInMinutes < marketOpen) {
+    d.setDate(d.getDate() - 1);
+    while (d.getDay() === 0 || d.getDay() === 6) {
+      d.setDate(d.getDate() - 1);
+    }
+    d.setHours(17, 0, 0, 0);
+    prev = d.getTime();
+  } else if (timeInMinutes > marketClose) {
+    d.setHours(17, 0, 0, 0);
+    prev = d.getTime();
+  }
+  return prev;
+}
+
 export function generateInitialCandles(basePrice: number, timeframe: Timeframe, count: number = 60): Candle[] {
   const candles: Candle[] = [];
-  const now = Date.now();
+  
+  // Align start to a valid market trading moment
+  let cursorTime = Date.now();
+  const nowDate = new Date(cursorTime);
+  // If weekend, go back to Friday 17:00
+  if (nowDate.getDay() === 6) {
+    nowDate.setDate(nowDate.getDate() - 1);
+    nowDate.setHours(17, 0, 0, 0);
+    cursorTime = nowDate.getTime();
+  } else if (nowDate.getDay() === 0) {
+    nowDate.setDate(nowDate.getDate() - 2);
+    nowDate.setHours(17, 0, 0, 0);
+    cursorTime = nowDate.getTime();
+  }
   
   let intervalMs = 60 * 1000; // 1m
+  const isIntraday = timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h';
+
   if (timeframe === '5m') intervalMs = 5 * 60 * 1000;
   if (timeframe === '15m') intervalMs = 15 * 60 * 1000;
   if (timeframe === '1h') intervalMs = 60 * 60 * 1000;
@@ -14,12 +51,11 @@ export function generateInitialCandles(basePrice: number, timeframe: Timeframe, 
   if (timeframe === '1A') intervalMs = 365 * 24 * 60 * 60 * 1000;
 
   // Walk backwards from basePrice so the latest candle matches basePrice perfectly
-  // without any artificial vertical spike or jump.
   let nextOpen = basePrice;
   const volatility = Math.max(0.01, basePrice * 0.0035);
 
   for (let i = 0; i < count; i++) {
-    const time = now - i * intervalMs;
+    const time = cursorTime;
     const close = nextOpen;
     const delta = (Math.random() - 0.49) * volatility;
     const open = Math.max(0.01, close - delta);
@@ -37,7 +73,13 @@ export function generateInitialCandles(basePrice: number, timeframe: Timeframe, 
     });
 
     nextOpen = open;
+    cursorTime = isIntraday
+      ? getPreviousTradingTimestamp(cursorTime, intervalMs)
+      : cursorTime - intervalMs;
   }
+
+  // Ensure ascending chronological order
+  candles.sort((a, b) => a.time - b.time);
 
   return candles;
 }
