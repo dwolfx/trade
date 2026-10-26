@@ -169,22 +169,23 @@ export const NewsItemCard: React.FC<NewsItemCardProps> = ({
         <div className="flex items-center gap-2 flex-wrap mb-3">
           {item.action && (
             <div
-              className={`flex items-center gap-1 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-lg border ${
+              className={`flex items-center gap-1.5 text-xs font-mono font-black px-2.5 py-1 rounded-lg border shadow-sm tracking-wide ${
                 item.action.signal === 'COMPRAR'
-                  ? 'bg-sky-500/15 text-[#38BDF8] border-sky-500/30'
+                  ? 'bg-sky-500/20 text-[#38BDF8] border-sky-400/50 shadow-sky-500/10'
                   : item.action.signal === 'VENDER'
-                  ? 'bg-rose-500/15 text-[#F43F5E] border-rose-500/30'
-                  : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                  ? 'bg-rose-500/20 text-[#F43F5E] border-rose-400/50 shadow-rose-500/10'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-amber-500/10'
               }`}
+              title={item.action.reason}
             >
               {item.action.signal === 'COMPRAR' ? (
-                <TrendingUp size={11} />
+                <TrendingUp size={13} className="stroke-[2.5]" />
               ) : item.action.signal === 'VENDER' ? (
-                <TrendingDown size={11} />
+                <TrendingDown size={13} className="stroke-[2.5]" />
               ) : (
-                <Minus size={11} />
+                <Minus size={13} className="stroke-[2.5]" />
               )}
-              <span>{item.action.signal} {item.action.targetSymbol || ''}</span>
+              <span>Sinal: {item.action.signal} {item.action.targetSymbol ? `${item.action.targetSymbol}` : ''}</span>
             </div>
           )}
 
