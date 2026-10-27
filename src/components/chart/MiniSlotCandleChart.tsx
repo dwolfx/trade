@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Candle, Timeframe } from '../../types/market';
 import { fetchBrapiQuote } from '../../services/brapiService';
 import { fetchYahooCandles } from '../../services/yahooFinanceService';
-import { generateInitialCandles } from '../../utils/candleGenerator';
 import { THEME_COLORS } from '../../styles/theme';
 
 interface MiniSlotCandleChartProps {
@@ -17,7 +16,7 @@ export const MiniSlotCandleChart: React.FC<MiniSlotCandleChartProps> = ({
   timeframe,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [candles, setCandles] = useState<Candle[]>(() => generateInitialCandles(price, timeframe, 28));
+  const [candles, setCandles] = useState<Candle[]>([]);
   const currentSymbolRef = useRef(symbol);
 
   useEffect(() => {
@@ -67,9 +66,8 @@ export const MiniSlotCandleChart: React.FC<MiniSlotCandleChartProps> = ({
         return;
       }
 
-      // 3. Fallback to generated realistic candles
       if (isMounted && currentSymbolRef.current === targetSymbol) {
-        setCandles(generateInitialCandles(price, timeframe, 28));
+        setCandles([]);
       }
     }
 

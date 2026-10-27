@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { StockAsset, ExecutedOrder, PortfolioPosition, Timeframe, FeaturedTab, OrderSide, OrderType } from '../types/market';
 import { INITIAL_ASSETS, INITIAL_PORTFOLIO, INITIAL_LIVE_PORTFOLIO } from '../data/mockAssets';
-import { generateInitialCandles } from '../utils/candleGenerator';
 import { fetchBrapiQuote, getTimeframeParams } from '../services/brapiService';
 import { fetchYahooCandles } from '../services/yahooFinanceService';
 import { Candle } from '../types/market';
@@ -126,9 +125,7 @@ export const MarketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [assets, activeSymbol]);
 
   // Initial Candles for active asset
-  const [candles, setCandles] = useState<Candle[]>(() => {
-    return generateInitialCandles(activeAsset?.price || 57.83, '1D', 40);
-  });
+  const [candles, setCandles] = useState<Candle[]>([]);
 
   // Helper to register recent symbol view
   const markAsRecent = useCallback((symbol: string) => {
@@ -327,18 +324,17 @@ export const MarketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         if (isMounted && activeSymbolRef.current === currentSymbol) {
           if (candlesData && candlesData.length >= 2) {
-            const visibleBars = candlesData.length > 60 ? candlesData.slice(-60) : candlesData;
+            const sorted = [...candlesData].sort((a, b) => a.time - b.time);
+            const visibleBars = sorted.length > 500 ? sorted.slice(-500) : sorted;
             setCandles(visibleBars);
           } else {
-            const targetAsset = assets.find(a => a.symbol === currentSymbol) || activeAsset;
-            setCandles(generateInitialCandles(targetAsset.price, timeframe, 45));
+            setCandles([]);
           }
           setIsLoadingCandles(false);
         }
       } catch {
         if (isMounted && activeSymbolRef.current === currentSymbol) {
-          const targetAsset = assets.find(a => a.symbol === currentSymbol) || activeAsset;
-          setCandles(generateInitialCandles(targetAsset.price, timeframe, 45));
+          setCandles([]);
           setIsLoadingCandles(false);
         }
       }
@@ -384,18 +380,22 @@ export const MarketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           })
         );
 
-        if (quote.historicalDataPrice && quote.historicalDataPrice.length > 0) {
-          const mapped: Candle[] = quote.historicalDataPrice.map(bar => ({
-            time: bar.date * 1000,
-            open: Number(bar.open.toFixed(2)),
-            high: Number(bar.high.toFixed(2)),
-            low: Number(bar.low.toFixed(2)),
-            close: Number(bar.close.toFixed(2)),
-            volume: bar.volume || 1000
-          }));
-          const visibleBars = mapped.length > 60 ? mapped.slice(-60) : mapped;
-          setCandles(visibleBars);
-        }
+        // Smoothly update the latest candle's closing price with live tick
+        // NEVER wipe out the candles array with Brapi's 1-bar daily quote!
+        setCandles(prev => {
+          if (!prev.length) return prev;
+          const last = prev[prev.length - 1];
+          const newPrice = Number(quote.regularMarketPrice.toFixed(2));
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...last,
+              close: newPrice,
+              high: Math.max(last.high, newPrice),
+              low: Math.min(last.low, newPrice)
+            }
+          ];
+        });
       }
     }, 15000); // 15 seconds polling for real live B3 quotes
 

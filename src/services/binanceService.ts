@@ -167,37 +167,8 @@ export async function fetchCryptoCandles(
       volume: Number(k[5]),
     }));
   } catch (err) {
-    // Fallback generate synthetic realistic candles
-    const now = Date.now();
-    let intervalMs = 24 * 60 * 60 * 1000;
-    if (timeframe === '1m') intervalMs = 60 * 1000;
-    if (timeframe === '5m') intervalMs = 5 * 60 * 1000;
-    if (timeframe === '15m') intervalMs = 15 * 60 * 1000;
-    if (timeframe === '1h') intervalMs = 60 * 60 * 1000;
-    if (timeframe === '4h') intervalMs = 4 * 60 * 60 * 1000;
-    if (timeframe === '1S') intervalMs = 7 * 24 * 60 * 60 * 1000;
-
-    const basePrice = 400000;
-    const candles: CryptoCandle[] = [];
-    let current = basePrice;
-
-    for (let i = limit - 1; i >= 0; i--) {
-      const delta = (Math.random() - 0.49) * (current * 0.008);
-      const open = current;
-      const close = Math.max(1, open + delta);
-      const high = Math.max(open, close) + Math.random() * (current * 0.004);
-      const low = Math.min(open, close) - Math.random() * (current * 0.004);
-      candles.push({
-        time: now - i * intervalMs,
-        open,
-        high,
-        low,
-        close,
-        volume: Math.floor(Math.random() * 500 + 50),
-      });
-      current = close;
-    }
-    return candles;
+    // If Binance API fails, return empty array - no synthetic mock candles
+    return [];
   }
 }
 

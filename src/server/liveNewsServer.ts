@@ -245,6 +245,7 @@ export async function fetchAllRssFeeds(): Promise<NewsItem[]> {
         const itemXml = rawItems[i];
 
         const titleMatch = itemXml.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
+        const subtitleMatch = itemXml.match(/<atom:subtitle>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/atom:subtitle>/i);
         const linkMatch = itemXml.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i);
         const descMatch = itemXml.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
         const contentMatch =
@@ -279,35 +280,71 @@ export async function fetchAllRssFeeds(): Promise<NewsItem[]> {
           imageUrl = CATEGORY_IMAGES[feed.defaultCategory] || CATEGORY_IMAGES.acoes;
         }
 
-        const summary = description.length > 20
-          ? description.slice(0, 240) + (description.length > 240 ? '...' : '')
-          : title;
-
+        const rawSubtitle = subtitleMatch ? cleanHtml(subtitleMatch[1]) : '';
         const isBreaking = Date.now() - timestamp < 45 * 60 * 1000;
 
-        // Clean executive summary without source prefix
-        const executiveSummary = summary.replace(/^(?:Brazil Journal|InfoMoney|Valor PRO|Reuters|CVM \/ B3|CryptoPanic)\s*:\s*/i, '');
+        // If G1 or other RSS provided full article inside <description>, prioritize that
+        const effectiveContent = fullContent || (description.length > 300 ? cleanFullArticle(descMatch ? descMatch[1] : '') : '') || description;
 
-        // Extract real, meaningful key takeaways from paragraphs
-        const contentParagraphs = fullContent
-          ? fullContent.split('\n\n').map((p) => p.trim()).filter((p) => p.length >= 35 && !p.toLowerCase().startsWith('salve-se'))
+        // Split into unique, clean paragraphs
+        const rawParagraphs = effectiveContent
+          ? effectiveContent
+              .split(/\n\n+|\n/)
+              .map((p) => p.trim())
+              .filter((p) => {
+                if (p.length < 35) return false;
+                const lower = p.toLowerCase();
+                // Filter out reporter promos, arte credits, clickbait greetings
+                if (lower.startsWith('salve-se')) return false;
+                if (lower.includes('tem alguma sugestão de reportagem')) return false;
+                if (lower.startsWith('arte/') || lower.includes('saiba mais')) return false;
+                if (lower.startsWith('foto:') || lower.startsWith('fonte:')) return false;
+                return true;
+              })
           : [];
 
+        // Deduplicate paragraphs by content similarity
+        const contentParagraphs: string[] = [];
+        for (const p of rawParagraphs) {
+          const isDuplicate = contentParagraphs.some(
+            (existing) => existing.slice(0, 40).toLowerCase() === p.slice(0, 40).toLowerCase()
+          );
+          if (!isDuplicate) {
+            contentParagraphs.push(p);
+          }
+        }
+
+        // Executive summary: prefer clean subtitle if present, else first paragraph, else title
+        let executiveSummary = rawSubtitle;
+        if (!executiveSummary || executiveSummary.length < 20) {
+          if (contentParagraphs.length > 0) {
+            executiveSummary = contentParagraphs[0];
+          } else {
+            executiveSummary = description.length > 20 ? description.slice(0, 240) + '...' : title;
+          }
+        }
+        executiveSummary = executiveSummary.replace(/^(?:Brazil Journal|InfoMoney|Valor PRO|Reuters|CVM \/ B3|CryptoPanic)\s*:\s*/i, '');
+
+        const summary = executiveSummary;
+
+        // Key takeaways: must be DIFFERENT from executiveSummary!
         const keyTakeaways: string[] = [];
-        if (contentParagraphs.length >= 2) {
-          keyTakeaways.push(contentParagraphs[0]);
-          keyTakeaways.push(contentParagraphs[1]);
-          if (contentParagraphs[2]) {
-            keyTakeaways.push(contentParagraphs[2]);
+        const summaryPrefix = executiveSummary.slice(0, 45).toLowerCase();
+
+        // Pick distinct paragraphs that do not repeat executive summary
+        for (const para of contentParagraphs) {
+          if (para.toLowerCase().slice(0, 45) !== summaryPrefix) {
+            keyTakeaways.push(para);
+            if (keyTakeaways.length >= 3) break;
           }
-        } else {
-          keyTakeaways.push(executiveSummary);
-          if (tickers.length > 0) {
-            keyTakeaways.push(`Ativos com maior volatilidade e foco no pregão: ${tickers.join(', ')}.`);
-          }
-          if (action?.reason) {
-            keyTakeaways.push(`Direcionamento analítico: ${action.reason}`);
-          }
+        }
+
+        // If we still don't have at least 2 distinct takeaways, provide market impact facts
+        if (tickers.length > 0 && !keyTakeaways.some(t => t.includes('Ativos com'))) {
+          keyTakeaways.push(`Ativos com maior volatilidade e foco no pregão: ${tickers.join(', ')}.`);
+        }
+        if (action?.reason && !keyTakeaways.some(t => t.includes(action.reason || ''))) {
+          keyTakeaways.push(`Direcionamento analítico TradeCraft: ${action.reason}`);
         }
 
         allItems.push({

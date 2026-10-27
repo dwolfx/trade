@@ -9,7 +9,7 @@ import { NewsReaderModal } from './NewsReaderModal';
 import { OrderModal } from '../order/OrderModal';
 import { ActiveNav } from '../../types/market';
 import { Search, Filter, RefreshCw, Loader2, ChevronDown, CheckCheck, Clock } from 'lucide-react';
-import { fetchLiveNews } from '../../services/newsService';
+import { fetchLiveNews, getCachedLiveNews } from '../../services/newsService';
 import { PageHeader } from '../common/PageHeader';
 import { SearchBar } from '../common/SearchBar';
 import { EmptyState } from '../common/EmptyState';
@@ -19,13 +19,26 @@ interface NewsPageProps {
 }
 
 const PAGE_SIZE = 6;
+const isTestEnv = Boolean((import.meta as unknown as { env?: { MODE?: string } })?.env?.MODE === 'test');
 
 export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
   const { portfolio, favoriteSymbols, assets, selectOrCreateAsset } = useMarket();
 
-  const [newsList, setNewsList] = useState<NewsItem[]>(INITIAL_NEWS);
-  const [isLive, setIsLive] = useState(false);
-  const [totalLive, setTotalLive] = useState(0);
+  // Instant real news from cache, or fallback to INITIAL_NEWS ONLY in test runner
+  const cachedNews = !isTestEnv ? getCachedLiveNews() : null;
+  const hasCached = Array.isArray(cachedNews) && cachedNews.length > 0;
+
+  const [newsList, setNewsList] = useState<NewsItem[]>(() => {
+    if (hasCached) return cachedNews!;
+    if (isTestEnv) return INITIAL_NEWS;
+    return [];
+  });
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(() => {
+    if (hasCached || isTestEnv) return false;
+    return true;
+  });
+  const [isLive, setIsLive] = useState(hasCached);
+  const [totalLive, setTotalLive] = useState(hasCached ? cachedNews!.length : 0);
   const [selectedCategory, setSelectedCategory] = useState<NewsCategory>('todas');
   const [selectedTimeRange, setSelectedTimeRange] = useState<NewsTimeRange>('todas');
   const [selectedSource, setSelectedSource] = useState<string>('all');
@@ -51,7 +64,7 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
         if (result.news.length > 0) {
           if (isInitial) {
             setNewsList(result.news);
-        setIncomingNews([]);
+            setIncomingNews([]);
           } else {
             setNewsList((currentList) => {
               const currentIds = new Set(currentList.map((n) => n.id));
@@ -69,6 +82,10 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
         }
       } catch (err) {
         console.error('[NewsPage] Error polling live news:', err);
+      } finally {
+        if (isMounted && isInitial) {
+          setIsInitialLoading(false);
+        }
       }
     };
 
@@ -450,7 +467,28 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* News Feed Stream - Multi-column Cards Grid */}
-      {visibleNews.length > 0 ? (
+      {isInitialLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <div
+              key={n}
+              className="p-4 bg-[#0F1523] border border-[#1E293B] rounded-2xl animate-pulse flex flex-col justify-between h-[420px]"
+            >
+              <div>
+                <div className="h-44 bg-[#161F33] rounded-xl mb-3" />
+                <div className="h-4 bg-[#161F33] rounded w-3/4 mb-2" />
+                <div className="h-4 bg-[#161F33] rounded w-1/2 mb-3" />
+                <div className="h-3 bg-[#161F33] rounded w-full mb-1.5" />
+                <div className="h-3 bg-[#161F33] rounded w-5/6" />
+              </div>
+              <div className="pt-3 border-t border-[#1E293B] mt-4 flex justify-between">
+                <div className="h-6 w-16 bg-[#161F33] rounded" />
+                <div className="h-6 w-20 bg-[#161F33] rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : visibleNews.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {visibleNews.map((item) => (

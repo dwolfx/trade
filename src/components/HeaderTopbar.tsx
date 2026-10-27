@@ -13,6 +13,7 @@ import {
   Zap,
   Coins,
   CalendarDays,
+  Flame,
   User,
   Link2,
   ShieldCheck,
@@ -115,6 +116,17 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
             >
               <span>Bolsa de Valores</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse"></span>
+            </button>
+            <button
+              onClick={() => setActiveNav('heatmap')}
+              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                activeNav === 'heatmap'
+                  ? 'bg-[#161F33] text-[#38BDF8] border border-sky-500/30 shadow-sm'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+              }`}
+            >
+              <Flame size={15} className={activeNav === 'heatmap' ? 'text-[#38BDF8]' : 'text-amber-400'} />
+              <span>Mapa de Calor</span>
             </button>
             <button
               onClick={() => setActiveNav('daytrade')}
@@ -574,6 +586,29 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
                   <span>Bolsa de Valores</span>
                 </div>
                 <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-pulse" />
+              </button>
+
+              {/* Mapa de Calor */}
+              <button
+                onClick={() => {
+                  setActiveNav('heatmap');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  activeNav === 'heatmap'
+                    ? 'bg-[#161F33] text-[#38BDF8] border border-sky-500/30 shadow-sm'
+                    : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-[#38BDF8] flex items-center justify-center">
+                    <Flame size={16} />
+                  </div>
+                  <span>Mapa de Calor (Heatmap)</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                  Treemap
+                </span>
               </button>
 
               {/* Minha Carteira */}

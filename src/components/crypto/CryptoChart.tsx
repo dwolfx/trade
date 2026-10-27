@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { CryptoAsset, CryptoCandle, CryptoQuoteCurrency, CryptoTimeframe } from '../../types/crypto';
+import { ChartRange } from '../../types/market';
 import { fetchCryptoCandles } from '../../services/binanceService';
-import { formatBRL } from '../../utils/formatters';
+import { formatBRL, formatPercent } from '../../utils/formatters';
 import { MiniCryptoSlotChart } from './MiniCryptoSlotChart';
 import { ChartHeader } from '../chart/ChartHeader';
-import { ChevronDown, Check, ArrowRight, Loader2 } from 'lucide-react';
+import { ChevronDown, Check, ArrowRight, Loader2, ChevronLeft, RotateCcw } from 'lucide-react';
 
 interface CryptoChartProps {
   asset: CryptoAsset;
@@ -26,6 +27,17 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   const [candles, setCandles] = useState<CryptoCandle[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isMultiChart, setIsMultiChart] = useState<boolean>(false);
+
+  // Range de visualização (Visão de tempo independente da periodicidade)
+  const [selectedRange, setSelectedRange] = useState<ChartRange>('1D');
+
+  // Interactive Pan & Zoom
+  const [panOffset, setPanOffset] = useState<number>(0);
+  const [zoomCount, setZoomCount] = useState<number>(45);
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartPanRef = useRef(0);
+
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;
     y: number;
@@ -43,13 +55,22 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   const [slotSearchQuery, setSlotSearchQuery] = useState<string>('');
 
   const timeframes: { id: CryptoTimeframe; label: string; desc: string }[] = [
-    { id: '1m', label: '1m', desc: '1 Minuto' },
-    { id: '5m', label: '5m', desc: '5 Minutos' },
-    { id: '15m', label: '15m', desc: '15 Minutos' },
-    { id: '1h', label: '1h', desc: '1 Hora' },
-    { id: '4h', label: '4h', desc: '4 Horas' },
-    { id: '1D', label: '1D', desc: 'Diário (1 Dia)' },
-    { id: '1S', label: '1S', desc: 'Semanal (1 Semana)' },
+    { id: '1m', label: '1m', desc: '1 Minuto por vela' },
+    { id: '5m', label: '5m', desc: '5 Minutos por vela' },
+    { id: '15m', label: '15m', desc: '15 Minutos por vela' },
+    { id: '1h', label: '1h', desc: '1 Hora por vela' },
+    { id: '4h', label: '4h', desc: '4 Horas por vela' },
+    { id: '1D', label: '1D', desc: 'Diário (1 Dia por vela)' },
+    { id: '1S', label: '1S', desc: 'Semanal (1 Semana por vela)' },
+  ];
+
+  const ranges: { id: ChartRange; label: string; desc: string }[] = [
+    { id: '1D', label: '1D', desc: 'Período de Hoje (24h)' },
+    { id: '5D', label: '5D', desc: 'Últimos 5 Dias' },
+    { id: '1M', label: '1M', desc: '1 Mês' },
+    { id: '6M', label: '6M', desc: '6 Meses' },
+    { id: '1A', label: '1A', desc: '1 Ano' },
+    { id: 'TUDO', label: 'Tudo', desc: 'Todo Histórico' },
   ];
 
   const formatPrice = (val: number) => {
@@ -71,15 +92,17 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
     }
   };
 
-  // Fetch real candles from Binance for active main chart
+  // Fetch real candles from Binance
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
 
     async function loadCandles() {
-      const data = await fetchCryptoCandles(asset.symbol, timeframe, 60);
+      const data = await fetchCryptoCandles(asset.symbol, timeframe, 200);
       if (isMounted) {
-        setCandles(data);
+        // Sort chronologically ascending
+        const sorted = [...data].sort((a, b) => a.time - b.time);
+        setCandles(sorted);
         setIsLoading(false);
       }
     }
@@ -93,11 +116,105 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
     };
   }, [asset.symbol, timeframe]);
 
-  // Render Canvas Candlesticks
+  // Group candles by calendar day
+  const sessionDays = useMemo(() => {
+    const map = new Map<string, CryptoCandle[]>();
+    candles.forEach(c => {
+      const d = new Date(c.time);
+      const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(c);
+    });
+    return Array.from(map.entries()).map(([key, dayCandles]) => ({
+      key,
+      date: new Date(dayCandles[0].time),
+      candles: dayCandles
+    }));
+  }, [candles]);
+
+  const [selectedSessionIdx, setSelectedSessionIdx] = useState<number>(0);
+
+  useEffect(() => {
+    if (sessionDays.length > 0) {
+      setSelectedSessionIdx(sessionDays.length - 1);
+      setPanOffset(0);
+    }
+  }, [sessionDays.length, asset.symbol]);
+
+  const handleSelectTimeframe = (tf: CryptoTimeframe) => {
+    setTimeframe(tf);
+    setPanOffset(0);
+  };
+
+  // Visible candles based on selectedRange, pan, zoom
+  const displayCandles = useMemo(() => {
+    if (!candles.length) return [];
+
+    let pool: CryptoCandle[] = [];
+
+    const isIntraday = timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h' || timeframe === '4h';
+
+    if (selectedRange === '1D' && isIntraday && sessionDays.length > 0) {
+      const safeIdx = Math.max(0, Math.min(sessionDays.length - 1, selectedSessionIdx));
+      const sessionCandles = sessionDays[safeIdx]?.candles;
+      pool = (sessionCandles && sessionCandles.length >= 2) ? sessionCandles : (candles.length > 60 ? candles.slice(-60) : candles);
+    } else if (selectedRange === '1D') {
+      pool = candles.length > 60 ? candles.slice(-60) : candles;
+    } else if (selectedRange === '5D' && sessionDays.length > 0) {
+      const last5 = sessionDays.slice(-5);
+      pool = last5.flatMap(s => s.candles);
+    } else if (selectedRange === '1M') {
+      const oneMonthAgo = Date.now() - 31 * 24 * 3600 * 1000;
+      pool = candles.filter(c => c.time >= oneMonthAgo);
+      if (pool.length < 20) pool = candles.slice(-40);
+    } else if (selectedRange === '6M') {
+      const sixMonthsAgo = Date.now() - 180 * 24 * 3600 * 1000;
+      pool = candles.filter(c => c.time >= sixMonthsAgo);
+      if (pool.length < 30) pool = candles.slice(-80);
+    } else if (selectedRange === '1A') {
+      const oneYearAgo = Date.now() - 365 * 24 * 3600 * 1000;
+      pool = candles.filter(c => c.time >= oneYearAgo);
+      if (pool.length < 40) pool = candles.slice(-120);
+    } else {
+      pool = candles;
+    }
+
+    if (pool.length === 0) pool = candles;
+
+    const effectiveCount = Math.min(pool.length, zoomCount);
+    const maxOffset = Math.max(0, pool.length - effectiveCount);
+    const currentOffset = Math.min(panOffset, maxOffset);
+
+    const endIndex = pool.length - currentOffset;
+    const startIndex = Math.max(0, endIndex - effectiveCount);
+
+    return pool.slice(startIndex, endIndex);
+  }, [candles, selectedRange, sessionDays, selectedSessionIdx, panOffset, zoomCount]);
+
+  const currentSessionDateLabel = useMemo(() => {
+    if (!sessionDays.length) return '';
+    const safeIdx = Math.max(0, Math.min(sessionDays.length - 1, selectedSessionIdx));
+    const d = sessionDays[safeIdx]?.date;
+    if (!d) return '';
+    const isToday = safeIdx === sessionDays.length - 1;
+    const formatted = d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    return isToday ? `Hoje (${formatted})` : formatted;
+  }, [sessionDays, selectedSessionIdx]);
+
+  const formatHoverDate = (timestamp: number) => {
+    const d = new Date(timestamp);
+    if (isNaN(d.getTime())) return '';
+    const weekday = d.toLocaleDateString('pt-BR', { weekday: 'short' });
+    const dateStr = d.toLocaleDateString('pt-BR');
+    const timeStr = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateStr} às ${timeStr}`;
+  };
+
+  // Render Canvas
   useEffect(() => {
     if (isMultiChart) return;
     const canvas = canvasRef.current;
-    if (!canvas || !candles.length) return;
+    if (!canvas || !displayCandles.length) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -111,7 +228,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
     const width = rect.width;
     const height = rect.height;
     const rightAxisWidth = 75;
-    const bottomAxisHeight = 26;
+    const bottomAxisHeight = 28;
     const chartWidth = width - rightAxisWidth;
     const chartHeight = height - bottomAxisHeight;
     const volumeHeight = chartHeight * 0.18;
@@ -126,7 +243,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
     let maxPrice = -Infinity;
     let maxVolume = 0;
 
-    candles.forEach(c => {
+    displayCandles.forEach(c => {
       if (c.low < minPrice) minPrice = c.low;
       if (c.high > maxPrice) maxPrice = c.high;
       if (c.volume > maxVolume) maxVolume = c.volume;
@@ -157,33 +274,113 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
       ctx.fillText(formatPrice(price), chartWidth + 6, y + 3.5);
     }
 
-    // Candles
-    const count = candles.length;
-    const candleWidth = Math.max(3, (chartWidth / count) * 0.70);
+    const count = displayCandles.length;
     const step = chartWidth / count;
+    const candleWidth = Math.min(28, Math.max(2, step * 0.70));
 
-    // Time Axis labels
-    const dateInterval = Math.max(1, Math.floor(count / 6));
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#64748B';
+    // Detect Day Boundaries & Draw Vertical Session Separators
+    const daySeparators: { index: number; x: number; dateLabel: string }[] = [];
+    for (let i = 1; i < count; i++) {
+      const prevDate = new Date(displayCandles[i - 1].time);
+      const currDate = new Date(displayCandles[i].time);
+      if (prevDate.toDateString() !== currDate.toDateString()) {
+        const x = i * step;
+        const day = currDate.getDate().toString().padStart(2, '0');
+        const month = (currDate.getMonth() + 1).toString().padStart(2, '0');
+        daySeparators.push({
+          index: i,
+          x,
+          dateLabel: `${day}/${month}`
+        });
+      }
+    }
 
-    for (let i = 0; i < count; i += dateInterval) {
-      const x = i * step + step / 2;
-      const d = new Date(candles[i].time);
-      const label = (timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h' || timeframe === '4h')
-        ? `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-        : `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-
+    // Draw Day Delimiters
+    daySeparators.forEach(sep => {
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, chartHeight);
+      ctx.moveTo(sep.x, 0);
+      ctx.lineTo(sep.x, chartHeight);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+      ctx.beginPath();
+      ctx.roundRect(sep.x - 22, chartHeight + 4, 44, 18, 4);
+      ctx.fill();
+
+      ctx.strokeStyle = '#38BDF8';
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.fillText(label, x, height - 8);
+      ctx.fillStyle = '#38BDF8';
+      ctx.font = 'bold 9px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(sep.dateLabel, sep.x, chartHeight + 16);
+    });
+
+    // Chronological Bottom Axis Labels
+    ctx.textAlign = 'center';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillStyle = '#64748B';
+
+    const isSingleDay = daySeparators.length === 0;
+    const isMacroTimeframe = timeframe === '1D' || timeframe === '1S' || selectedRange === '1M' || selectedRange === '6M' || selectedRange === '1A';
+
+    if (isSingleDay && !isMacroTimeframe) {
+      const interval = Math.max(1, Math.floor(count / 6));
+      for (let i = 0; i < count; i += interval) {
+        const x = i * step + step / 2;
+        const d = new Date(displayCandles[i].time);
+        const hours = d.getHours().toString().padStart(2, '0');
+        const mins = d.getMinutes().toString().padStart(2, '0');
+        const timeLabel = `${hours}:${mins}`;
+
+        ctx.strokeStyle = '#161F33';
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, chartHeight);
+        ctx.stroke();
+
+        ctx.fillText(timeLabel, x, chartHeight + 17);
+      }
+    } else if (isMacroTimeframe) {
+      const interval = Math.max(1, Math.floor(count / 6));
+      for (let i = 0; i < count; i += interval) {
+        const x = i * step + step / 2;
+        const d = new Date(displayCandles[i].time);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const label = `${day}/${month}`;
+
+        ctx.strokeStyle = '#161F33';
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, chartHeight);
+        ctx.stroke();
+
+        ctx.fillText(label, x, chartHeight + 17);
+      }
+    } else {
+      const interval = Math.max(2, Math.floor(count / 7));
+      for (let i = 0; i < count; i += interval) {
+        const x = i * step + step / 2;
+        const isNearSeparator = daySeparators.some(sep => Math.abs(sep.x - x) < 30);
+        if (isNearSeparator) continue;
+
+        const d = new Date(displayCandles[i].time);
+        const hours = d.getHours().toString().padStart(2, '0');
+        const mins = d.getMinutes().toString().padStart(2, '0');
+        const timeLabel = `${hours}:${mins}`;
+
+        ctx.fillText(timeLabel, x, chartHeight + 17);
+      }
     }
 
     // Draw Volume Bars
-    candles.forEach((c, idx) => {
+    displayCandles.forEach((c, idx) => {
       const x = idx * step + step / 2;
       const isUp = c.close >= c.open;
       const vHeight = maxVolume > 0 ? (c.volume / maxVolume) * volumeHeight : 0;
@@ -194,7 +391,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
     });
 
     // Draw Candlesticks
-    candles.forEach((c, idx) => {
+    displayCandles.forEach((c, idx) => {
       const x = idx * step + step / 2;
       const isUp = c.close >= c.open;
 
@@ -222,7 +419,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
     });
 
     // Current Price Line
-    const lastCandle = candles[candles.length - 1];
+    const lastCandle = displayCandles[displayCandles.length - 1];
     const lastY = priceChartHeight - ((lastCandle.close - minPrice) / effectiveRange) * priceChartHeight;
 
     ctx.strokeStyle = '#2962FF';
@@ -262,35 +459,167 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
       ctx.stroke();
       ctx.setLineDash([]);
     }
-  }, [candles, hoverInfo, timeframe, quoteCurrency, isMultiChart]);
+  }, [displayCandles, hoverInfo, timeframe, quoteCurrency, isMultiChart, selectedRange]);
+
+    // Global mouseup listener to avoid stuck drag state
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
+const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragStartPanRef.current = panOffset;
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || !candles.length) return;
+    if (!canvas || !displayCandles.length) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const chartWidth = rect.width - 75;
 
-    if (x < 0 || x > chartWidth || y < 0 || y > rect.height - 26) {
+    if (isDraggingRef.current) {
+      const deltaX = e.clientX - dragStartXRef.current;
+      const step = chartWidth / displayCandles.length;
+      const candleDelta = Math.round(deltaX / Math.max(4, step));
+      setPanOffset(Math.max(0, dragStartPanRef.current + candleDelta));
+      setHoverInfo(null);
+      return;
+    }
+
+    if (x < 0 || x > chartWidth || y < 0 || y > rect.height - 28) {
       setHoverInfo(null);
       return;
     }
 
     const index = Math.min(
-      candles.length - 1,
-      Math.max(0, Math.floor((x / chartWidth) * candles.length))
+      displayCandles.length - 1,
+      Math.max(0, Math.floor((x / chartWidth) * displayCandles.length))
     );
 
     setHoverInfo({
       x,
       y,
-      candle: candles[index]
+      candle: displayCandles[index]
     });
   };
 
-  const isPositive = asset.changePercent24h >= 0;
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? -5 : 5;
+    setZoomCount(prev => Math.max(15, Math.min(180, prev + zoomDelta)));
+  };
+
+    // Dynamic return calculation based on selectedRange (independent of candle timeframe, zoom or pan)
+  const { periodChangePercent, isPeriodPositive, periodBadgeLabel } = useMemo(() => {
+    if (selectedRange === '1D') {
+      const isPastSession = sessionDays.length > 1 && selectedSessionIdx < sessionDays.length - 1;
+      if (isPastSession && sessionDays[selectedSessionIdx]?.candles.length >= 2) {
+        const pastCandles = sessionDays[selectedSessionIdx].candles;
+        const start = pastCandles[0].open;
+        const end = pastCandles[pastCandles.length - 1].close;
+        const pct = start > 0 ? ((end - start) / start) * 100 : 0;
+        return {
+          periodChangePercent: pct,
+          isPeriodPositive: pct >= 0,
+          periodBadgeLabel: currentSessionDateLabel
+        };
+      }
+
+      return {
+        periodChangePercent: asset.changePercent24h,
+        isPeriodPositive: asset.changePercent24h >= 0,
+        periodBadgeLabel: '24h'
+      };
+    }
+
+    if (!candles.length) {
+      return {
+        periodChangePercent: asset.changePercent24h,
+        isPeriodPositive: asset.changePercent24h >= 0,
+        periodBadgeLabel: selectedRange
+      };
+    }
+
+    if (selectedRange === '5D') {
+      let startPrice = candles[0].open;
+      if (sessionDays.length >= 5) {
+        startPrice = sessionDays[sessionDays.length - 5].candles[0].open;
+      } else if (sessionDays.length > 0) {
+        startPrice = sessionDays[0].candles[0].open;
+      }
+      const currentPrice = asset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : asset.changePercent24h;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '5D'
+      };
+    }
+
+    if (selectedRange === '1M') {
+      const oneMonthAgo = Date.now() - 31 * 24 * 3600 * 1000;
+      const matching = candles.find(c => c.time >= oneMonthAgo) || candles[0];
+      const startPrice = matching.open;
+      const currentPrice = asset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : asset.changePercent24h;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '1M'
+      };
+    }
+
+    if (selectedRange === '6M') {
+      const sixMonthsAgo = Date.now() - 180 * 24 * 3600 * 1000;
+      const matching = candles.find(c => c.time >= sixMonthsAgo) || candles[0];
+      const startPrice = matching.open;
+      const currentPrice = asset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : asset.changePercent24h;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '6M'
+      };
+    }
+
+    if (selectedRange === '1A') {
+      const oneYearAgo = Date.now() - 365 * 24 * 3600 * 1000;
+      const matching = candles.find(c => c.time >= oneYearAgo) || candles[0];
+      const startPrice = matching.open;
+      const currentPrice = asset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : asset.changePercent24h;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '1A'
+      };
+    }
+
+    // TUDO
+    const startPrice = candles[0].open;
+    const currentPrice = asset.price;
+    const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : asset.changePercent24h;
+    return {
+      periodChangePercent: pct,
+      isPeriodPositive: pct >= 0,
+      periodBadgeLabel: 'Tudo'
+    };
+  }, [selectedRange, sessionDays, selectedSessionIdx, candles, asset.price, asset.changePercent24h, currentSessionDateLabel]);
+
+  
+
 
   const handleSetMultiSlot = (slotIdx: number, baseSymbol: string) => {
     setMultiSlots(prev => {
@@ -298,38 +627,44 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
       copy[slotIdx] = baseSymbol;
       return copy;
     });
+    setOpenSlotPicker(null);
   };
 
-  const filteredSlotAssets = allAssets.filter(
+  const filteredCatalogAssets = allAssets.filter(
     a =>
       a.baseAsset.toLowerCase().includes(slotSearchQuery.toLowerCase()) ||
       a.name.toLowerCase().includes(slotSearchQuery.toLowerCase())
   );
 
   return (
-    <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-4 shadow-sm relative">
-      {/* Chart Top Header & Controls - Componentized */}
+    <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm relative">
+      {/* Chart Top Header & Controls */}
       <ChartHeader
-        icon={<span className="text-lg font-bold">{getCryptoIcon(asset.baseAsset)}</span>}
+        icon={
+          <span className="w-8 h-8 rounded-full bg-[#161F33] flex items-center justify-center text-sm font-bold text-[#F59E0B]">
+            {getCryptoIcon(asset.baseAsset)}
+          </span>
+        }
         symbol={asset.baseAsset}
         exchangeLabel={`/${quoteCurrency} · BINANCE`}
         name={asset.name}
         priceFormatted={formatPrice(asset.price)}
-        changePercentFormatted={`${isPositive ? '+' : ''}${asset.changePercent24h.toFixed(2)}%`}
-        isPositive={isPositive}
+        changePercentFormatted={formatPercent(periodChangePercent)}
+        isPositive={isPeriodPositive}
+        periodBadge={periodBadgeLabel}
         onOpenOrder={onOpenOrder}
         timeframes={timeframes}
         activeTimeframe={timeframe}
-        onSelectTimeframe={setTimeframe}
+        onSelectTimeframe={handleSelectTimeframe}
         statusBadge={
           isLoading ? (
             <span className="flex items-center gap-1.5 text-xs text-[#60A5FA]">
-              <Loader2 size={12} className="animate-spin" /> Atualizando...
+              <Loader2 size={12} className="animate-spin" /> Carregando...
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
-              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-              24/7 ONLINE
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#38BDF8] bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
+              <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping"></span>
+              24/7 AO VIVO
             </span>
           )
         }
@@ -337,28 +672,25 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
         onToggleMultiChart={() => setIsMultiChart(prev => !prev)}
       />
 
-      {/* OHLCV Banner on hover (when not in multi-chart) */}
+      {/* OHLCV Banner on Hover */}
       {!isMultiChart && (
         <div className="h-6 flex items-center justify-between text-[11px] font-mono text-[#94A3B8] px-1">
           {hoverInfo ? (
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
               <span className="text-[#60A5FA] font-bold">
-                📅 {new Date(hoverInfo.candle.time).toLocaleDateString('pt-BR')}
-                {(timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h' || timeframe === '4h') && (
-                  ` às ${new Date(hoverInfo.candle.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-                )}
+                📅 {formatHoverDate(hoverInfo.candle.time)}
               </span>
               <span>A: <strong className="text-white">{formatPrice(hoverInfo.candle.open)}</strong></span>
               <span>MÁX: <strong className="text-[#38BDF8]">{formatPrice(hoverInfo.candle.high)}</strong></span>
               <span>MÍN: <strong className="text-[#F43F5E]">{formatPrice(hoverInfo.candle.low)}</strong></span>
               <span>F: <strong className="text-white">{formatPrice(hoverInfo.candle.close)}</strong></span>
-              <span>VOL: <strong className="text-white">{hoverInfo.candle.volume.toFixed(1)} {asset.baseAsset}</strong></span>
+              <span>VOL: <strong className="text-white">{hoverInfo.candle.volume.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</strong></span>
             </div>
           ) : (
             <div className="flex items-center gap-4 text-[#64748B]">
               <span>MÁX 24H: <strong className="text-white">{formatPrice(asset.high24h)}</strong></span>
               <span>MÍN 24H: <strong className="text-white">{formatPrice(asset.low24h)}</strong></span>
-              <span>VOL 24H: <strong className="text-white">{asset.volume24h.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} {asset.baseAsset}</strong></span>
+              <span>VOL 24H: <strong className="text-white">{asset.volume24h.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} {asset.baseAsset}</strong></span>
               <span className="text-xs px-2 py-0.5 rounded bg-[#161F33] text-[#60A5FA] font-bold">
                 {timeframes.find(t => t.id === timeframe)?.desc || timeframe}
               </span>
@@ -367,18 +699,108 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
         </div>
       )}
 
-      {/* Main Single Chart OR Multi-Chart 2x2 Grid */}
+      {/* Main Canvas or Multi-Chart 2x2 */}
       {!isMultiChart ? (
-        <div className="relative w-full h-[320px] rounded-xl overflow-hidden bg-[#0B0F19] border border-[#1E293B]">
-          <canvas
-            ref={canvasRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => setHoverInfo(null)}
-            className="w-full h-full cursor-crosshair block"
-          />
+        <div className="flex flex-col gap-2.5">
+          <div className="relative w-full h-[330px] rounded-xl overflow-hidden bg-[#0B0F19] border border-[#1E293B]">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={() => {
+                isDraggingRef.current = false;
+                setHoverInfo(null);
+              }}
+              onWheel={handleWheel}
+              className="w-full h-full cursor-crosshair block select-none"
+            />
+
+            {displayCandles.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-[#64748B]">
+                {isLoading ? (
+                  <>
+                    <Loader2 size={24} className="animate-spin text-[#2962FF]" />
+                    <span className="text-xs font-mono text-[#94A3B8]">Carregando candles oficiais da Binance...</span>
+                  </>
+                ) : (
+                  <span className="text-xs font-mono text-[#94A3B8]">Sem dados históricos oficiais para {asset.symbol} no momento.</span>
+                )}
+              </div>
+            )}
+
+            {panOffset > 0 && (
+              <button
+                onClick={() => setPanOffset(0)}
+                className="absolute top-3 right-20 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2962FF] hover:bg-[#1D4ED8] text-white text-xs font-bold shadow-lg transition-all animate-bounce"
+                title="Voltar para os candles em tempo real"
+              >
+                <RotateCcw size={12} />
+                <span>Voltar ao tempo real</span>
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Bar: Range Selector + Day Session Navigator */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-1 text-xs">
+            <div className="flex items-center gap-1 bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B]">
+              <span className="text-[10px] uppercase font-bold text-[#64748B] px-2 hidden md:inline">
+                Período:
+              </span>
+              {ranges.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => {
+                    setSelectedRange(r.id);
+                    setPanOffset(0);
+                  }}
+                  title={r.desc}
+                  className={`px-2.5 py-1 rounded-lg font-bold font-mono transition-all ${
+                    selectedRange === r.id
+                      ? 'bg-[#2962FF] text-white shadow-sm'
+                      : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            {selectedRange === '1D' && sessionDays.length > 1 && (
+              <div className="flex items-center gap-2 bg-[#0B0F19] px-2 py-1 rounded-xl border border-[#1E293B]">
+                <button
+                  disabled={selectedSessionIdx <= 0}
+                  onClick={() => {
+                    setSelectedSessionIdx(prev => Math.max(0, prev - 1));
+                    setPanOffset(0);
+                  }}
+                  className="p-1 rounded-lg hover:bg-[#161F33] text-[#94A3B8] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+                  title="Ver sessão anterior"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <span className="font-mono font-bold text-white text-xs px-1">
+                  {currentSessionDateLabel}
+                </span>
+
+                <button
+                  disabled={selectedSessionIdx >= sessionDays.length - 1}
+                  onClick={() => {
+                    setSelectedSessionIdx(prev => Math.min(sessionDays.length - 1, prev + 1));
+                    setPanOffset(0);
+                  }}
+                  className="p-1 rounded-lg hover:bg-[#161F33] text-[#94A3B8] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+                  title="Ver próxima sessão"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
-        /* Multi-Gráfico (2x2) Grid with Real Canvas Mini-Charts */
+        /* Multi-Gráfico (2x2) */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {multiSlots.map((baseSym, slotIdx) => {
             const slotAsset = allAssets.find(a => a.baseAsset === baseSym) || {
@@ -386,14 +808,14 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               baseAsset: baseSym,
               quoteAsset: quoteCurrency,
               name: baseSym,
-              price: 1000,
+              price: 100,
               changePercent24h: 0,
               changeValue24h: 0,
-              high24h: 1050,
-              low24h: 950,
-              volume24h: 500,
-              quoteVolume24h: 500000,
-              category: 'top',
+              high24h: 105,
+              low24h: 95,
+              volume24h: 1000,
+              quoteVolume24h: 100000,
+              category: 'top' as const,
             };
 
             const isSlotActive = slotAsset.baseAsset === asset.baseAsset;
@@ -402,8 +824,8 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
 
             return (
               <div
-                key={`slot-${slotIdx}-${baseSym}`}
-                onClick={() => onSelectAsset?.(slotAsset as CryptoAsset)}
+                key={`crypto-slot-${slotIdx}-${baseSym}`}
+                onClick={() => onSelectAsset?.(slotAsset)}
                 className={`p-3.5 rounded-xl border flex flex-col justify-between transition-all relative cursor-pointer group ${
                   isSlotActive
                     ? 'bg-[#141C2E] border-[#2962FF] ring-2 ring-blue-500/20 shadow-lg'
@@ -421,14 +843,13 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
                         setSlotSearchQuery('');
                       }}
                       className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[#161F33] hover:bg-[#1E293B] border border-[#1E293B] text-white font-mono font-bold text-sm transition-colors group"
-                      title="Clique para trocar o criptoativo deste quadrante"
+                      title="Clique para trocar a cripto deste quadrante"
                     >
                       <span className="text-xs text-[#60A5FA]">#{slotIdx + 1}</span>
-                      <span>{slotAsset.baseAsset}/{quoteCurrency}</span>
+                      <span>{slotAsset.baseAsset}</span>
                       <ChevronDown size={14} className="text-[#94A3B8] group-hover:text-white" />
                     </button>
 
-                    {/* Dropdown Selector */}
                     {isSlotPickerOpen && (
                       <div
                         className="absolute top-10 left-0 w-64 bg-[#0F1523] border border-[#1E293B] rounded-xl shadow-2xl p-2 z-50"
@@ -436,24 +857,21 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
                       >
                         <div className="text-[10px] uppercase font-bold text-[#64748B] px-2 py-1 border-b border-[#1E293B] flex items-center justify-between">
                           <span>Trocar Quadrante #{slotIdx + 1}</span>
-                          <span className="text-[#60A5FA]">Binance</span>
+                          <span className="text-[#F59E0B] font-mono">BINANCE</span>
                         </div>
                         <input
                           type="text"
                           value={slotSearchQuery}
                           onChange={e => setSlotSearchQuery(e.target.value)}
-                          placeholder="Buscar moeda (ex: BTC, SOL)..."
+                          placeholder="Buscar cripto (ex: SOL, BNB)..."
                           autoFocus
                           className="w-full bg-[#141C2E] border border-[#1E293B] rounded-lg px-2.5 py-1.5 text-xs text-white my-2 focus:outline-none focus:border-[#2962FF]"
                         />
                         <div className="max-h-44 overflow-y-auto divide-y divide-[#1E293B]/40">
-                          {filteredSlotAssets.map(fa => (
+                          {filteredCatalogAssets.map(fa => (
                             <div
-                              key={fa.symbol}
-                              onClick={() => {
-                                handleSetMultiSlot(slotIdx, fa.baseAsset);
-                                setOpenSlotPicker(null);
-                              }}
+                              key={fa.baseAsset}
+                              onClick={() => handleSetMultiSlot(slotIdx, fa.baseAsset)}
                               className={`p-2 rounded-lg cursor-pointer text-xs flex items-center justify-between hover:bg-[#161F33] ${
                                 fa.baseAsset === slotAsset.baseAsset ? 'bg-blue-500/10 text-[#60A5FA]' : 'text-white'
                               }`}
@@ -483,25 +901,25 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
                   </div>
                 </div>
 
-                {/* Mini Candlestick Canvas for this quadrant */}
+                {/* Real Mini Candlestick Chart for this slot */}
                 <MiniCryptoSlotChart
                   symbol={slotAsset.symbol}
                   price={slotAsset.price}
                   timeframe={timeframe}
-                />
+                  />
 
                 {/* Slot Footer */}
                 <div className="flex items-center justify-between text-[11px] text-[#64748B] pt-2 border-t border-[#1E293B]">
-                  <span>Vol 24h {quoteCurrency === 'BRL' ? 'R$' : '$'} {(slotAsset.quoteVolume24h / 1e6).toFixed(1)}M</span>
+                  <span>24h Vol {slotAsset.volume24h.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
                   <button
-                    onClick={() => onSelectAsset?.(slotAsset as CryptoAsset)}
+                    onClick={() => onSelectAsset?.(slotAsset)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
                       isSlotActive
                         ? 'bg-[#2962FF] text-white shadow-sm'
                         : 'bg-[#161F33] text-[#94A3B8] hover:text-white hover:bg-[#1E293B]'
                     }`}
                   >
-                    <span>{isSlotActive ? 'Ativo no Terminal' : 'Operar'}</span>
+                    <span>{isSlotActive ? 'Ativo no Terminal' : 'Operar no Terminal'}</span>
                     <ArrowRight size={12} />
                   </button>
                 </div>

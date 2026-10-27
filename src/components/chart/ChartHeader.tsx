@@ -18,6 +18,7 @@ export interface ChartHeaderProps<T extends string = string> {
   priceFormatted: string;
   changePercentFormatted: string;
   isPositive: boolean;
+  periodBadge?: string;
 
   // Optional mobile action
   onOpenOrder?: () => void;
@@ -41,6 +42,7 @@ export const ChartHeader = <T extends string = string>({
   priceFormatted,
   changePercentFormatted,
   isPositive,
+  periodBadge,
   onOpenOrder,
   timeframes,
   activeTimeframe,
@@ -78,20 +80,28 @@ export const ChartHeader = <T extends string = string>({
           {/* Divisor vertical */}
           <div className="h-9 w-px bg-[#1E293B] shrink-0 hidden sm:block" />
 
-          {/* Valor do ativo (Preço + Variação) */}
+          {/* Valor do ativo (Preço + Variação do Período) */}
           <div className="flex items-baseline gap-2 shrink-0 font-mono">
             <span className="text-xl sm:text-2xl font-black text-white whitespace-nowrap">
               {priceFormatted}
             </span>
-            <span
-              className={`text-xs font-bold font-mono px-2 py-0.5 rounded whitespace-nowrap ${
-                isPositive
-                  ? 'bg-sky-500/10 text-[#38BDF8]'
-                  : 'bg-rose-500/10 text-[#F43F5E]'
-              }`}
-            >
-              {changePercentFormatted}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`text-xs font-bold font-mono px-2 py-0.5 rounded whitespace-nowrap ${
+                  isPositive
+                    ? 'bg-sky-500/10 text-[#38BDF8]'
+                    : 'bg-rose-500/10 text-[#F43F5E]'
+                }`}
+                title={periodBadge ? `Variação acumulada no período de ${periodBadge}` : undefined}
+              >
+                {changePercentFormatted}
+              </span>
+              {periodBadge && (
+                <span className="text-[10px] text-[#64748B] font-mono font-medium hidden sm:inline">
+                  {periodBadge}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Mobile Trade Action Button */}

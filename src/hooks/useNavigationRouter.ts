@@ -13,6 +13,7 @@ export const ROUTE_MAP: Record<ActiveNav, RouteConfig> = {
   cripto: { path: '/crypto', title: 'Crypto' },
   dividendos: { path: '/mapaDividendos', title: 'Mapa de Dividendos' },
   daytrade: { path: '/daytrade', title: 'Day Trade' },
+  heatmap: { path: '/heatmap', title: 'Mapa de Mercado' },
 };
 
 export const getNavFromPath = (path: string): ActiveNav => {
@@ -36,6 +37,10 @@ export const getNavFromPath = (path: string): ActiveNav => {
       return 'dividendos';
     case '/daytrade':
       return 'daytrade';
+    case '/heatmap':
+    case '/mapa':
+    case '/mapa-mercado':
+      return 'heatmap';
     default:
       return 'bolsa';
   }

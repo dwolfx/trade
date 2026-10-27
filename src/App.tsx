@@ -11,6 +11,7 @@ import { PortfolioPage } from './components/portfolio/PortfolioPage';
 import { NewsPage } from './components/news/NewsPage';
 import { CryptoPage } from './components/crypto/CryptoPage';
 import { DividendsCalendarPage } from './components/dividends/DividendsCalendarPage';
+import { MarketHeatmap } from './components/heatmap/MarketHeatmap';
 import { PageHeader } from './components/common/PageHeader';
 import { EmptyState } from './components/common/EmptyState';
 import { MobileQuickTradeBar } from './components/common/MobileQuickTradeBar';
@@ -26,6 +27,7 @@ import {
   Briefcase,
   Newspaper,
   ArrowLeft,
+  Flame,
 } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
@@ -125,6 +127,15 @@ export const AppContent: React.FC = () => {
                     title={b3Sentiment.description}
                   />
 
+                  <button
+                    onClick={() => setActiveNav('heatmap')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-[#1E293B] hover:border-sky-500/40 text-xs font-semibold text-[#94A3B8] hover:text-white transition-all shadow-sm group cursor-pointer"
+                    title="Abrir Mapa de Calor de Mercado (Heatmap Finviz)"
+                  >
+                    <Flame size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                    <span>Mapa de Calor</span>
+                  </button>
+
                   <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-[#1E293B] text-xs font-mono text-[#94A3B8]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
                     <span>DMA2 Conectado</span>
@@ -201,6 +212,18 @@ export const AppContent: React.FC = () => {
         {/* Calendário & Mapa de Dividendos */}
         {activeNav === 'dividendos' && (
           <DividendsCalendarPage onNavigate={setActiveNav} />
+        )}
+
+        {/* Mapa de Calor Finviz / Treemap */}
+        {activeNav === 'heatmap' && (
+          <MarketHeatmap
+            onSelectAsset={(symbol) => {
+              const isCrypto = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'SUI', 'LINK', 'NEAR', 'DOT', 'UNI', 'PEPE', 'APT'].includes(symbol);
+              setActiveNav(isCrypto ? 'cripto' : 'bolsa');
+            }}
+            onOpenOrder={handleOpenOrder}
+            onNavigate={setActiveNav}
+          />
         )}
       </main>
 

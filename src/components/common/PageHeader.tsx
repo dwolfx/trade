@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon, TrendingUp, Wallet, Coins, CalendarDays, Newspaper, Zap } from 'lucide-react';
+import { LucideIcon, TrendingUp, Wallet, Coins, CalendarDays, Newspaper, Zap, Flame } from 'lucide-react';
 import { ActiveNav } from '../../types/market';
 
 export interface PageDefinition {
@@ -76,6 +76,16 @@ export const PAGES_REGISTRY: Record<ActiveNav, PageDefinition> = {
     badge: {
       text: 'FASE 3 · EM DESENVOLVIMENTO',
       variant: 'amber',
+      pulse: true,
+    },
+  },
+  heatmap: {
+    icon: Flame,
+    title: 'Mapa de Calor de Mercado (Heatmap)',
+    subtitle: 'Visualização proporcional por Market Cap e variação percentual dos setores da B3 e Criptoativos',
+    badge: {
+      text: 'FINVIZ STYLE · REALTIME',
+      variant: 'sky',
       pulse: true,
     },
   },

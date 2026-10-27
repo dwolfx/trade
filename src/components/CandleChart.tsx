@@ -1,7 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useMarket } from '../context/MarketContext';
-import { Timeframe } from '../types/market';
-import { ChevronDown, Check, ArrowRight, Loader2 } from 'lucide-react';
+import { Timeframe, ChartRange, Candle } from '../types/market';
+import { ChevronDown, Check, ArrowRight, Loader2, ChevronLeft, RotateCcw } from 'lucide-react';
 import { BrazilFlag } from './common/BrazilFlag';
 import { ChartHeader } from './chart/ChartHeader';
 import { formatBRL, formatPercent } from '../utils/formatters';
@@ -30,46 +30,155 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
   } = useMarket();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Range de visualização (Visão de tempo independente da periodicidade do candle)
+  const [selectedRange, setSelectedRange] = useState<ChartRange>('1D');
+  
+  // Interactive Pan & Zoom
+  const [panOffset, setPanOffset] = useState<number>(0);
+  const [zoomCount, setZoomCount] = useState<number>(45);
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartPanRef = useRef(0);
+
   const [hoverInfo, setHoverInfo] = useState<{
     x: number;
     y: number;
-    candle: (typeof candles)[0];
+    candle: Candle;
   } | null>(null);
 
   const [openSlotPicker, setOpenSlotPicker] = useState<number | null>(null);
   const [slotSearchQuery, setSlotSearchQuery] = useState<string>('');
 
   const timeframes: { id: Timeframe; label: string; desc: string }[] = [
-    { id: '1m', label: '1m', desc: '1 Minuto' },
-    { id: '5m', label: '5m', desc: '5 Minutos' },
-    { id: '15m', label: '15m', desc: '15 Minutos' },
-    { id: '1h', label: '1h', desc: '1 Hora' },
-    { id: '1D', label: '1D', desc: 'Diário (1 Dia)' },
-    { id: '1S', label: '1S', desc: 'Semanal (1 Semana)' },
-    { id: '1M', label: '1M', desc: 'Mensal (1 Mês)' },
-    { id: '1A', label: '1A', desc: 'Anual (1 Ano)' },
+    { id: '1m', label: '1m', desc: '1 Minuto por vela' },
+    { id: '5m', label: '5m', desc: '5 Minutos por vela' },
+    { id: '15m', label: '15m', desc: '15 Minutos por vela' },
+    { id: '1h', label: '1h', desc: '1 Hora por vela' },
+    { id: '1D', label: '1D', desc: 'Diário (1 Dia por vela)' },
+    { id: '1S', label: '1S', desc: 'Semanal (1 Semana por vela)' },
+    { id: '1M', label: '1M', desc: 'Mensal (1 Mês por vela)' },
+    { id: '1A', label: '1A', desc: 'Anual (1 Ano por vela)' },
   ];
 
-  // Helper to format date based on timeframe
-  const formatTimeLabel = (timestamp: number, tf: Timeframe): string => {
-    const d = new Date(timestamp);
-    if (isNaN(d.getTime())) return '';
-    if (tf === '1D' || tf === '1S' || tf === '1M' || tf === '1A') {
-      const day = d.getDate().toString().padStart(2, '0');
-      const month = (d.getMonth() + 1).toString().padStart(2, '0');
-      return `${day}/${month}`;
-    } else {
-      const hours = d.getHours().toString().padStart(2, '0');
-      const mins = d.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${mins}`;
+  const ranges: { id: ChartRange; label: string; desc: string }[] = [
+    { id: '1D', label: '1D', desc: 'Pregão de Hoje (Intraday)' },
+    { id: '5D', label: '5D', desc: 'Últimos 5 Dias de Negociação' },
+    { id: '1M', label: '1M', desc: '1 Mês' },
+    { id: '6M', label: '6M', desc: '6 Meses' },
+    { id: '1A', label: '1A', desc: '1 Ano' },
+    { id: 'TUDO', label: 'Tudo', desc: 'Todo Histórico Disponível' },
+  ];
+
+  // Group candles by trading day for session navigation (1D mode)
+  const sessionDays = useMemo(() => {
+    const map = new Map<string, Candle[]>();
+    candles.forEach(c => {
+      const d = new Date(c.time);
+      const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(c);
+    });
+    return Array.from(map.entries()).map(([key, dayCandles]) => ({
+      key,
+      date: new Date(dayCandles[0].time),
+      candles: dayCandles
+    }));
+  }, [candles]);
+
+  // Selected session day index in 1D mode (defaults to latest available day)
+  const [selectedSessionIdx, setSelectedSessionIdx] = useState<number>(() => {
+    return Math.max(0, sessionDays.length - 1);
+  });
+
+  // When candles update or symbol changes, snap to latest session
+  useEffect(() => {
+    if (sessionDays.length > 0) {
+      setSelectedSessionIdx(sessionDays.length - 1);
+      setPanOffset(0);
     }
+  }, [sessionDays.length, activeAsset.symbol]);
+
+  // If user clicks a daily/macro timeframe (1D, 1S, 1M, 1A), automatically adjust range to fit if in 1D
+  const handleSelectTimeframe = (tf: Timeframe) => {
+    setTimeframe(tf);
+    setPanOffset(0);
   };
 
-  // Render Canvas Candlesticks with real price & date axes
+  // Compute active dataset to render based on selectedRange and panOffset
+  const displayCandles = useMemo(() => {
+    if (!candles.length) return [];
+
+    let pool: Candle[] = [];
+
+    const isIntraday = timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h';
+
+    if (selectedRange === '1D' && isIntraday && sessionDays.length > 0) {
+      const safeIdx = Math.max(0, Math.min(sessionDays.length - 1, selectedSessionIdx));
+      const sessionCandles = sessionDays[safeIdx]?.candles;
+      pool = (sessionCandles && sessionCandles.length >= 2) ? sessionCandles : (candles.length > 60 ? candles.slice(-60) : candles);
+    } else if (selectedRange === '1D') {
+      // For daily/macro timeframes in 1D range, show the daily history series
+      pool = candles.length > 60 ? candles.slice(-60) : candles;
+    } else if (selectedRange === '5D' && sessionDays.length > 0) {
+      // Last 5 trading days
+      const last5Sessions = sessionDays.slice(-5);
+      pool = last5Sessions.flatMap(s => s.candles);
+    } else if (selectedRange === '1M') {
+      const oneMonthAgo = Date.now() - 31 * 24 * 3600 * 1000;
+      pool = candles.filter(c => c.time >= oneMonthAgo);
+      if (pool.length < 20) pool = candles.slice(-40);
+    } else if (selectedRange === '6M') {
+      const sixMonthsAgo = Date.now() - 180 * 24 * 3600 * 1000;
+      pool = candles.filter(c => c.time >= sixMonthsAgo);
+      if (pool.length < 30) pool = candles.slice(-80);
+    } else if (selectedRange === '1A') {
+      const oneYearAgo = Date.now() - 365 * 24 * 3600 * 1000;
+      pool = candles.filter(c => c.time >= oneYearAgo);
+      if (pool.length < 40) pool = candles.slice(-120);
+    } else {
+      pool = candles;
+    }
+
+    if (pool.length === 0) pool = candles;
+
+    // Apply panOffset (scrolling backwards into history)
+    const effectiveCount = Math.min(pool.length, zoomCount);
+    const maxOffset = Math.max(0, pool.length - effectiveCount);
+    const currentOffset = Math.min(panOffset, maxOffset);
+
+    const endIndex = pool.length - currentOffset;
+    const startIndex = Math.max(0, endIndex - effectiveCount);
+
+    return pool.slice(startIndex, endIndex);
+  }, [candles, selectedRange, sessionDays, selectedSessionIdx, panOffset, zoomCount]);
+
+  // Current session label for 1D mode
+  const currentSessionDateLabel = useMemo(() => {
+    if (!sessionDays.length) return '';
+    const safeIdx = Math.max(0, Math.min(sessionDays.length - 1, selectedSessionIdx));
+    const d = sessionDays[safeIdx]?.date;
+    if (!d) return '';
+    const isToday = safeIdx === sessionDays.length - 1;
+    const formattedDate = d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    return isToday ? `Hoje (${formattedDate})` : formattedDate;
+  }, [sessionDays, selectedSessionIdx]);
+
+  // Helper to format crosshair date
+  const formatHoverDate = (timestamp: number) => {
+    const d = new Date(timestamp);
+    if (isNaN(d.getTime())) return '';
+    const weekday = d.toLocaleDateString('pt-BR', { weekday: 'short' });
+    const dateStr = d.toLocaleDateString('pt-BR');
+    const timeStr = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateStr} às ${timeStr}`;
+  };
+
+  // Render Canvas
   useEffect(() => {
     if (isMultiChart) return;
     const canvas = canvasRef.current;
-    if (!canvas || !candles.length) return;
+    if (!canvas || !displayCandles.length) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -83,22 +192,22 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
     const width = rect.width;
     const height = rect.height;
     const rightAxisWidth = 65;
-    const bottomAxisHeight = 26;
+    const bottomAxisHeight = 28;
     const chartWidth = width - rightAxisWidth;
     const chartHeight = height - bottomAxisHeight;
     const volumeHeight = chartHeight * 0.20;
     const priceChartHeight = chartHeight - volumeHeight;
 
-    // Clear background
+    // Background
     ctx.fillStyle = '#0B0F19';
     ctx.fillRect(0, 0, width, height);
 
-    // Calculate Price Min/Max
+    // Min / Max Price & Volume
     let minPrice = Infinity;
     let maxPrice = -Infinity;
     let maxVolume = 0;
 
-    candles.forEach(c => {
+    displayCandles.forEach(c => {
       if (c.low < minPrice) minPrice = c.low;
       if (c.high > maxPrice) maxPrice = c.high;
       if (c.volume > maxVolume) maxVolume = c.volume;
@@ -109,7 +218,7 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
     maxPrice += priceRange * 0.05;
     const effectiveRange = maxPrice - minPrice;
 
-    // Draw Grid Lines (Horizontal Price)
+    // Horizontal Price Grid Lines
     ctx.strokeStyle = '#161F33';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#64748B';
@@ -126,35 +235,132 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
       ctx.lineTo(chartWidth, y);
       ctx.stroke();
 
-      ctx.fillText(`R$ ${price.toFixed(2)}`, chartWidth + 6, y + 3);
+      ctx.fillText(`R$ ${price.toFixed(2)}`, chartWidth + 6, y + 3.5);
     }
 
-    // Candle widths and spacing
-    const count = candles.length;
-    const candleWidth = Math.max(2, (chartWidth / count) * 0.70);
+    const count = displayCandles.length;
     const step = chartWidth / count;
+    const candleWidth = Math.min(28, Math.max(2, step * 0.70));
 
-    // Draw Time Axis Grid Lines & Date Labels (Vertical)
-    const dateInterval = Math.max(1, Math.floor(count / 6));
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#64748B';
+    // Detect Day Boundaries & Draw Vertical Session Separators
+    const daySeparators: { index: number; x: number; dateLabel: string }[] = [];
+    for (let i = 1; i < count; i++) {
+      const prevDate = new Date(displayCandles[i - 1].time);
+      const currDate = new Date(displayCandles[i].time);
+      if (prevDate.toDateString() !== currDate.toDateString()) {
+        const x = i * step;
+        const day = currDate.getDate().toString().padStart(2, '0');
+        const month = (currDate.getMonth() + 1).toString().padStart(2, '0');
+        daySeparators.push({
+          index: i,
+          x,
+          dateLabel: `${day}/${month}`
+        });
+      }
+    }
 
-    for (let i = 0; i < count; i += dateInterval) {
-      const x = i * step + step / 2;
-      const label = formatTimeLabel(candles[i].time, timeframe);
-
-      // Subtle vertical line
+    // Draw Day Delimiters (Vertical dashed line + date marker)
+    daySeparators.forEach(sep => {
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, chartHeight);
+      ctx.moveTo(sep.x, 0);
+      ctx.lineTo(sep.x, chartHeight);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Day separator badge on bottom axis
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+      ctx.beginPath();
+      ctx.roundRect(sep.x - 22, chartHeight + 4, 44, 18, 4);
+      ctx.fill();
+
+      ctx.strokeStyle = '#38BDF8';
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Time label on bottom axis
-      ctx.fillText(label, x, height - 8);
+      ctx.fillStyle = '#38BDF8';
+      ctx.font = 'bold 9px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(sep.dateLabel, sep.x, chartHeight + 16);
+    });
+
+    // Draw Chronological Time Labels on Bottom Axis
+    ctx.textAlign = 'center';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillStyle = '#64748B';
+
+    // If all visible candles belong to one single day (1D mode)
+    const isSingleDay = daySeparators.length === 0;
+    const isMacroTimeframe = timeframe === '1D' || timeframe === '1S' || timeframe === '1M' || timeframe === '1A' || selectedRange === '1M' || selectedRange === '6M' || selectedRange === '1A';
+
+    if (isSingleDay && !isMacroTimeframe) {
+      // Pick 5-6 evenly spaced timestamps across the day
+      const interval = Math.max(1, Math.floor(count / 6));
+      for (let i = 0; i < count; i += interval) {
+        const x = i * step + step / 2;
+        const d = new Date(displayCandles[i].time);
+        const hours = d.getHours().toString().padStart(2, '0');
+        const mins = d.getMinutes().toString().padStart(2, '0');
+        const timeLabel = `${hours}:${mins}`;
+
+        ctx.strokeStyle = '#161F33';
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, chartHeight);
+        ctx.stroke();
+
+        ctx.fillText(timeLabel, x, chartHeight + 17);
+      }
+    } else if (isMacroTimeframe) {
+      // Show dates in ascending order
+      const interval = Math.max(1, Math.floor(count / 6));
+      for (let i = 0; i < count; i += interval) {
+        const x = i * step + step / 2;
+        const d = new Date(displayCandles[i].time);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const label = `${day}/${month}`;
+
+        ctx.strokeStyle = '#161F33';
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, chartHeight);
+        ctx.stroke();
+
+        ctx.fillText(label, x, chartHeight + 17);
+      }
+    } else {
+      // Multi-day intraday: label hours avoiding collision with daySeparators
+      const interval = Math.max(2, Math.floor(count / 7));
+      for (let i = 0; i < count; i += interval) {
+        const x = i * step + step / 2;
+        // Skip if too close to any day separator (< 30px)
+        const isNearSeparator = daySeparators.some(sep => Math.abs(sep.x - x) < 30);
+        if (isNearSeparator) continue;
+
+        const d = new Date(displayCandles[i].time);
+        const hours = d.getHours().toString().padStart(2, '0');
+        const mins = d.getMinutes().toString().padStart(2, '0');
+        const timeLabel = `${hours}:${mins}`;
+
+        ctx.fillText(timeLabel, x, chartHeight + 17);
+      }
     }
 
-    // Draw Candles & Volume
-    candles.forEach((c, i) => {
+    // Draw Volume Bars
+    displayCandles.forEach((c, i) => {
+      const x = i * step + step / 2;
+      const isBull = c.close >= c.open;
+      const volBarH = (c.volume / (maxVolume || 1)) * volumeHeight;
+      const volY = height - bottomAxisHeight - volBarH;
+      ctx.fillStyle = isBull ? THEME_COLORS.profit.bg : THEME_COLORS.loss.bg;
+      ctx.fillRect(x - candleWidth / 2, volY, candleWidth, volBarH);
+    });
+
+    // Draw Candlesticks (Wick & Body)
+    displayCandles.forEach((c, i) => {
       const x = i * step + step / 2;
       const openY = priceChartHeight - ((c.open - minPrice) / effectiveRange) * priceChartHeight;
       const closeY = priceChartHeight - ((c.close - minPrice) / effectiveRange) * priceChartHeight;
@@ -163,12 +369,6 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
 
       const isBull = c.close >= c.open;
       const color = isBull ? THEME_COLORS.profit.DEFAULT : THEME_COLORS.loss.DEFAULT;
-
-      // Volume bar
-      const volBarH = (c.volume / (maxVolume || 1)) * volumeHeight;
-      const volY = height - bottomAxisHeight - volBarH;
-      ctx.fillStyle = isBull ? THEME_COLORS.profit.bg : THEME_COLORS.loss.bg;
-      ctx.fillRect(x - candleWidth / 2, volY, candleWidth, volBarH);
 
       // Wick
       ctx.strokeStyle = color;
@@ -185,29 +385,29 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
       ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyH);
     });
 
-    // Draw Current Price Line & Badge
-    const lastCandle = candles[candles.length - 1];
-    const lastY = priceChartHeight - ((lastCandle.close - minPrice) / effectiveRange) * priceChartHeight;
+    // Current Price Line & Badge (for latest candle in display)
+    const latestCandle = displayCandles[displayCandles.length - 1];
+    const latestY = priceChartHeight - ((latestCandle.close - minPrice) / effectiveRange) * priceChartHeight;
 
     ctx.strokeStyle = '#2962FF';
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(0, lastY);
-    ctx.lineTo(chartWidth, lastY);
+    ctx.moveTo(0, latestY);
+    ctx.lineTo(chartWidth, latestY);
     ctx.stroke();
     ctx.setLineDash([]);
 
     // Price Pill on Right Axis
     ctx.fillStyle = '#2962FF';
     ctx.beginPath();
-    ctx.roundRect(chartWidth + 2, lastY - 10, rightAxisWidth - 4, 20, 4);
+    ctx.roundRect(chartWidth + 2, latestY - 10, rightAxisWidth - 4, 20, 4);
     ctx.fill();
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 10px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`${lastCandle.close.toFixed(2)}`, chartWidth + (rightAxisWidth / 2), lastY + 3.5);
+    ctx.fillText(`${latestCandle.close.toFixed(2)}`, chartWidth + (rightAxisWidth / 2), latestY + 3.5);
 
     // Crosshair if hovering
     if (hoverInfo) {
@@ -226,35 +426,169 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
       ctx.stroke();
       ctx.setLineDash([]);
     }
-  }, [candles, hoverInfo, isMultiChart, timeframe]);
+  }, [displayCandles, hoverInfo, isMultiChart, timeframe, selectedRange]);
+
+  // Mouse drag & hover handlers for pan & zoom
+    // Global mouseup listener to avoid stuck drag state
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
+const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragStartPanRef.current = panOffset;
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas || !candles.length) return;
+    if (!canvas || !displayCandles.length) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const chartWidth = rect.width - 65;
 
-    if (x < 0 || x > chartWidth || y < 0 || y > rect.height - 26) {
+    // Pan if dragging
+    if (isDraggingRef.current) {
+      const deltaX = e.clientX - dragStartXRef.current;
+      const step = chartWidth / displayCandles.length;
+      const candleDelta = Math.round(deltaX / Math.max(4, step));
+      setPanOffset(Math.max(0, dragStartPanRef.current + candleDelta));
+      setHoverInfo(null);
+      return;
+    }
+
+    if (x < 0 || x > chartWidth || y < 0 || y > rect.height - 28) {
       setHoverInfo(null);
       return;
     }
 
     const index = Math.min(
-      candles.length - 1,
-      Math.max(0, Math.floor((x / chartWidth) * candles.length))
+      displayCandles.length - 1,
+      Math.max(0, Math.floor((x / chartWidth) * displayCandles.length))
     );
 
     setHoverInfo({
       x,
       y,
-      candle: candles[index]
+      candle: displayCandles[index]
     });
   };
 
-  const isPositive = activeAsset.changePercent >= 0;
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? -5 : 5;
+    setZoomCount(prev => Math.max(15, Math.min(180, prev + zoomDelta)));
+  };
+
+    // Dynamic return calculation based on selectedRange (independent of candle timeframe, zoom or pan)
+  const { periodChangePercent, isPeriodPositive, periodBadgeLabel } = useMemo(() => {
+    if (selectedRange === '1D') {
+      const isPastSession = sessionDays.length > 1 && selectedSessionIdx < sessionDays.length - 1;
+      if (isPastSession && sessionDays[selectedSessionIdx]?.candles.length >= 2) {
+        const pastCandles = sessionDays[selectedSessionIdx].candles;
+        const start = pastCandles[0].open;
+        const end = pastCandles[pastCandles.length - 1].close;
+        const pct = start > 0 ? ((end - start) / start) * 100 : 0;
+        return {
+          periodChangePercent: pct,
+          isPeriodPositive: pct >= 0,
+          periodBadgeLabel: currentSessionDateLabel
+        };
+      }
+
+      return {
+        periodChangePercent: activeAsset.changePercent,
+        isPeriodPositive: activeAsset.changePercent >= 0,
+        periodBadgeLabel: '1D'
+      };
+    }
+
+    if (!candles.length) {
+      return {
+        periodChangePercent: activeAsset.changePercent,
+        isPeriodPositive: activeAsset.changePercent >= 0,
+        periodBadgeLabel: selectedRange
+      };
+    }
+
+    if (selectedRange === '5D') {
+      let startPrice = candles[0].open;
+      if (sessionDays.length >= 5) {
+        startPrice = sessionDays[sessionDays.length - 5].candles[0].open;
+      } else if (sessionDays.length > 0) {
+        startPrice = sessionDays[0].candles[0].open;
+      }
+      const currentPrice = activeAsset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : activeAsset.changePercent;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '5D'
+      };
+    }
+
+    if (selectedRange === '1M') {
+      const oneMonthAgo = Date.now() - 31 * 24 * 3600 * 1000;
+      const matching = candles.find(c => c.time >= oneMonthAgo) || candles[0];
+      const startPrice = matching.open;
+      const currentPrice = activeAsset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : activeAsset.changePercent;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '1M'
+      };
+    }
+
+    if (selectedRange === '6M') {
+      const sixMonthsAgo = Date.now() - 180 * 24 * 3600 * 1000;
+      const matching = candles.find(c => c.time >= sixMonthsAgo) || candles[0];
+      const startPrice = matching.open;
+      const currentPrice = activeAsset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : activeAsset.changePercent;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '6M'
+      };
+    }
+
+    if (selectedRange === '1A') {
+      const oneYearAgo = Date.now() - 365 * 24 * 3600 * 1000;
+      const matching = candles.find(c => c.time >= oneYearAgo) || candles[0];
+      const startPrice = matching.open;
+      const currentPrice = activeAsset.price;
+      const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : activeAsset.changePercent;
+      return {
+        periodChangePercent: pct,
+        isPeriodPositive: pct >= 0,
+        periodBadgeLabel: '1A'
+      };
+    }
+
+    // TUDO
+    const startPrice = candles[0].open;
+    const currentPrice = activeAsset.price;
+    const pct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : activeAsset.changePercent;
+    return {
+      periodChangePercent: pct,
+      isPeriodPositive: pct >= 0,
+      periodBadgeLabel: 'Tudo'
+    };
+  }, [selectedRange, sessionDays, selectedSessionIdx, candles, activeAsset.price, activeAsset.changePercent, currentSessionDateLabel]);
+
+  
+
 
   const filteredSlotAssets = assets.filter(
     a =>
@@ -263,20 +597,21 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
   );
 
   return (
-    <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-4 shadow-sm relative">
-      {/* Chart Top Header & Controls - Componentized */}
+    <div className="bg-[#0F1523] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm relative">
+      {/* Chart Top Header & Controls */}
       <ChartHeader
         icon={<BrazilFlag size="md" />}
         symbol={activeAsset.symbol}
         exchangeLabel="· B3"
         name={activeAsset.name}
         priceFormatted={formatBRL(activeAsset.price)}
-        changePercentFormatted={formatPercent(activeAsset.changePercent)}
-        isPositive={isPositive}
+        changePercentFormatted={formatPercent(periodChangePercent)}
+        isPositive={isPeriodPositive}
+        periodBadge={periodBadgeLabel}
         onOpenOrder={onOpenOrder ? () => onOpenOrder(activeAsset.symbol) : undefined}
         timeframes={timeframes}
         activeTimeframe={timeframe}
-        onSelectTimeframe={setTimeframe}
+        onSelectTimeframe={handleSelectTimeframe}
         statusBadge={
           isLoadingCandles ? (
             <span className="flex items-center gap-1.5 text-xs text-[#60A5FA]">
@@ -301,16 +636,13 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
         onToggleMultiChart={() => setIsMultiChart(prev => !prev)}
       />
 
-      {/* OHLCV Banner on hover (when not in multi-chart) */}
+      {/* OHLCV Banner on hover */}
       {!isMultiChart && (
         <div className="h-6 flex items-center justify-between text-[11px] font-mono text-[#94A3B8] px-1">
           {hoverInfo ? (
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
               <span className="text-[#60A5FA] font-bold">
-                📅 {new Date(hoverInfo.candle.time).toLocaleDateString('pt-BR')}
-                {(timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '1h') && (
-                  ` às ${new Date(hoverInfo.candle.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-                )}
+                📅 {formatHoverDate(hoverInfo.candle.time)}
               </span>
               <span>A: <strong className="text-white">R$ {hoverInfo.candle.open.toFixed(2)}</strong></span>
               <span>MÁX: <strong className="text-[#38BDF8]">R$ {hoverInfo.candle.high.toFixed(2)}</strong></span>
@@ -333,13 +665,107 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
 
       {/* Main Chart Canvas or Multi-Chart Grid (2x2) */}
       {!isMultiChart ? (
-        <div className="relative w-full h-[320px] rounded-xl overflow-hidden bg-[#0B0F19] border border-[#1E293B]">
-          <canvas
-            ref={canvasRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => setHoverInfo(null)}
-            className="w-full h-full cursor-crosshair block"
-          />
+        <div className="flex flex-col gap-2.5">
+          {/* Canvas Wrapper */}
+          <div className="relative w-full h-[330px] rounded-xl overflow-hidden bg-[#0B0F19] border border-[#1E293B]">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={() => {
+                isDraggingRef.current = false;
+                setHoverInfo(null);
+              }}
+              onWheel={handleWheel}
+              className="w-full h-full cursor-crosshair block select-none"
+            />
+
+            {displayCandles.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-[#64748B]">
+                {isLoadingCandles ? (
+                  <>
+                    <Loader2 size={24} className="animate-spin text-[#2962FF]" />
+                    <span className="text-xs font-mono text-[#94A3B8]">Carregando candles oficiais da B3...</span>
+                  </>
+                ) : (
+                  <span className="text-xs font-mono text-[#94A3B8]">Sem dados históricos oficiais para {activeAsset.symbol} neste período.</span>
+                )}
+              </div>
+            )}
+
+            {/* Floating 'Voltar para o presente' pill when panned back */}
+            {panOffset > 0 && (
+              <button
+                onClick={() => setPanOffset(0)}
+                className="absolute top-3 right-20 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2962FF] hover:bg-[#1D4ED8] text-white text-xs font-bold shadow-lg transition-all animate-bounce"
+                title="Voltar para os candles em tempo real"
+              >
+                <RotateCcw size={12} />
+                <span>Voltar ao tempo real</span>
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Bar: Visão de Tempo (Range) + Navegação entre Sessões de Pregão */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-1 text-xs">
+            {/* Range Selector (Visão de Tempo) */}
+            <div className="flex items-center gap-1 bg-[#0B0F19] p-1 rounded-xl border border-[#1E293B]">
+              <span className="text-[10px] uppercase font-bold text-[#64748B] px-2 hidden md:inline">
+                Período:
+              </span>
+              {ranges.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => {
+                    setSelectedRange(r.id);
+                    setPanOffset(0);
+                  }}
+                  title={r.desc}
+                  className={`px-2.5 py-1 rounded-lg font-bold font-mono transition-all ${
+                    selectedRange === r.id
+                      ? 'bg-[#2962FF] text-white shadow-sm'
+                      : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Session Day Navigation (Disponível no modo 1D / Pregão do Dia) */}
+            {selectedRange === '1D' && sessionDays.length > 1 && (
+              <div className="flex items-center gap-2 bg-[#0B0F19] px-2 py-1 rounded-xl border border-[#1E293B]">
+                <button
+                  disabled={selectedSessionIdx <= 0}
+                  onClick={() => {
+                    setSelectedSessionIdx(prev => Math.max(0, prev - 1));
+                    setPanOffset(0);
+                  }}
+                  className="p-1 rounded-lg hover:bg-[#161F33] text-[#94A3B8] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+                  title="Ver pregão anterior"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <span className="font-mono font-bold text-white text-xs px-1">
+                  {currentSessionDateLabel}
+                </span>
+
+                <button
+                  disabled={selectedSessionIdx >= sessionDays.length - 1}
+                  onClick={() => {
+                    setSelectedSessionIdx(prev => Math.min(sessionDays.length - 1, prev + 1));
+                    setPanOffset(0);
+                  }}
+                  className="p-1 rounded-lg hover:bg-[#161F33] text-[#94A3B8] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+                  title="Ver próximo pregão"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         /* Multi-Gráfico 2x2 Mode with Individual Slot Pickers */
@@ -453,12 +879,12 @@ export const CandleChart: React.FC<CandleChartProps> = ({ onOpenOrder }) => {
                   </div>
                 </div>
 
-                  {/* Real Mini Candlestick Chart for this slot */}
-                  <MiniSlotCandleChart
-                    symbol={slotAsset.symbol}
-                    price={slotAsset.price}
-                    timeframe={timeframe}
-                  />
+                {/* Real Mini Candlestick Chart for this slot */}
+                <MiniSlotCandleChart
+                  symbol={slotAsset.symbol}
+                  price={slotAsset.price}
+                  timeframe={timeframe}
+                />
 
                 {/* Slot Footer: Focus & Operate button */}
                 <div className="flex items-center justify-between text-[11px] text-[#64748B] pt-2 border-t border-[#1E293B]">

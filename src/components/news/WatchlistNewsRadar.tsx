@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { NewsItem } from '../../types/news';
 import { StockAsset } from '../../types/market';
 import { InteractiveTickerText } from './InteractiveTickerText';
@@ -85,7 +85,8 @@ export const WatchlistNewsRadar: React.FC<WatchlistNewsRadarProps> = ({
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+      {displayItems.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
         {displayItems.map((item) => {
           // Identify primary watched ticker
           const watchedTicker = item.relatedTickers.find(
@@ -253,6 +254,24 @@ export const WatchlistNewsRadar: React.FC<WatchlistNewsRadarProps> = ({
           );
         })}
       </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+          {[1, 2, 3].map((n) => (
+            <div
+              key={n}
+              className="p-4 rounded-xl bg-[#0D1424]/90 border border-[#1E293B] animate-pulse h-44 flex flex-col justify-between"
+            >
+              <div>
+                <div className="h-4 bg-[#16223A] rounded w-1/3 mb-3" />
+                <div className="h-4 bg-[#16223A] rounded w-3/4 mb-2" />
+                <div className="h-3 bg-[#16223A] rounded w-full mb-1" />
+                <div className="h-3 bg-[#16223A] rounded w-2/3" />
+              </div>
+              <div className="h-4 bg-[#16223A] rounded w-1/4" />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

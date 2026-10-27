@@ -5,7 +5,7 @@ import { CryptoFeaturedCards } from './CryptoFeaturedCards';
 import { CryptoChart } from './CryptoChart';
 import { CryptoOrderPad } from './CryptoOrderPad';
 import { CryptoTable } from './CryptoTable';
-import { X } from 'lucide-react';
+import { X, Flame } from 'lucide-react';
 import { PageHeader } from '../common/PageHeader';
 import { SearchAndExchange } from '../SearchAndExchange';
 import { MobileQuickTradeBar } from '../common/MobileQuickTradeBar';
@@ -17,7 +17,7 @@ interface CryptoPageProps {
   onNavigate?: (nav: ActiveNav) => void;
 }
 
-export const CryptoPage: React.FC<CryptoPageProps> = () => {
+export const CryptoPage: React.FC<CryptoPageProps> = ({ onNavigate }) => {
   const [quoteCurrency, setQuoteCurrency] = useState<CryptoQuoteCurrency>('BRL');
   const [assets, setAssets] = useState<CryptoAsset[]>(() =>
     CRYPTO_CATALOG.map(c => ({
@@ -121,6 +121,17 @@ export const CryptoPage: React.FC<CryptoPageProps> = () => {
                 🇺🇸 USDT ($)
               </button>
             </div>
+
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('heatmap')}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F1523] border border-[#1E293B] hover:border-sky-500/40 text-xs font-semibold text-[#94A3B8] hover:text-white transition-all shadow-sm group cursor-pointer"
+                title="Abrir Mapa de Calor (Heatmap Treemap)"
+              >
+                <Flame size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                <span>Mapa de Mercado</span>
+              </button>
+            )}
           </div>
         }
       />
