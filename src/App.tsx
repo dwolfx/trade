@@ -12,8 +12,9 @@ import { NewsPage } from './components/news/NewsPage';
 import { CryptoPage } from './components/crypto/CryptoPage';
 import { DividendsCalendarPage } from './components/dividends/DividendsCalendarPage';
 import { MarketHeatmap } from './components/heatmap/MarketHeatmap';
+import { DaytradeCockpit } from './components/daytrade/DaytradeCockpit';
+import { BacktestPage } from './components/backtest/BacktestPage';
 import { PageHeader } from './components/common/PageHeader';
-import { EmptyState } from './components/common/EmptyState';
 import { MobileQuickTradeBar } from './components/common/MobileQuickTradeBar';
 import { MarketSentimentBadge } from './components/common/MarketSentimentBadge';
 import { calculateB3Sentiment } from './utils/sentimentCalculator';
@@ -26,7 +27,6 @@ import {
   TrendingUp,
   Briefcase,
   Newspaper,
-  ArrowLeft,
   Flame,
 } from 'lucide-react';
 
@@ -185,23 +185,14 @@ export const AppContent: React.FC = () => {
           <NewsPage onNavigate={setActiveNav} />
         )}
 
-        {/* Daytrade Cockpit Preview */}
+        {/* Daytrade Cockpit & Robôs Quant */}
         {activeNav === 'daytrade' && (
-          <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
-            <PageHeader page="daytrade" />
+          <DaytradeCockpit />
+        )}
 
-            <EmptyState
-              icon={Zap}
-              title="Cockpit de Alta Densidade B3 (Em Desenvolvimento)"
-              description="Em breve você terá acesso ao SuperDOM vertical, Times & Trades com agressão de mercado e roteamento DMA com Trailing Stop automático."
-              action={{
-                label: 'Voltar ao Home Broker',
-                onClick: () => setActiveNav('bolsa'),
-                icon: ArrowLeft,
-              }}
-              className="max-w-2xl mx-auto py-16"
-            />
-          </div>
+        {/* Laboratório de Backtesting Quantitativo */}
+        {activeNav === 'backtest' && (
+          <BacktestPage onNavigate={setActiveNav} />
         )}
 
         {/* Cripto 24/7 Global */}

@@ -14,6 +14,7 @@ export const ROUTE_MAP: Record<ActiveNav, RouteConfig> = {
   dividendos: { path: '/mapaDividendos', title: 'Mapa de Dividendos' },
   daytrade: { path: '/daytrade', title: 'Day Trade' },
   heatmap: { path: '/heatmap', title: 'Mapa de Mercado' },
+  backtest: { path: '/backtest', title: 'Laboratório de Backtesting' },
 };
 
 export const getNavFromPath = (path: string): ActiveNav => {
@@ -41,6 +42,9 @@ export const getNavFromPath = (path: string): ActiveNav => {
     case '/mapa':
     case '/mapa-mercado':
       return 'heatmap';
+    case '/backtest':
+    case '/backtesting':
+      return 'backtest';
     default:
       return 'bolsa';
   }

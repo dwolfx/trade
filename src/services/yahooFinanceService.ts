@@ -1,12 +1,20 @@
 import { Candle, Timeframe } from '../types/market';
 
-export async function fetchYahooCandles(symbol: string, timeframe: Timeframe): Promise<Candle[] | null> {
+export async function fetchYahooCandles(
+  symbol: string,
+  timeframe: Timeframe,
+  customRange?: string
+): Promise<Candle[] | null> {
   let interval = '1d';
   let range = '1y';
 
   switch (timeframe) {
     case '1m':
       interval = '1m';
+      range = '5d';
+      break;
+    case '3m':
+      interval = '2m';
       range = '5d';
       break;
     case '5m':
@@ -16,6 +24,10 @@ export async function fetchYahooCandles(symbol: string, timeframe: Timeframe): P
     case '15m':
       interval = '15m';
       range = '5d';
+      break;
+    case '30m':
+      interval = '30m';
+      range = '1mo';
       break;
     case '1h':
       interval = '60m';
@@ -37,6 +49,10 @@ export async function fetchYahooCandles(symbol: string, timeframe: Timeframe): P
       interval = '1mo';
       range = 'max';
       break;
+  }
+
+  if (customRange) {
+    range = customRange;
   }
 
   const ticker = symbol.endsWith('.SA') ? symbol : `${symbol}.SA`;

@@ -86,9 +86,9 @@ export interface NonEquityAsset {
 }
 
 // Tempo Gráfico (Periodicidade individual do candle)
-export type Timeframe = '1m' | '5m' | '15m' | '1h' | '1D' | '1S' | '1M' | '1A';
+export type Timeframe = '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D' | '1S' | '1M' | '1A';
 
 // Visão de Tempo / Janela de Visualização (Range do gráfico)
 export type ChartRange = '1D' | '5D' | '1M' | '6M' | '1A' | 'TUDO';
 
-export type ActiveNav = 'noticias' | 'bolsa' | 'daytrade' | 'cripto' | 'dividendos' | 'carteira' | 'heatmap';
+export type ActiveNav = 'noticias' | 'bolsa' | 'daytrade' | 'cripto' | 'dividendos' | 'carteira' | 'heatmap' | 'backtest';

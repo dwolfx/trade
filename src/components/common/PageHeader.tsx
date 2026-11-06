@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon, TrendingUp, Wallet, Coins, CalendarDays, Newspaper, Zap, Flame } from 'lucide-react';
+import { LucideIcon, TrendingUp, Wallet, Coins, CalendarDays, Newspaper, Zap, Flame, FlaskConical } from 'lucide-react';
 import { ActiveNav } from '../../types/market';
 
 export interface PageDefinition {
@@ -71,11 +71,11 @@ export const PAGES_REGISTRY: Record<ActiveNav, PageDefinition> = {
   },
   daytrade: {
     icon: Zap,
-    title: 'Day Trade Cockpit',
-    subtitle: 'Ambiente de alta densidade para mini-índice (WIN) e mini-dólar (WDO) com margem reduzida',
+    title: 'Cockpit Day Trade & Robôs Quant',
+    subtitle: 'Automação inteligente multimercado (B3 & Cripto) com execução autônoma, confluência IA e gestão de risco',
     badge: {
-      text: 'FASE 3 · EM DESENVOLVIMENTO',
-      variant: 'amber',
+      text: 'MAYA QUANT ENGINE · AO VIVO',
+      variant: 'sky',
       pulse: true,
     },
   },
@@ -85,6 +85,16 @@ export const PAGES_REGISTRY: Record<ActiveNav, PageDefinition> = {
     subtitle: 'Visualização proporcional por Market Cap e variação percentual dos setores da B3 e Criptoativos',
     badge: {
       text: 'FINVIZ STYLE · REALTIME',
+      variant: 'sky',
+      pulse: true,
+    },
+  },
+  backtest: {
+    icon: FlaskConical,
+    title: 'Laboratório de Backtesting Quantitativo',
+    subtitle: 'Replay histórico barra a barra sem viés futuro · B3 e Cripto com dados reais de mercado',
+    badge: {
+      text: 'WALK-FORWARD · ZERO LOOKAHEAD',
       variant: 'sky',
       pulse: true,
     },

@@ -18,6 +18,7 @@ import {
   Link2,
   ShieldCheck,
   ChevronDown,
+  FlaskConical,
 } from 'lucide-react';
 import { ActiveNav } from '../types/market';
 import { SettingsModal } from './settings/SettingsModal';
@@ -137,6 +138,17 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
               }`}
             >
               Daytrade
+            </button>
+            <button
+              onClick={() => setActiveNav('backtest')}
+              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                activeNav === 'backtest'
+                  ? 'bg-[#161F33] text-[#38BDF8] border border-sky-500/30 shadow-sm'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+              }`}
+            >
+              <FlaskConical size={14} className={activeNav === 'backtest' ? 'text-[#38BDF8]' : 'text-sky-400'} />
+              <span>Backtest</span>
             </button>
             <button
               onClick={() => setActiveNav('cripto')}
@@ -678,7 +690,32 @@ export const HeaderTopbar: React.FC<HeaderTopbarProps> = ({
                   </div>
                   <span>Daytrade Cockpit</span>
                 </div>
-                <span className="text-[10px] text-[#64748B] font-mono">Fase 3</span>
+                <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                  Robôs IA
+                </span>
+              </button>
+
+              {/* Backtest Quant */}
+              <button
+                onClick={() => {
+                  setActiveNav('backtest');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  activeNav === 'backtest'
+                    ? 'bg-[#161F33] text-[#38BDF8] border border-sky-500/30'
+                    : 'text-[#94A3B8] hover:text-white hover:bg-[#161F33]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-[#38BDF8] flex items-center justify-center">
+                    <FlaskConical size={16} />
+                  </div>
+                  <span>Laboratório de Backtesting</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                  Replay Real
+                </span>
               </button>
 
               {/* Cripto */}
