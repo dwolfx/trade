@@ -98,7 +98,7 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
   const [sizingType, setSizingType] = useState<'FIXED_VALUE' | 'PERCENT'>('FIXED_VALUE');
   const [fixedTradeAmount, setFixedTradeAmount] = useState<number>(200);
   const [confluenceThreshold, setConfluenceThreshold] = useState<number>(80);
-  const [riskReward, setRiskReward] = useState<number>(2.0);
+  const [riskReward, setRiskReward] = useState<number>(1.5);
   const [useBreakeven, setUseBreakeven] = useState<boolean>(true);
   const [filterToxicHours, setFilterToxicHours] = useState<boolean>(true);
   const [enableDailyGoals, setEnableDailyGoals] = useState<boolean>(true);

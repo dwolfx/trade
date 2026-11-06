@@ -516,11 +516,11 @@ export function runRealHistoricalBacktest(
       let exitPrice: number | null = null;
       let exitReason: RealBacktestTrade['exitReason'] | null = null;
 
-      // Breakeven logic: if price reached >= 50% towards target, move stop to entry.
+      // Breakeven logic: if price reached >= 55% towards target, move stop to entry.
       // Somente avaliado a partir da barra seguinte (barsHeld >= 1) para não auto-executar na barra de entrada!
       if (config.useBreakeven && !inTrade.breakevenMoved && barsHeld >= 1) {
         if (inTrade.side === 'BUY') {
-          const halfWayTarget = inTrade.entryPrice + (inTrade.takeProfit - inTrade.entryPrice) * 0.5;
+          const halfWayTarget = inTrade.entryPrice + (inTrade.takeProfit - inTrade.entryPrice) * 0.55;
           if (currentBar.high >= halfWayTarget) {
             inTrade.stopLoss = inTrade.entryPrice * (1 + config.slippagePercent / 100);
             inTrade.breakevenMoved = true;
@@ -531,7 +531,7 @@ export function runRealHistoricalBacktest(
               timestamp: currentBar.time,
               type: 'BREAKEVEN',
               title: 'Stop Movido para Breakeven (0 a 0)',
-              description: `Preço atingiu 50% do alvo. Stop Loss elevado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
+              description: `Preço atingiu 55% do alvo. Stop Loss elevado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
               price: inTrade.stopLoss,
             };
             eventLogs.push(beLog);
@@ -539,7 +539,7 @@ export function runRealHistoricalBacktest(
           }
         } else {
           // SHORT position breakeven
-          const halfWayTarget = inTrade.entryPrice - (inTrade.entryPrice - inTrade.takeProfit) * 0.5;
+          const halfWayTarget = inTrade.entryPrice - (inTrade.entryPrice - inTrade.takeProfit) * 0.55;
           if (currentBar.low <= halfWayTarget) {
             inTrade.stopLoss = inTrade.entryPrice * (1 - config.slippagePercent / 100);
             inTrade.breakevenMoved = true;
@@ -550,7 +550,7 @@ export function runRealHistoricalBacktest(
               timestamp: currentBar.time,
               type: 'BREAKEVEN',
               title: 'Stop Movido para Breakeven (0 a 0)',
-              description: `Preço atingiu 50% da queda alvo. Stop Loss baixado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
+              description: `Preço atingiu 55% da queda alvo. Stop Loss baixado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
               price: inTrade.stopLoss,
             };
             eventLogs.push(beLog);
@@ -779,17 +779,21 @@ export function runRealHistoricalBacktest(
 
         switch (config.strategy) {
           case 'confluence_ai': {
-            // MSC 3.0 (Maya Smart Confluence) - Macro EMA 50 + Anti-Chop + Leitura de Pavio + Pullback
+            // MSC 3.0 (Maya Smart Confluence) - Macro EMA 50 + Anti-Chop + Leitura de Pavio + Pullback + Slope Direction
             const hasMacroData = i >= 49 && currentEma50 > 0;
             const isMacroBullish = hasMacroData ? currentClose > currentEma50 : true;
             const isMacroBearish = hasMacroData ? currentClose < currentEma50 : true;
 
+            // Filtro de Inclinação (Slope): A média EMA 9 precisa estar ativamente inclinada na direção do trade
+            const slopeBuy = currentEma9 > prevEma9 && (currentEma9 - prevEma9) / currentClose >= 0.0001;
+            const slopeSell = currentEma9 < prevEma9 && (prevEma9 - currentEma9) / currentClose >= 0.0001;
+
             // Filtro Anti-Chop: Médias entrelaçadas indicam consolidação lateral sem liquidez
             const emaSpread = Math.abs(currentEma9 - currentEma21) / currentClose;
-            const isNotChoppy = emaSpread >= 0.0008;
+            const isNotChoppy = emaSpread >= 0.001;
 
-            const isBullish = currentEma9 > currentEma21 && currentClose > currentVwap && isMacroBullish && isNotChoppy;
-            const isBearish = currentEma9 < currentEma21 && currentClose < currentVwap && isMacroBearish && isNotChoppy;
+            const isBullish = currentEma9 > currentEma21 && currentClose > currentVwap && isMacroBullish && isNotChoppy && slopeBuy;
+            const isBearish = currentEma9 < currentEma21 && currentClose < currentVwap && isMacroBearish && isNotChoppy && slopeSell;
             const distEma9 = Math.abs(currentClose - currentEma9) / currentEma9;
             const isHealthyPullback = distEma9 <= 0.015;
 
@@ -801,13 +805,13 @@ export function runRealHistoricalBacktest(
             const lowerWickRatio = lowerWick / candleRange;
 
             if (isBullish && isHealthyPullback) {
-              let score = 40;
+              let score = 45;
               if (currentClose > currentBar.open) score += 15;
               if (currentRsi >= 42 && currentRsi <= 68) score += 15;
               if (currentBar.volume > prevBar.volume * 1.05) score += 15;
               if (currentBar.low <= currentVwap * 1.006 && currentClose > currentVwap) score += 10;
               if (upperWickRatio <= 0.25) score += 10;
-              else if (upperWickRatio > 0.45) score -= 25; // Rejeição de topo!
+              else if (upperWickRatio > 0.40) score -= 25; // Rejeição de topo!
 
               calculatedScore = Math.max(0, Math.min(100, score));
               if (calculatedScore >= config.confluenceThreshold) {
@@ -815,13 +819,13 @@ export function runRealHistoricalBacktest(
                 signalSide = 'BUY';
               }
             } else if (isBearish && isHealthyPullback) {
-              let score = 40;
+              let score = 45;
               if (currentClose < currentBar.open) score += 15;
               if (currentRsi >= 32 && currentRsi <= 58) score += 15;
               if (currentBar.volume > prevBar.volume * 1.05) score += 15;
               if (currentBar.high >= currentVwap * 0.994 && currentClose < currentVwap) score += 10;
               if (lowerWickRatio <= 0.25) score += 10;
-              else if (lowerWickRatio > 0.45) score -= 25; // Rejeição de fundo!
+              else if (lowerWickRatio > 0.40) score -= 25; // Rejeição de fundo!
 
               calculatedScore = Math.max(0, Math.min(100, score));
               if (calculatedScore >= config.confluenceThreshold) {
@@ -1113,7 +1117,7 @@ export function findOptimalBacktestConfig(
   const baselineReport = runRealHistoricalBacktest(candles, baseConfig, isRealData, dataSource);
 
   const thresholds = [70, 75, 80, 85];
-  const riskRewards = [1.5, 2.0, 2.5];
+  const riskRewards = [1.3, 1.5, 1.8, 2.0];
   const atrMultipliers = [1.0, 1.2, 1.5];
   const breakevens = [true, false];
 
