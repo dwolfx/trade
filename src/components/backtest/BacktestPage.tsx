@@ -22,6 +22,7 @@ import {
   HelpCircle,
   History,
   X,
+  Calendar,
 } from 'lucide-react';
 import { BotMarket, BotStrategy } from '../../types/daytrade';
 import { STRATEGY_DEFINITIONS } from '../../services/daytradeEngine';
@@ -87,6 +88,12 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
   const [strategy, setStrategy] = useState<BotStrategy>('confluence_ai');
   const [timeframe, setTimeframe] = useState<'1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D'>('5m');
   const [period, setPeriod] = useState<BacktestPeriod>('30d');
+  const [dateMode, setDateMode] = useState<'PRESET' | 'CALENDAR'>('PRESET');
+  const [specificDate, setSpecificDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  });
   const [capital, setCapital] = useState<number>(1000);
   const [sizingType, setSizingType] = useState<'FIXED_VALUE' | 'PERCENT'>('FIXED_VALUE');
   const [fixedTradeAmount, setFixedTradeAmount] = useState<number>(200);
@@ -203,7 +210,8 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
         activeSymbol,
         market,
         timeframe,
-        period
+        period,
+        dateMode === 'CALENDAR' ? specificDate : undefined
       );
 
       // 2. Execute bar-by-bar walk-forward simulation
@@ -238,7 +246,8 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
         activeSymbol,
         market,
         timeframe,
-        period
+        period,
+        dateMode === 'CALENDAR' ? specificDate : undefined
       );
 
       const baseConfig: RealBacktestConfig = {
@@ -516,32 +525,99 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* 3. Period Selection */}
+            {/* 3. Period / Specific Date Selection */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-[#94A3B8]">
                   Janela de Tempo (Período)
                 </label>
-                <span className="text-[10px] text-sky-400 font-mono">
-                  {BACKTEST_PERIOD_CONFIG[period].description}
-                </span>
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1">
-                {(Object.keys(BACKTEST_PERIOD_CONFIG) as BacktestPeriod[]).map(p => (
+                <div className="flex items-center gap-1 bg-[#161F33] p-0.5 rounded-lg border border-[#1E293B]">
                   <button
-                    key={p}
                     type="button"
-                    onClick={() => setPeriod(p)}
-                    className={`py-1.5 px-0.5 rounded-lg text-[10px] font-mono font-bold transition-all border text-center cursor-pointer ${
-                      period === p
-                        ? 'bg-sky-500/20 text-[#38BDF8] border-sky-500/50 shadow-sm'
-                        : 'bg-[#161F33] text-[#64748B] border-[#1E293B] hover:text-white'
+                    onClick={() => setDateMode('PRESET')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                      dateMode === 'PRESET'
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-white'
                     }`}
                   >
-                    {p.toUpperCase()}
+                    Períodos Rápidos
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => setDateMode('CALENDAR')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      dateMode === 'CALENDAR'
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-white'
+                    }`}
+                  >
+                    <Calendar size={11} />
+                    <span>Dia Específico</span>
+                  </button>
+                </div>
               </div>
+
+              {dateMode === 'PRESET' ? (
+                <div>
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-1">
+                    {(Object.keys(BACKTEST_PERIOD_CONFIG) as BacktestPeriod[]).map(p => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPeriod(p)}
+                        className={`py-1.5 px-0.5 rounded-lg text-[10px] font-mono font-bold transition-all border text-center cursor-pointer ${
+                          period === p
+                            ? 'bg-sky-500/20 text-[#38BDF8] border-sky-500/50 shadow-sm'
+                            : 'bg-[#161F33] text-[#64748B] border-[#1E293B] hover:text-white'
+                        }`}
+                      >
+                        {p.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-sky-400 font-mono block mt-1">
+                    {BACKTEST_PERIOD_CONFIG[period].description}
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-2 bg-[#161F33]/80 border border-[#1E293B] rounded-xl p-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-[#38BDF8] shrink-0" />
+                    <input
+                      type="date"
+                      value={specificDate}
+                      onChange={e => setSpecificDate(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full bg-[#0F1523] border border-[#1E293B] focus:border-[#38BDF8] rounded-lg px-3 py-1.5 text-xs font-mono text-white outline-none cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-[#64748B]">Atalhos:</span>
+                    {[
+                      { label: 'Ontem', daysAgo: 1 },
+                      { label: 'Anteontem', daysAgo: 2 },
+                      { label: '3 dias atrás', daysAgo: 3 },
+                    ].map(s => (
+                      <button
+                        key={s.label}
+                        type="button"
+                        onClick={() => {
+                          const d = new Date();
+                          d.setDate(d.getDate() - s.daysAgo);
+                          setSpecificDate(d.toISOString().split('T')[0]);
+                        }}
+                        className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#1E293B]/70 hover:bg-[#1E293B] text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-[#94A3B8] block">
+                    Simula as 24h exatas do dia {specificDate} com dados reais da {market === 'CRYPTO' ? 'Binance' : 'B3'}.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* 4. Timeframe & Capital */}

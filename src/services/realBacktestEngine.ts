@@ -236,9 +236,19 @@ export async function fetchHistoricalCandlesForBacktest(
   symbol: string,
   market: BotMarket,
   timeframe: '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D',
-  period: BacktestPeriod = '30d'
+  period: BacktestPeriod = '30d',
+  specificDate?: string // Formato 'YYYY-MM-DD' para testar um dia específico do calendário
 ): Promise<{ candles: Candle[]; isReal: boolean; source: string }> {
   const periodMeta = BACKTEST_PERIOD_CONFIG[period] || BACKTEST_PERIOD_CONFIG['30d'];
+
+  let startTimeMs: number | undefined;
+  let endTimeMs: number | undefined;
+  if (specificDate) {
+    const startOfTarget = new Date(`${specificDate}T00:00:00Z`).getTime();
+    const tfMinutes = timeframe === '1m' ? 1 : timeframe === '3m' ? 3 : timeframe === '5m' ? 5 : timeframe === '15m' ? 15 : timeframe === '30m' ? 30 : 60;
+    startTimeMs = startOfTarget - 35 * tfMinutes * 60 * 1000; // 35 warm-up candles
+    endTimeMs = startOfTarget + 24 * 60 * 60 * 1000;
+  }
 
   try {
     if (market === 'CRYPTO') {
@@ -253,12 +263,24 @@ export async function fetchHistoricalCandlesForBacktest(
         pairToFetch = `${pairToFetch}BRL`;
       }
 
-      let klines = await fetchCryptoCandles(pairToFetch, cryptoTf, periodMeta.cryptoLimit);
+      let klines = await fetchCryptoCandles(
+        pairToFetch,
+        cryptoTf,
+        specificDate ? 500 : periodMeta.cryptoLimit,
+        startTimeMs,
+        endTimeMs
+      );
 
       // If BRL pair wasn't found or returned few candles, try USDT pair and convert to BRL
       if ((!klines || klines.length <= 10) && pairToFetch.endsWith('BRL')) {
         const fallbackUsdt = pairToFetch.replace(/BRL$/, 'USDT');
-        const usdtKlines = await fetchCryptoCandles(fallbackUsdt, cryptoTf, periodMeta.cryptoLimit);
+        const usdtKlines = await fetchCryptoCandles(
+          fallbackUsdt,
+          cryptoTf,
+          specificDate ? 500 : periodMeta.cryptoLimit,
+          startTimeMs,
+          endTimeMs
+        );
         if (usdtKlines && usdtKlines.length > 10) {
           klines = usdtKlines;
           pairToFetch = fallbackUsdt;
@@ -290,6 +312,19 @@ export async function fetchHistoricalCandlesForBacktest(
           volume: k.volume,
         }));
 
+        if (specificDate && startTimeMs && endTimeMs) {
+          const dayCandles = mapped.filter(c => c.time >= startTimeMs! && c.time <= endTimeMs!);
+          if (dayCandles.length >= 20) {
+            return {
+              candles: dayCandles,
+              isReal: true,
+              source: isUsdtConversionNeeded
+                ? `Binance Spot (${pairToFetch} em R$ a ${usdBrlRate.toFixed(2)} · Dia: ${specificDate})`
+                : `Binance Spot Live API (${pairToFetch} · Dia: ${specificDate})`,
+            };
+          }
+        }
+
         // Filter by requested period cutoff while preserving minimum 30 bars for indicators
         const cutoff = Date.now() - periodMeta.days * 24 * 60 * 60 * 1000;
         const filtered = mapped.filter(c => c.time >= cutoff);
@@ -308,6 +343,17 @@ export async function fetchHistoricalCandlesForBacktest(
       const cleanB3 = symbol.toUpperCase().replace(/\.SA$/, '');
       const yahooCandles = await fetchYahooCandles(cleanB3, timeframe as Timeframe, periodMeta.yahooRange);
       if (yahooCandles && yahooCandles.length > 20) {
+        if (specificDate && startTimeMs && endTimeMs) {
+          const dayCandles = yahooCandles.filter(c => c.time >= startTimeMs! && c.time <= endTimeMs!);
+          if (dayCandles.length >= 10) {
+            return {
+              candles: dayCandles,
+              isReal: true,
+              source: `Yahoo Finance B3 (${cleanB3}.SA · Dia: ${specificDate})`,
+            };
+          }
+        }
+
         const cutoff = Date.now() - periodMeta.days * 24 * 60 * 60 * 1000;
         const filtered = yahooCandles.filter(c => c.time >= cutoff);
         const finalCandles = filtered.length >= 30 ? filtered : yahooCandles.slice(-Math.max(30, filtered.length));
@@ -329,7 +375,9 @@ export async function fetchHistoricalCandlesForBacktest(
   return {
     candles: fallbackCandles,
     isReal: false,
-    source: `Simulação Sintética Determinística (${symbol} · ${periodMeta.label})`,
+    source: specificDate
+      ? `Simulação Sintética (${symbol} · Dia: ${specificDate})`
+      : `Simulação Sintética Determinística (${symbol} · ${periodMeta.label})`,
   };
 }
 

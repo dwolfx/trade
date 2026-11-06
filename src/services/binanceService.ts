@@ -149,13 +149,19 @@ export async function fetchLiveCryptoAssets(quoteCurrency: CryptoQuoteCurrency =
 export async function fetchCryptoCandles(
   symbol: string,
   timeframe: CryptoTimeframe = '1D',
-  limit: number = 60
+  limit: number = 60,
+  startTime?: number,
+  endTime?: number
 ): Promise<CryptoCandle[]> {
   const baseUrl = getBinanceBaseUrl();
   const interval = mapCryptoTimeframeToInterval(timeframe);
 
   try {
-    const res = await fetch(`${baseUrl}/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=${limit}`);
+    let url = `${baseUrl}/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=${limit}`;
+    if (startTime) url += `&startTime=${startTime}`;
+    if (endTime) url += `&endTime=${endTime}`;
+
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`Binance klines HTTP ${res.status}`);
 
     const rawKlines: Array<[number, string, string, string, string, string]> = await res.json();
