@@ -516,8 +516,9 @@ export function runRealHistoricalBacktest(
       let exitPrice: number | null = null;
       let exitReason: RealBacktestTrade['exitReason'] | null = null;
 
-      // Breakeven logic: if price reached >= 50% towards target, move stop to entry
-      if (config.useBreakeven && !inTrade.breakevenMoved) {
+      // Breakeven logic: if price reached >= 50% towards target, move stop to entry.
+      // Somente avaliado a partir da barra seguinte (barsHeld >= 1) para não auto-executar na barra de entrada!
+      if (config.useBreakeven && !inTrade.breakevenMoved && barsHeld >= 1) {
         if (inTrade.side === 'BUY') {
           const halfWayTarget = inTrade.entryPrice + (inTrade.takeProfit - inTrade.entryPrice) * 0.5;
           if (currentBar.high >= halfWayTarget) {
