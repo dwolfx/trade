@@ -73,6 +73,7 @@ export interface BacktestFrame {
   currentCapital: number;
   confluenceScore: number;
   position: {
+    side: 'BUY' | 'SELL';
     entryPrice: number;
     currentPrice: number;
     stopLoss: number;
@@ -423,7 +424,7 @@ export function runRealHistoricalBacktest(
   let inTrade: {
     entryBar: number;
     entryTime: number;
-    side: 'BUY';
+    side: 'BUY' | 'SELL';
     entryPrice: number;
     stopLoss: number;
     initialStopLoss: number;
@@ -455,51 +456,87 @@ export function runRealHistoricalBacktest(
       let exitPrice: number | null = null;
       let exitReason: RealBacktestTrade['exitReason'] | null = null;
 
-      // Breakeven logic: if price reached >= 50% towards target, move stop to entry + slippage
+      // Breakeven logic: if price reached >= 50% towards target, move stop to entry
       if (config.useBreakeven && !inTrade.breakevenMoved) {
-        const halfWayTarget = inTrade.entryPrice + (inTrade.takeProfit - inTrade.entryPrice) * 0.5;
-        if (currentBar.high >= halfWayTarget) {
-          inTrade.stopLoss = inTrade.entryPrice * (1 + config.slippagePercent / 100);
-          inTrade.breakevenMoved = true;
+        if (inTrade.side === 'BUY') {
+          const halfWayTarget = inTrade.entryPrice + (inTrade.takeProfit - inTrade.entryPrice) * 0.5;
+          if (currentBar.high >= halfWayTarget) {
+            inTrade.stopLoss = inTrade.entryPrice * (1 + config.slippagePercent / 100);
+            inTrade.breakevenMoved = true;
 
-          const beLog: BacktestEventLog = {
-            id: `log-be-${currentBar.time}`,
-            barIndex: i,
-            timestamp: currentBar.time,
-            type: 'BREAKEVEN',
-            title: 'Stop Movido para Breakeven (0 a 0)',
-            description: `Preço atingiu 50% do alvo. Stop Loss elevado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
-            price: inTrade.stopLoss,
-          };
-          eventLogs.push(beLog);
-          latestLogId = beLog.id;
+            const beLog: BacktestEventLog = {
+              id: `log-be-${currentBar.time}`,
+              barIndex: i,
+              timestamp: currentBar.time,
+              type: 'BREAKEVEN',
+              title: 'Stop Movido para Breakeven (0 a 0)',
+              description: `Preço atingiu 50% do alvo. Stop Loss elevado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
+              price: inTrade.stopLoss,
+            };
+            eventLogs.push(beLog);
+            latestLogId = beLog.id;
+          }
+        } else {
+          // SHORT position breakeven
+          const halfWayTarget = inTrade.entryPrice - (inTrade.entryPrice - inTrade.takeProfit) * 0.5;
+          if (currentBar.low <= halfWayTarget) {
+            inTrade.stopLoss = inTrade.entryPrice * (1 - config.slippagePercent / 100);
+            inTrade.breakevenMoved = true;
+
+            const beLog: BacktestEventLog = {
+              id: `log-be-${currentBar.time}`,
+              barIndex: i,
+              timestamp: currentBar.time,
+              type: 'BREAKEVEN',
+              title: 'Stop Movido para Breakeven (0 a 0)',
+              description: `Preço atingiu 50% da queda alvo. Stop Loss baixado para ${inTrade.stopLoss.toFixed(2)}. Risco zerado!`,
+              price: inTrade.stopLoss,
+            };
+            eventLogs.push(beLog);
+            latestLogId = beLog.id;
+          }
         }
       }
 
-      // Check Stop Loss
-      if (currentBar.low <= inTrade.stopLoss) {
-        exitPrice = inTrade.stopLoss;
-        exitReason = inTrade.breakevenMoved ? 'BREAKEVEN' : 'STOP_LOSS';
-      }
-      // Check Take Profit
-      else if (currentBar.high >= inTrade.takeProfit) {
-        exitPrice = inTrade.takeProfit;
-        exitReason = 'TAKE_PROFIT';
-      }
-      // End of data
-      else if (i === candles.length - 1) {
-        exitPrice = currentBar.close;
-        exitReason = 'END_OF_DATA';
+      // Check Stop Loss & Take Profit
+      if (inTrade.side === 'BUY') {
+        if (currentBar.low <= inTrade.stopLoss) {
+          exitPrice = inTrade.stopLoss;
+          exitReason = inTrade.breakevenMoved ? 'BREAKEVEN' : 'STOP_LOSS';
+        } else if (currentBar.high >= inTrade.takeProfit) {
+          exitPrice = inTrade.takeProfit;
+          exitReason = 'TAKE_PROFIT';
+        } else if (i === candles.length - 1) {
+          exitPrice = currentBar.close;
+          exitReason = 'END_OF_DATA';
+        }
+      } else {
+        // SHORT position exit
+        if (currentBar.high >= inTrade.stopLoss) {
+          exitPrice = inTrade.stopLoss;
+          exitReason = inTrade.breakevenMoved ? 'BREAKEVEN' : 'STOP_LOSS';
+        } else if (currentBar.low <= inTrade.takeProfit) {
+          exitPrice = inTrade.takeProfit;
+          exitReason = 'TAKE_PROFIT';
+        } else if (i === candles.length - 1) {
+          exitPrice = currentBar.close;
+          exitReason = 'END_OF_DATA';
+        }
       }
 
       if (exitPrice !== null && exitReason !== null) {
         // Apply conservative slippage
-        const finalExitPrice = exitReason === 'STOP_LOSS' 
+        const finalExitPrice = inTrade.side === 'BUY'
           ? exitPrice * (1 - config.slippagePercent / 100)
-          : exitPrice * (1 - config.slippagePercent / 100);
+          : exitPrice * (1 + config.slippagePercent / 100);
 
-        const pnl = (finalExitPrice - inTrade.entryPrice) * inTrade.quantity;
-        const pnlPercent = ((finalExitPrice - inTrade.entryPrice) / inTrade.entryPrice) * 100;
+        const pnl = inTrade.side === 'BUY'
+          ? (finalExitPrice - inTrade.entryPrice) * inTrade.quantity
+          : (inTrade.entryPrice - finalExitPrice) * inTrade.quantity;
+
+        const pnlPercent = inTrade.side === 'BUY'
+          ? ((finalExitPrice - inTrade.entryPrice) / inTrade.entryPrice) * 100
+          : ((inTrade.entryPrice - finalExitPrice) / inTrade.entryPrice) * 100;
 
         currentCapital += pnl;
 
@@ -519,7 +556,7 @@ export function runRealHistoricalBacktest(
           tradeNumber,
           entryTime: inTrade.entryTime,
           exitTime: currentBar.time,
-          side: 'BUY',
+          side: inTrade.side,
           entryPrice: parseFloat(inTrade.entryPrice.toFixed(2)),
           exitPrice: parseFloat(finalExitPrice.toFixed(2)),
           quantity: inTrade.quantity,
@@ -563,6 +600,7 @@ export function runRealHistoricalBacktest(
 
     // 2. If not in a trade, evaluate entry conditions based strictly on bar i and past bars
     let signalTriggered = false;
+    let signalSide: 'BUY' | 'SELL' | null = null;
     let calculatedScore = 50;
 
     if (!inTrade && i < candles.length - 1) {
@@ -589,48 +627,119 @@ export function runRealHistoricalBacktest(
 
         switch (config.strategy) {
           case 'confluence_ai': {
-            let score = 50;
-            if (currentEma9 > currentEma21) score += 15;
-            if (currentClose > currentVwap) score += 15;
-            if (currentRsi >= 45 && currentRsi <= 65) score += 10;
-            if (currentBar.volume > prevBar.volume * 1.1) score += 10;
-            calculatedScore = score;
-            signalTriggered = score >= config.confluenceThreshold;
+            // MSC 2.0 (Maya Smart Confluence) - Inteligência Bidirecional com Pullback
+            const isBullish = currentEma9 > currentEma21 && currentClose > currentVwap;
+            const isBearish = currentEma9 < currentEma21 && currentClose < currentVwap;
+            const distEma9 = Math.abs(currentClose - currentEma9) / currentEma9;
+            const isHealthyPullback = distEma9 <= 0.015;
+
+            if (isBullish && isHealthyPullback) {
+              let score = 40;
+              if (currentClose > currentBar.open) score += 20;
+              if (currentRsi >= 42 && currentRsi <= 68) score += 15;
+              if (currentBar.volume > prevBar.volume * 1.05) score += 15;
+              if (currentBar.low <= currentVwap * 1.006 && currentClose > currentVwap) score += 10;
+
+              calculatedScore = score;
+              if (score >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'BUY';
+              }
+            } else if (isBearish && isHealthyPullback) {
+              let score = 40;
+              if (currentClose < currentBar.open) score += 20;
+              if (currentRsi >= 32 && currentRsi <= 58) score += 15;
+              if (currentBar.volume > prevBar.volume * 1.05) score += 15;
+              if (currentBar.high >= currentVwap * 0.994 && currentClose < currentVwap) score += 10;
+
+              calculatedScore = score;
+              if (score >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'SELL';
+              }
+            }
             break;
           }
 
           case 'ema_breakout': {
-            const crossover = prevEma9 <= prevEma21 && currentEma9 > currentEma21;
-            const breakout = currentClose > prevBar.high;
-            calculatedScore = (crossover ? 40 : 0) + (breakout ? 40 : 0) + (currentRsi > 50 ? 15 : 0);
-            signalTriggered = crossover && breakout && calculatedScore >= config.confluenceThreshold;
+            const bullishCross = prevEma9 <= prevEma21 && currentEma9 > currentEma21;
+            const bullishBreakout = currentClose > prevBar.high;
+            const bearishCross = prevEma9 >= prevEma21 && currentEma9 < currentEma21;
+            const bearishBreakout = currentClose < prevBar.low;
+
+            if (bullishCross && bullishBreakout) {
+              calculatedScore = 80 + (currentRsi > 50 ? 15 : 0);
+              if (calculatedScore >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'BUY';
+              }
+            } else if (bearishCross && bearishBreakout) {
+              calculatedScore = 80 + (currentRsi < 50 ? 15 : 0);
+              if (calculatedScore >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'SELL';
+              }
+            }
             break;
           }
 
           case 'mean_reversion': {
             const oversold = currentRsi <= 35 && currentRsi > rsi14[i - 1];
             const bullishCandle = currentClose > currentBar.open;
-            calculatedScore = (oversold ? 50 : 0) + (bullishCandle ? 30 : 0) + (currentBar.low <= prevBar.low ? 15 : 0);
-            signalTriggered = oversold && bullishCandle && calculatedScore >= config.confluenceThreshold;
+            const overbought = currentRsi >= 65 && currentRsi < rsi14[i - 1];
+            const bearishCandle = currentClose < currentBar.open;
+
+            if (oversold && bullishCandle) {
+              calculatedScore = 80 + (currentBar.low <= prevBar.low ? 15 : 0);
+              if (calculatedScore >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'BUY';
+              }
+            } else if (overbought && bearishCandle) {
+              calculatedScore = 80 + (currentBar.high >= prevBar.high ? 15 : 0);
+              if (calculatedScore >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'SELL';
+              }
+            }
             break;
           }
 
           case 'vwap_pullback': {
-            const nearVwap = Math.abs(currentClose - currentVwap) / currentVwap <= 0.006;
-            const bounce = currentClose > currentBar.open && currentEma21 > ema21[i - 5];
-            calculatedScore = (nearVwap ? 45 : 0) + (bounce ? 40 : 0);
-            signalTriggered = nearVwap && bounce && calculatedScore >= config.confluenceThreshold;
+            const nearVwap = Math.abs(currentClose - currentVwap) / currentVwap <= 0.008;
+            const bounce = currentClose > currentVwap && currentClose > currentBar.open;
+            const reject = currentClose < currentVwap && currentClose < currentBar.open;
+
+            if (nearVwap && bounce) {
+              calculatedScore = 85;
+              if (calculatedScore >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'BUY';
+              }
+            } else if (nearVwap && reject) {
+              calculatedScore = 85;
+              if (calculatedScore >= config.confluenceThreshold) {
+                signalTriggered = true;
+                signalSide = 'SELL';
+              }
+            }
             break;
           }
         }
 
-        if (signalTriggered) {
+        if (signalTriggered && signalSide) {
           // Real execution happens at the OPEN of the NEXT bar (bar i+1), avoiding lookahead bias!
           const nextBar = candles[i + 1];
-          const entryPrice = nextBar.open * (1 + config.slippagePercent / 100);
-          const stopDistance = Math.max(currentAtr * config.stopLossAtrMultiplier, entryPrice * 0.005);
-          const stopLoss = entryPrice - stopDistance;
-          const takeProfit = entryPrice + stopDistance * config.riskRewardRatio;
+          const isBuy = signalSide === 'BUY';
+          const entryPrice = isBuy
+            ? nextBar.open * (1 + config.slippagePercent / 100)
+            : nextBar.open * (1 - config.slippagePercent / 100);
+
+          const stopDistance = Math.max(currentAtr * config.stopLossAtrMultiplier, entryPrice * 0.003);
+          const stopLoss = isBuy ? entryPrice - stopDistance : entryPrice + stopDistance;
+          const takeProfit = isBuy
+            ? entryPrice + stopDistance * config.riskRewardRatio
+            : entryPrice - stopDistance * config.riskRewardRatio;
 
           const riskCapital = currentCapital * 0.20;
           const quantity = Math.max(1, Math.floor(riskCapital / entryPrice));
@@ -638,7 +747,7 @@ export function runRealHistoricalBacktest(
           inTrade = {
             entryBar: i + 1,
             entryTime: nextBar.time,
-            side: 'BUY',
+            side: signalSide,
             entryPrice,
             stopLoss,
             initialStopLoss: stopLoss,
@@ -652,8 +761,10 @@ export function runRealHistoricalBacktest(
             barIndex: i,
             timestamp: nextBar.time,
             type: 'ENTRY',
-            title: `🚀 Ordem de Compra Executada (${config.symbol})`,
-            description: `Gatilho validado com ${calculatedScore}% de confluência. Entrada a ${entryPrice.toFixed(2)}. Alvo: ${takeProfit.toFixed(2)} | Stop: ${stopLoss.toFixed(2)}.`,
+            title: isBuy
+              ? `🚀 Ordem de Compra Executada (${config.symbol})`
+              : `🔻 Ordem de Venda (SHORT) Executada (${config.symbol})`,
+            description: `Gatilho ${isBuy ? 'COMPRA' : 'VENDA'} validado com ${calculatedScore}% de confluência. Entrada a ${entryPrice.toFixed(2)}. Alvo: ${takeProfit.toFixed(2)} | Stop: ${stopLoss.toFixed(2)}.`,
             price: parseFloat(entryPrice.toFixed(2)),
             confidenceScore: calculatedScore,
           };
@@ -680,8 +791,13 @@ export function runRealHistoricalBacktest(
     let floatingPnl = 0;
     let floatingPnlPercent = 0;
     if (inTrade) {
-      floatingPnl = (currentBar.close - inTrade.entryPrice) * inTrade.quantity;
-      floatingPnlPercent = ((currentBar.close - inTrade.entryPrice) / inTrade.entryPrice) * 100;
+      if (inTrade.side === 'BUY') {
+        floatingPnl = (currentBar.close - inTrade.entryPrice) * inTrade.quantity;
+        floatingPnlPercent = ((currentBar.close - inTrade.entryPrice) / inTrade.entryPrice) * 100;
+      } else {
+        floatingPnl = (inTrade.entryPrice - currentBar.close) * inTrade.quantity;
+        floatingPnlPercent = ((inTrade.entryPrice - currentBar.close) / inTrade.entryPrice) * 100;
+      }
     }
 
     const currentPnl = currentCapital - config.initialCapital;
@@ -697,6 +813,7 @@ export function runRealHistoricalBacktest(
       confluenceScore: calculatedScore,
       position: inTrade
         ? {
+            side: inTrade.side,
             entryPrice: parseFloat(inTrade.entryPrice.toFixed(2)),
             currentPrice: currentBar.close,
             stopLoss: parseFloat(inTrade.stopLoss.toFixed(2)),
@@ -776,5 +893,93 @@ export function runRealHistoricalBacktest(
     candles,
     frames,
     eventLogs,
+  };
+}
+
+export interface OptimalConfigResult {
+  bestConfig: {
+    confluenceThreshold: number;
+    riskRewardRatio: number;
+    stopLossAtrMultiplier: number;
+    useBreakeven: boolean;
+  };
+  baselineReport: RealBacktestReport;
+  optimizedReport: RealBacktestReport;
+  netProfitGain: number;
+  winRateGain: number;
+  totalCombosTested: number;
+}
+
+/**
+ * Algoritmo Walk-Forward de Otimização e Calibração de IA para Backtesting
+ */
+export function findOptimalBacktestConfig(
+  candles: Candle[],
+  baseConfig: RealBacktestConfig,
+  isRealData: boolean,
+  dataSource: string
+): OptimalConfigResult {
+  const baselineReport = runRealHistoricalBacktest(candles, baseConfig, isRealData, dataSource);
+
+  const thresholds = [70, 75, 80, 85];
+  const riskRewards = [1.5, 2.0, 2.5];
+  const atrMultipliers = [1.0, 1.2, 1.5];
+  const breakevens = [true, false];
+
+  let bestReport = baselineReport;
+  let bestParams = {
+    confluenceThreshold: baseConfig.confluenceThreshold,
+    riskRewardRatio: baseConfig.riskRewardRatio,
+    stopLossAtrMultiplier: baseConfig.stopLossAtrMultiplier,
+    useBreakeven: baseConfig.useBreakeven,
+  };
+
+  let bestScore = -Infinity;
+  let combos = 0;
+
+  for (const th of thresholds) {
+    for (const rr of riskRewards) {
+      for (const atr of atrMultipliers) {
+        for (const be of breakevens) {
+          combos++;
+          const candidateConfig: RealBacktestConfig = {
+            ...baseConfig,
+            confluenceThreshold: th,
+            riskRewardRatio: rr,
+            stopLossAtrMultiplier: atr,
+            useBreakeven: be,
+          };
+
+          try {
+            const report = runRealHistoricalBacktest(candles, candidateConfig, isRealData, dataSource);
+            // Scoring formula: prioritize positive net profit, win rate and profit factor with penalties for huge drawdown
+            const profitScore = report.netProfit;
+            const qualityMultiplier = (report.winRate / 100) * (report.profitFactor > 0 ? Math.min(report.profitFactor, 3) : 0.5);
+            const ddPenalty = report.maxDrawdownPercent * 20;
+            const score = profitScore * qualityMultiplier - ddPenalty;
+
+            if (score > bestScore && report.totalTrades >= 2) {
+              bestScore = score;
+              bestReport = report;
+              bestParams = {
+                confluenceThreshold: th,
+                riskRewardRatio: rr,
+                stopLossAtrMultiplier: atr,
+                useBreakeven: be,
+              };
+            }
+          } catch {}
+        }
+      }
+    }
+  }
+
+  return {
+    bestConfig: bestParams,
+    baselineReport,
+    optimizedReport: bestReport,
+    netProfitGain: bestReport.netProfit - baselineReport.netProfit,
+    winRateGain: bestReport.winRate - baselineReport.winRate,
+    totalCombosTested: combos,
   };
 }

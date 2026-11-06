@@ -32,6 +32,7 @@ import {
   BACKTEST_PERIOD_CONFIG,
   fetchHistoricalCandlesForBacktest,
   runRealHistoricalBacktest,
+  findOptimalBacktestConfig,
 } from '../../services/realBacktestEngine';
 import { getLiveUsdRate, UsdRateInfo } from '../../services/currencyService';
 import { CustomSelect, CustomSelectOption } from '../common/CustomSelect';
@@ -93,6 +94,8 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
   const [filterToxicHours, setFilterToxicHours] = useState<boolean>(true);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
+  const [optimizationNotice, setOptimizationNotice] = useState<string | null>(null);
   const [report, setReport] = useState<RealBacktestReport | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'ALL' | 'WINS' | 'LOSSES'>('ALL');
@@ -219,6 +222,62 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
     }
   };
 
+  const handleAIOptimize = async () => {
+    setIsOptimizing(true);
+    setOptimizationNotice(null);
+    setErrorMsg(null);
+    setIsPlaying(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    try {
+      const { candles, isReal, source } = await fetchHistoricalCandlesForBacktest(
+        activeSymbol,
+        market,
+        timeframe,
+        period
+      );
+
+      const baseConfig: RealBacktestConfig = {
+        symbol: activeSymbol,
+        market,
+        strategy,
+        timeframe,
+        period,
+        initialCapital: capital,
+        confluenceThreshold,
+        riskRewardRatio: riskReward,
+        stopLossAtrMultiplier: 1.2,
+        useBreakeven,
+        filterToxicHours,
+        slippagePercent: 0.02,
+      };
+
+      const result = findOptimalBacktestConfig(candles, baseConfig, isReal, source);
+
+      // Calibrate input parameters on screen
+      setConfluenceThreshold(result.bestConfig.confluenceThreshold);
+      setRiskReward(result.bestConfig.riskRewardRatio);
+      setUseBreakeven(result.bestConfig.useBreakeven);
+
+      // Apply the winning backtest report immediately
+      setReport(result.optimizedReport);
+      setCurrentFrameIndex(Math.max(0, result.optimizedReport.frames.length - 1));
+      addAssetToHistory(activeSymbol, market);
+
+      const gainFormatted = result.netProfitGain >= 0
+        ? `+R$ ${result.netProfitGain.toFixed(2)}`
+        : `R$ ${result.netProfitGain.toFixed(2)}`;
+
+      setOptimizationNotice(
+        `✨ IA Calibrada com Sucesso (${result.totalCombosTested} simulações): Confluência ${result.bestConfig.confluenceThreshold}% · Risco:Retorno 1:${result.bestConfig.riskRewardRatio.toFixed(1)} · Breakeven: ${result.bestConfig.useBreakeven ? 'Ativo' : 'Desativado'}. Melhoria no Lucro: ${gainFormatted}!`
+      );
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Falha ao rodar calibração de IA.');
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
   // Playback timer loop
   useEffect(() => {
     if (!isPlaying || !report || report.frames.length === 0) {
@@ -269,6 +328,23 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
       {/* Page Header */}
       <PageHeader page="backtest" />
 
+      {/* Optimization Notice Banner */}
+      {optimizationNotice && (
+        <div className="bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between gap-3 text-amber-200 text-xs shadow-lg animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <Sparkles size={16} className="text-amber-400 shrink-0" />
+            <span className="font-medium">{optimizationNotice}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOptimizationNotice(null)}
+            className="text-amber-400 hover:text-white p-1 rounded-lg hover:bg-amber-500/20 cursor-pointer transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Settings & Configuration (5 cols) */}
@@ -281,10 +357,18 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                   Parâmetros do Replay Quant
                 </h3>
               </div>
-              <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Database size={11} />
-                Dados Históricos Reais
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAIOptimize}
+                  disabled={isLoading || isOptimizing}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-300 border border-amber-500/30 hover:border-amber-400 hover:bg-amber-500/25 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                  title="Calibra os pesos e parâmetros com algoritmo walk-forward para este ativo"
+                >
+                  <Sparkles size={12} className={isOptimizing ? 'animate-spin text-amber-400' : 'text-amber-400'} />
+                  <span>{isOptimizing ? 'Calibrando...' : 'Otimizar com IA'}</span>
+                </button>
+              </div>
             </div>
 
             {/* 1. Market Selection */}
@@ -883,7 +967,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                   <div
                     className={`p-3.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs transition-colors ${
                       currentFrame.status === 'IN_POSITION'
-                        ? 'bg-gradient-to-r from-emerald-950/40 via-emerald-900/20 to-emerald-950/40 border-emerald-500/30'
+                        ? currentFrame.position?.side === 'SELL'
+                          ? 'bg-gradient-to-r from-purple-950/40 via-purple-900/20 to-purple-950/40 border-purple-500/30'
+                          : 'bg-gradient-to-r from-emerald-950/40 via-emerald-900/20 to-emerald-950/40 border-emerald-500/30'
                         : 'bg-[#161F33]/70 border-[#1E293B]'
                     }`}
                   >
@@ -891,7 +977,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                       <span
                         className={`w-2.5 h-2.5 rounded-full ${
                           currentFrame.status === 'IN_POSITION'
-                            ? 'bg-emerald-400 animate-pulse'
+                            ? currentFrame.position?.side === 'SELL'
+                              ? 'bg-purple-400 animate-pulse'
+                              : 'bg-emerald-400 animate-pulse'
                             : 'bg-amber-400'
                         }`}
                       />
@@ -899,7 +987,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                         <div className="font-bold text-white flex items-center gap-2">
                           <span>
                             {currentFrame.status === 'IN_POSITION'
-                              ? `COMPRADO EM ${activeSymbol}`
+                              ? currentFrame.position?.side === 'SELL'
+                                ? `VENDIDO (SHORT) EM ${activeSymbol}`
+                                : `COMPRADO EM ${activeSymbol}`
                               : 'AGUARDANDO CONFLUÊNCIA'}
                           </span>
                           {currentFrame.position?.breakevenMoved && (
@@ -1396,6 +1486,7 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                     <thead>
                       <tr className="border-b border-[#1E293B] text-[#64748B] font-mono text-[11px]">
                         <th className="py-2 px-3">#</th>
+                        <th className="py-2 px-3">Tipo</th>
                         <th className="py-2 px-3">Entrada</th>
                         <th className="py-2 px-3">Saída</th>
                         <th className="py-2 px-3">Preço Ent.</th>
@@ -1407,7 +1498,7 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                     <tbody className="divide-y divide-[#1E293B]/40 font-mono">
                       {filteredTrades.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="py-6 text-center text-[#64748B]">
+                          <td colSpan={8} className="py-6 text-center text-[#64748B]">
                             Nenhum trade encontrado com os filtros selecionados.
                           </td>
                         </tr>
@@ -1415,6 +1506,17 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                         filteredTrades.map(trade => (
                           <tr key={trade.id} className="hover:bg-[#161F33]/40 transition-colors">
                             <td className="py-2.5 px-3 text-[#64748B]">{trade.tradeNumber}</td>
+                            <td className="py-2.5 px-3">
+                              {trade.side === 'BUY' ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  COMPRA
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                  SHORT
+                                </span>
+                              )}
+                            </td>
                             <td className="py-2.5 px-3 text-white">
                               {new Date(trade.entryTime).toLocaleDateString('pt-BR', {
                                 day: '2-digit',
