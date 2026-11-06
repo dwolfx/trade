@@ -9,12 +9,27 @@ import {
 } from 'lucide-react';
 import { BotMarket, BotStrategy, BacktestParams, BacktestResult } from '../../types/daytrade';
 import { STRATEGY_DEFINITIONS, runBacktestSimulation } from '../../services/daytradeEngine';
+import { CustomSelect, CustomSelectOption } from '../common/CustomSelect';
 
 interface StrategyLabModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyStrategy?: (params: BacktestParams) => void;
 }
+
+const STRATEGY_LAB_OPTIONS: CustomSelectOption<BotStrategy>[] = (
+  Object.keys(STRATEGY_DEFINITIONS) as BotStrategy[]
+).map(key => ({
+  value: key,
+  label: STRATEGY_DEFINITIONS[key].label,
+  description: STRATEGY_DEFINITIONS[key].description,
+}));
+
+const PERIOD_LAB_OPTIONS: CustomSelectOption<number>[] = [
+  { value: 30, label: '30 Dias', badge: 'Recente', description: 'Último mês de operações' },
+  { value: 60, label: '60 Dias', badge: 'Médio', description: 'Últimos 2 meses de validação' },
+  { value: 90, label: '90 Dias', badge: 'Trimestre', description: 'Histórico trimestral completo' },
+];
 
 const LAB_ASSET_OPTIONS = [
   { symbol: 'WINZ24', name: 'Mini-Índice B3', market: 'B3' as BotMarket },
@@ -177,17 +192,11 @@ export const StrategyLabModal: React.FC<StrategyLabModalProps> = ({
                 <label className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider block mb-1.5 font-mono">
                   Estratégia Operacional
                 </label>
-                <select
+                <CustomSelect
                   value={strategy}
-                  onChange={e => setStrategy(e.target.value as BotStrategy)}
-                  className="w-full bg-[#0F1523] border border-[#1E293B] text-xs font-semibold text-white px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 cursor-pointer"
-                >
-                  {(Object.keys(STRATEGY_DEFINITIONS) as BotStrategy[]).map(key => (
-                    <option key={key} value={key}>
-                      {STRATEGY_DEFINITIONS[key].label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setStrategy}
+                  options={STRATEGY_LAB_OPTIONS}
+                />
               </div>
 
               {/* Período & Capital */}
@@ -196,15 +205,11 @@ export const StrategyLabModal: React.FC<StrategyLabModalProps> = ({
                   <label className="text-[10px] text-[#64748B] block mb-1 uppercase font-mono">
                     Período Histórico
                   </label>
-                  <select
+                  <CustomSelect
                     value={periodDays}
-                    onChange={e => setPeriodDays(Number(e.target.value))}
-                    className="w-full bg-[#0F1523] border border-[#1E293B] text-xs font-semibold text-white px-2.5 py-1.5 rounded-xl"
-                  >
-                    <option value={30}>30 Dias (Recente)</option>
-                    <option value={60}>60 Dias (Médio)</option>
-                    <option value={90}>90 Dias (Trimestre)</option>
-                  </select>
+                    onChange={setPeriodDays}
+                    options={PERIOD_LAB_OPTIONS}
+                  />
                 </div>
                 <div>
                   <label className="text-[10px] text-[#64748B] block mb-1 uppercase font-mono">

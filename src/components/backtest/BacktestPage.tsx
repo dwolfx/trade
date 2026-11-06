@@ -34,11 +34,30 @@ import {
   runRealHistoricalBacktest,
 } from '../../services/realBacktestEngine';
 import { getLiveUsdRate, UsdRateInfo } from '../../services/currencyService';
+import { CustomSelect, CustomSelectOption } from '../common/CustomSelect';
 import { ActiveNav } from '../../types/market';
 
 interface BacktestPageProps {
   onNavigate?: (nav: ActiveNav) => void;
 }
+
+const TIMEFRAME_OPTIONS: CustomSelectOption<'1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D'>[] = [
+  { value: '1m', label: '1 Minuto', badge: 'Ultra-Scalp', description: 'Reações instantâneas e alta frequência' },
+  { value: '3m', label: '3 Minutos', badge: 'Scalp Tático', description: 'Entrada antecipada com menos ruído' },
+  { value: '5m', label: '5 Minutos', badge: 'Scalp Rápido', description: 'Ponto de equilíbrio ideal para momentum' },
+  { value: '15m', label: '15 Minutos', badge: 'Daytrade Padrão', description: 'Confluência institucional clássica' },
+  { value: '30m', label: '30 Minutos', badge: 'Daytrade Estruturado', description: 'Operações limpas com menos ruído' },
+  { value: '1h', label: '60 Minutos', badge: '1 Hora', description: 'Tendência intradiária e swing trading' },
+  { value: '1D', label: '1 Dia', badge: 'Diário', description: 'Visão macro e tendência primária' },
+];
+
+const STRATEGY_OPTIONS: CustomSelectOption<BotStrategy>[] = Object.entries(STRATEGY_DEFINITIONS).map(
+  ([key, def]) => ({
+    value: key as BotStrategy,
+    label: def.label,
+    description: def.description,
+  })
+);
 
 const PRESET_TICKERS: Record<BotMarket, { symbol: string; label: string }[]> = {
   B3: [
@@ -440,19 +459,11 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                 <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
                   Tempo Gráfico
                 </label>
-                <select
+                <CustomSelect
                   value={timeframe}
-                  onChange={e => setTimeframe(e.target.value as any)}
-                  className="w-full bg-[#161F33] border border-[#1E293B] focus:border-[#38BDF8] rounded-xl px-3 py-2 text-xs text-white outline-none cursor-pointer"
-                >
-                  <option value="1m">1 Minuto (Ultra-Scalp)</option>
-                  <option value="3m">3 Minutos (Scalp Tático)</option>
-                  <option value="5m">5 Minutos (Scalp Rápido)</option>
-                  <option value="15m">15 Minutos (Daytrade Padrão)</option>
-                  <option value="30m">30 Minutos (Daytrade Estruturado)</option>
-                  <option value="1h">60 Minutos (1 Hora - Swing)</option>
-                  <option value="1D">1 Dia (Diário)</option>
-                </select>
+                  onChange={setTimeframe}
+                  options={TIMEFRAME_OPTIONS}
+                />
               </div>
 
               <div>
@@ -480,17 +491,11 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
               <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
                 Estratégia Quantitativa
               </label>
-              <select
+              <CustomSelect
                 value={strategy}
-                onChange={e => setStrategy(e.target.value as BotStrategy)}
-                className="w-full bg-[#161F33] border border-[#1E293B] focus:border-[#38BDF8] rounded-xl px-3 py-2 text-xs text-white outline-none"
-              >
-                {Object.entries(STRATEGY_DEFINITIONS).map(([key, def]) => (
-                  <option key={key} value={key}>
-                    {def.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setStrategy}
+                options={STRATEGY_OPTIONS}
+              />
               <p className="text-[11px] text-[#64748B] mt-1.5 leading-relaxed">
                 {STRATEGY_DEFINITIONS[strategy].description}
               </p>
