@@ -101,6 +101,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
   const [riskReward, setRiskReward] = useState<number>(2.0);
   const [useBreakeven, setUseBreakeven] = useState<boolean>(true);
   const [filterToxicHours, setFilterToxicHours] = useState<boolean>(true);
+  const [enableDailyGoals, setEnableDailyGoals] = useState<boolean>(true);
+  const [enableComebackBreakeven, setEnableComebackBreakeven] = useState<boolean>(true);
+  const [dailyStopLoss, setDailyStopLoss] = useState<number>(2.0);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
@@ -203,6 +206,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
         useBreakeven,
         filterToxicHours,
         slippagePercent: 0.02,
+        enableDailyGoals,
+        enableComebackBreakeven,
+        dailyStopLossPercent: dailyStopLoss,
       };
 
       // 1. Fetch real historical candles
@@ -265,6 +271,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
         useBreakeven,
         filterToxicHours,
         slippagePercent: 0.02,
+        enableDailyGoals,
+        enableComebackBreakeven,
+        dailyStopLossPercent: dailyStopLoss,
       };
 
       const result = findOptimalBacktestConfig(candles, baseConfig, isReal, source);
@@ -885,6 +894,77 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                     className="w-4 h-4 accent-[#38BDF8] rounded cursor-pointer"
                   />
                 </label>
+
+                <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#161F33]/60 border border-[#1E293B] cursor-pointer hover:bg-[#161F33] transition-colors">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-white">
+                        Escada de Metas (+2% ➔ 0x0; +5% ➔ +3%)
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        IA QUANT
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#64748B]">
+                      Trava de recuo que nunca deixa o lucro conquistado virar prejuízo
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={enableDailyGoals}
+                    onChange={e => setEnableDailyGoals(e.target.checked)}
+                    className="w-4 h-4 accent-[#38BDF8] rounded cursor-pointer"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#161F33]/60 border border-[#1E293B] cursor-pointer hover:bg-[#161F33] transition-colors">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-white">
+                        Trava de Alívio (Comeback Breakeven no 0x0)
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        PROTEÇÃO
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#64748B]">
+                      Se esteve no prejuízo e empatar no zero a zero, encerra com o capital 100% salvo
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={enableComebackBreakeven}
+                    onChange={e => setEnableComebackBreakeven(e.target.checked)}
+                    className="w-4 h-4 accent-[#38BDF8] rounded cursor-pointer"
+                  />
+                </label>
+
+                <div className="p-2.5 rounded-xl bg-[#161F33]/60 border border-[#1E293B] space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-xs font-medium text-white">
+                      Stop Loss Diário (Limite de Perda)
+                    </span>
+                    <span className="font-mono font-bold text-rose-400">
+                      -{dailyStopLoss.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[1.5, 2.0, 3.0, 5.0].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setDailyStopLoss(val)}
+                        className={`py-1 rounded-lg text-[11px] font-mono font-bold transition-all border cursor-pointer ${
+                          dailyStopLoss === val
+                            ? 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                            : 'bg-[#161F33] text-[#64748B] border-[#1E293B] hover:text-white'
+                        }`}
+                      >
+                        -{val.toFixed(1)}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 

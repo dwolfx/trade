@@ -51,6 +51,9 @@ export interface RealBacktestConfig {
   useBreakeven: boolean; // move SL to entry once 50% target is reached
   filterToxicHours: boolean; // skip erratic opening/closing bars
   slippagePercent: number; // default 0.02%
+  enableDailyGoals?: boolean; // Ativa Escada de Metas (+2%, +5%)
+  enableComebackBreakeven?: boolean; // Se ficar negativo e voltar pro 0x0, encerra o dia
+  dailyStopLossPercent?: number; // Limite de perda diária (default: 2.0%)
 }
 
 export interface BacktestEventLog {
@@ -452,6 +455,7 @@ export function runRealHistoricalBacktest(
   const closes = candles.map(c => c.close);
   const ema9 = calculateEMA(closes, 9);
   const ema21 = calculateEMA(closes, 21);
+  const ema50 = calculateEMA(closes, 50);
   const rsi14 = calculateRSI(closes, 14);
   const atr14 = calculateATR(candles, 14);
   const vwap = calculateVWAP(candles);
@@ -460,6 +464,12 @@ export function runRealHistoricalBacktest(
   let peakCapital = config.initialCapital;
   let maxDrawdownValue = 0;
   let maxDrawdownPercent = 0;
+
+  // Daily Risk Management tracking
+  let dailyTradingHalted = false;
+  let haltReason: string | null = null;
+  let wasInDrawdown = false;
+  let peakPnlPercent = 0;
 
   const trades: RealBacktestTrade[] = [];
   const equityCurve: { time: number; equity: number; tradeNumber: number }[] = [
@@ -648,12 +658,102 @@ export function runRealHistoricalBacktest(
       idleBarsCount += 1;
     }
 
-    // 2. If not in a trade, evaluate entry conditions based strictly on bar i and past bars
+    const currentPnl = currentCapital - config.initialCapital;
+    const currentPnlPercent = (currentPnl / config.initialCapital) * 100;
+
+    if (currentPnlPercent < -0.3) {
+      wasInDrawdown = true;
+    }
+    if (currentPnlPercent > peakPnlPercent) {
+      peakPnlPercent = currentPnlPercent;
+    }
+
+    // Daily Risk Rules & Trailing Goals Check
+    if (!inTrade && !dailyTradingHalted) {
+      // 1. Comeback Breakeven: se esteve negativo e recuperou para 0 a 0
+      if (config.enableComebackBreakeven && wasInDrawdown && currentPnl >= 0 && trades.length >= 2) {
+        dailyTradingHalted = true;
+        haltReason = 'Trava de Alívio (Comeback Breakeven): Conta recuperou ao 0x0 após drawdown. Capital 100% protegido!';
+        const haltLog: BacktestEventLog = {
+          id: `log-halt-breakeven-${currentBar.time}`,
+          barIndex: i,
+          timestamp: currentBar.time,
+          type: 'INFO',
+          title: '🛡️ Trava de Alívio Ativada (Empate Salvo)',
+          description: haltReason,
+        };
+        eventLogs.push(haltLog);
+        latestLogId = haltLog.id;
+      }
+
+      // 2. Daily Stop Loss
+      const stopLossLimit = config.dailyStopLossPercent ? -Math.abs(config.dailyStopLossPercent) : -2.0;
+      if (currentPnlPercent <= stopLossLimit) {
+        dailyTradingHalted = true;
+        haltReason = `Stop Loss Diário Atingido (${currentPnlPercent.toFixed(2)}%). Circuit breaker ativado para proteger patrimônio!`;
+        const haltLog: BacktestEventLog = {
+          id: `log-halt-stoploss-${currentBar.time}`,
+          barIndex: i,
+          timestamp: currentBar.time,
+          type: 'INFO',
+          title: '🛑 Limite de Perda Diária Atingido',
+          description: haltReason,
+        };
+        eventLogs.push(haltLog);
+        latestLogId = haltLog.id;
+      }
+
+      // 3. Escada de Metas (Trailing Profit Lock)
+      if (config.enableDailyGoals) {
+        if (currentPnlPercent >= 10.0) {
+          dailyTradingHalted = true;
+          haltReason = '🏆 Super Meta Diária Batida (+10%)! Dia encerrado com lucro espetacular!';
+          const haltLog: BacktestEventLog = {
+            id: `log-halt-meta3-${currentBar.time}`,
+            barIndex: i,
+            timestamp: currentBar.time,
+            type: 'INFO',
+            title: '🏆 Meta Máxima Atingida (+10%)',
+            description: haltReason,
+          };
+          eventLogs.push(haltLog);
+          latestLogId = haltLog.id;
+        } else if (peakPnlPercent >= 5.0 && currentPnlPercent <= 3.0) {
+          dailyTradingHalted = true;
+          haltReason = '🎯 Trava de Recuo (+5% ➔ +3%): Lucro mínimo de 3% garantido no bolso!';
+          const haltLog: BacktestEventLog = {
+            id: `log-halt-meta2-${currentBar.time}`,
+            barIndex: i,
+            timestamp: currentBar.time,
+            type: 'INFO',
+            title: '🎯 Trava de Recuo Ativada (+3% garantido)',
+            description: haltReason,
+          };
+          eventLogs.push(haltLog);
+          latestLogId = haltLog.id;
+        } else if (peakPnlPercent >= 2.0 && currentPnlPercent <= 0.0) {
+          dailyTradingHalted = true;
+          haltReason = '🔒 Trava de Recuo (+2% ➔ 0x0): Saída no empate protegendo o capital após bater Meta 1!';
+          const haltLog: BacktestEventLog = {
+            id: `log-halt-meta1-${currentBar.time}`,
+            barIndex: i,
+            timestamp: currentBar.time,
+            type: 'INFO',
+            title: '🔒 Trava de Recuo Ativada (Capital Protegido)',
+            description: haltReason,
+          };
+          eventLogs.push(haltLog);
+          latestLogId = haltLog.id;
+        }
+      }
+    }
+
+    // 2. If not in a trade and trading not halted, evaluate entry conditions based strictly on bar i and past bars
     let signalTriggered = false;
     let signalSide: 'BUY' | 'SELL' | null = null;
     let calculatedScore = 50;
 
-    if (!inTrade && i < candles.length - 1) {
+    if (!inTrade && !dailyTradingHalted && i < candles.length - 1) {
       // Toxic hours filter (e.g. first hour of trading or late close)
       let skipDueToToxic = false;
       if (config.filterToxicHours) {
@@ -669,6 +769,7 @@ export function runRealHistoricalBacktest(
         const currentClose = currentBar.close;
         const currentEma9 = ema9[i];
         const currentEma21 = ema21[i];
+        const currentEma50 = ema50[i];
         const prevEma9 = ema9[i - 1];
         const prevEma21 = ema21[i - 1];
         const currentRsi = rsi14[i];
@@ -677,33 +778,52 @@ export function runRealHistoricalBacktest(
 
         switch (config.strategy) {
           case 'confluence_ai': {
-            // MSC 2.0 (Maya Smart Confluence) - Inteligência Bidirecional com Pullback
-            const isBullish = currentEma9 > currentEma21 && currentClose > currentVwap;
-            const isBearish = currentEma9 < currentEma21 && currentClose < currentVwap;
+            // MSC 3.0 (Maya Smart Confluence) - Macro EMA 50 + Anti-Chop + Leitura de Pavio + Pullback
+            const hasMacroData = i >= 49 && currentEma50 > 0;
+            const isMacroBullish = hasMacroData ? currentClose > currentEma50 : true;
+            const isMacroBearish = hasMacroData ? currentClose < currentEma50 : true;
+
+            // Filtro Anti-Chop: Médias entrelaçadas indicam consolidação lateral sem liquidez
+            const emaSpread = Math.abs(currentEma9 - currentEma21) / currentClose;
+            const isNotChoppy = emaSpread >= 0.0008;
+
+            const isBullish = currentEma9 > currentEma21 && currentClose > currentVwap && isMacroBullish && isNotChoppy;
+            const isBearish = currentEma9 < currentEma21 && currentClose < currentVwap && isMacroBearish && isNotChoppy;
             const distEma9 = Math.abs(currentClose - currentEma9) / currentEma9;
             const isHealthyPullback = distEma9 <= 0.015;
 
+            // Price Action: Análise de Pavios de Rejeição
+            const candleRange = Math.max(0.0001, currentBar.high - currentBar.low);
+            const upperWick = currentBar.high - Math.max(currentBar.open, currentClose);
+            const lowerWick = Math.min(currentBar.open, currentClose) - currentBar.low;
+            const upperWickRatio = upperWick / candleRange;
+            const lowerWickRatio = lowerWick / candleRange;
+
             if (isBullish && isHealthyPullback) {
               let score = 40;
-              if (currentClose > currentBar.open) score += 20;
+              if (currentClose > currentBar.open) score += 15;
               if (currentRsi >= 42 && currentRsi <= 68) score += 15;
               if (currentBar.volume > prevBar.volume * 1.05) score += 15;
               if (currentBar.low <= currentVwap * 1.006 && currentClose > currentVwap) score += 10;
+              if (upperWickRatio <= 0.25) score += 10;
+              else if (upperWickRatio > 0.45) score -= 25; // Rejeição de topo!
 
-              calculatedScore = score;
-              if (score >= config.confluenceThreshold) {
+              calculatedScore = Math.max(0, Math.min(100, score));
+              if (calculatedScore >= config.confluenceThreshold) {
                 signalTriggered = true;
                 signalSide = 'BUY';
               }
             } else if (isBearish && isHealthyPullback) {
               let score = 40;
-              if (currentClose < currentBar.open) score += 20;
+              if (currentClose < currentBar.open) score += 15;
               if (currentRsi >= 32 && currentRsi <= 58) score += 15;
               if (currentBar.volume > prevBar.volume * 1.05) score += 15;
               if (currentBar.high >= currentVwap * 0.994 && currentClose < currentVwap) score += 10;
+              if (lowerWickRatio <= 0.25) score += 10;
+              else if (lowerWickRatio > 0.45) score -= 25; // Rejeição de fundo!
 
-              calculatedScore = score;
-              if (score >= config.confluenceThreshold) {
+              calculatedScore = Math.max(0, Math.min(100, score));
+              if (calculatedScore >= config.confluenceThreshold) {
                 signalTriggered = true;
                 signalSide = 'SELL';
               }
@@ -872,9 +992,6 @@ export function runRealHistoricalBacktest(
         floatingPnlPercent = ((inTrade.entryPrice - currentBar.close) / inTrade.entryPrice) * 100;
       }
     }
-
-    const currentPnl = currentCapital - config.initialCapital;
-    const currentPnlPercent = (currentPnl / config.initialCapital) * 100;
 
     frames.push({
       barIndex: i,
