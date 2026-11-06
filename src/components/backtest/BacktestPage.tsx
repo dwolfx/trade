@@ -1027,16 +1027,16 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                 )}
               </div>
 
-              {/* KPI Metrics Matrix (Placed prominently ABOVE the Chart!) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* KPI Metrics Matrix (Compact 6-column Strip ABOVE the Chart) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {/* 1. Resultado Líquido */}
-                <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                    <span>Resultado Líquido</span>
-                    <DollarSign size={14} className="text-[#38BDF8]" />
+                <div className="p-2.5 rounded-xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-md">
+                  <div className="flex items-center justify-between text-[11px] text-[#94A3B8] mb-0.5">
+                    <span className="truncate">Resultado Líquido</span>
+                    <DollarSign size={13} className="text-[#38BDF8] shrink-0" />
                   </div>
                   <div
-                    className={`text-xl font-bold font-mono ${
+                    className={`text-base sm:text-lg font-bold font-mono tracking-tight ${
                       (currentFrame?.currentPnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
@@ -1045,83 +1045,83 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                     {(currentFrame?.currentPnl || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                   <span
-                    className={`text-[11px] font-mono font-semibold mt-1 ${
+                    className={`text-[10px] font-mono font-semibold truncate ${
                       (currentFrame?.currentPnlPercent || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
                     {(currentFrame?.currentPnlPercent || 0) >= 0 ? '+' : ''}
-                    {(currentFrame?.currentPnlPercent || 0).toFixed(2)}% sobre capital
+                    {(currentFrame?.currentPnlPercent || 0).toFixed(2)}%
                   </span>
                 </div>
 
                 {/* 2. Taxa de Acerto (Win Rate) */}
-                <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                    <span>Taxa de Acerto</span>
-                    <CheckCircle2 size={14} className="text-emerald-400" />
+                <div className="p-2.5 rounded-xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-md">
+                  <div className="flex items-center justify-between text-[11px] text-[#94A3B8] mb-0.5">
+                    <span className="truncate">Taxa de Acerto</span>
+                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-white">
+                  <div className="text-base sm:text-lg font-bold font-mono tracking-tight text-white">
                     {currentFrame && currentFrame.closedTradesCount > 0
                       ? `${Math.round((currentFrame.winningTradesCount / currentFrame.closedTradesCount) * 100)}%`
                       : isFinished ? `${report.winRate}%` : '0%'}
                   </div>
-                  <span className="text-[11px] text-[#64748B] mt-1 font-mono">
-                    {currentFrame?.winningTradesCount || 0} vitórias / {currentFrame?.losingTradesCount || 0} perdas
+                  <span className="text-[10px] text-[#64748B] font-mono truncate">
+                    {currentFrame?.winningTradesCount || 0}W / {currentFrame?.losingTradesCount || 0}L
                   </span>
                 </div>
 
                 {/* 3. Fator de Lucro */}
-                <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                    <span>Profit Factor</span>
-                    <Sparkles size={14} className="text-amber-400" />
+                <div className="p-2.5 rounded-xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-md">
+                  <div className="flex items-center justify-between text-[11px] text-[#94A3B8] mb-0.5">
+                    <span className="truncate">Profit Factor</span>
+                    <Sparkles size={13} className="text-amber-400 shrink-0" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-amber-300">
+                  <div className="text-base sm:text-lg font-bold font-mono tracking-tight text-amber-300">
                     {report.profitFactor}x
                   </div>
-                  <span className="text-[11px] text-[#64748B] mt-1 font-mono">
-                    Ganhos / perdas
+                  <span className="text-[10px] text-[#64748B] font-mono truncate">
+                    Ganhos/perdas
                   </span>
                 </div>
 
                 {/* 4. Drawdown Máximo */}
-                <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                    <span>Max Drawdown</span>
-                    <TrendingDown size={14} className="text-rose-400" />
+                <div className="p-2.5 rounded-xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-md">
+                  <div className="flex items-center justify-between text-[11px] text-[#94A3B8] mb-0.5">
+                    <span className="truncate">Max Drawdown</span>
+                    <TrendingDown size={13} className="text-rose-400 shrink-0" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-rose-400">
+                  <div className="text-base sm:text-lg font-bold font-mono tracking-tight text-rose-400">
                     -{report.maxDrawdownPercent}%
                   </div>
-                  <span className="text-[11px] text-[#64748B] mt-1 font-mono">
-                    Pico de rebaixamento
+                  <span className="text-[10px] text-[#64748B] font-mono truncate">
+                    Rebaixamento
                   </span>
                 </div>
 
                 {/* 5. Total de Operações */}
-                <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                    <span>Total de Trades</span>
-                    <Clock size={14} className="text-[#60A5FA]" />
+                <div className="p-2.5 rounded-xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-md">
+                  <div className="flex items-center justify-between text-[11px] text-[#94A3B8] mb-0.5">
+                    <span className="truncate">Total Trades</span>
+                    <Clock size={13} className="text-[#60A5FA] shrink-0" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-white">
+                  <div className="text-base sm:text-lg font-bold font-mono tracking-tight text-white">
                     {currentFrame?.closedTradesCount || 0} / {report.totalTrades}
                   </div>
-                  <span className="text-[11px] text-[#64748B] mt-1 font-mono">
-                    {report.breakevenTrades} no 0 a 0
+                  <span className="text-[10px] text-[#64748B] font-mono truncate">
+                    {report.breakevenTrades} no 0x0
                   </span>
                 </div>
 
                 {/* 6. Índice de Sharpe */}
-                <div className="p-4 rounded-2xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-lg">
-                  <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-1">
-                    <span>Índice Sharpe</span>
-                    <ShieldCheck size={14} className="text-[#38BDF8]" />
+                <div className="p-2.5 rounded-xl bg-[#0F1523] border border-[#1E293B] flex flex-col justify-between shadow-md">
+                  <div className="flex items-center justify-between text-[11px] text-[#94A3B8] mb-0.5">
+                    <span className="truncate">Sharpe Ratio</span>
+                    <ShieldCheck size={13} className="text-[#38BDF8] shrink-0" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-[#38BDF8]">
+                  <div className="text-base sm:text-lg font-bold font-mono tracking-tight text-[#38BDF8]">
                     {report.sharpeRatio}
                   </div>
-                  <span className="text-[11px] text-[#64748B] mt-1 font-mono">
+                  <span className="text-[10px] text-[#64748B] font-mono truncate">
                     Risco vs retorno
                   </span>
                 </div>
