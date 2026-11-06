@@ -10,6 +10,7 @@ import {
 import { BotMarket, BotStrategy, BacktestParams, BacktestResult } from '../../types/daytrade';
 import { STRATEGY_DEFINITIONS, runBacktestSimulation } from '../../services/daytradeEngine';
 import { CustomSelect, CustomSelectOption } from '../common/CustomSelect';
+import { CurrencyInput } from '../common/CurrencyInput';
 
 interface StrategyLabModalProps {
   isOpen: boolean;
@@ -215,11 +216,12 @@ export const StrategyLabModal: React.FC<StrategyLabModalProps> = ({
                   <label className="text-[10px] text-[#64748B] block mb-1 uppercase font-mono">
                     Capital Simulado
                   </label>
-                  <input
-                    type="number"
+                  <CurrencyInput
                     value={capital}
-                    onChange={e => setCapital(Math.max(500, Number(e.target.value)))}
-                    className="w-full bg-[#0F1523] border border-[#1E293B] text-xs font-mono font-bold text-white px-2.5 py-1.5 rounded-xl"
+                    onChange={setCapital}
+                    min={500}
+                    step={1000}
+                    quickPresets={[5000, 10000, 50000]}
                   />
                 </div>
               </div>

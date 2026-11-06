@@ -35,6 +35,7 @@ import {
 } from '../../services/realBacktestEngine';
 import { getLiveUsdRate, UsdRateInfo } from '../../services/currencyService';
 import { CustomSelect, CustomSelectOption } from '../common/CustomSelect';
+import { CurrencyInput } from '../common/CurrencyInput';
 import { ActiveNav } from '../../types/market';
 
 interface BacktestPageProps {
@@ -470,19 +471,14 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                 <label className="text-xs font-semibold text-[#94A3B8] block mb-1.5">
                   Capital Inicial
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-xs text-[#64748B] font-mono">
-                    {currencyPrefix}
-                  </span>
-                  <input
-                    type="number"
-                    value={capital}
-                    onChange={e => setCapital(Number(e.target.value) || 1000)}
-                    className="w-full bg-[#161F33] border border-[#1E293B] focus:border-[#38BDF8] rounded-xl pl-9 pr-3 py-2 text-xs font-mono text-white outline-none"
-                    min={500}
-                    step={500}
-                  />
-                </div>
+                <CurrencyInput
+                  value={capital}
+                  onChange={setCapital}
+                  prefix={currencyPrefix}
+                  min={500}
+                  step={1000}
+                  quickPresets={[5000, 10000, 25000, 50000]}
+                />
               </div>
             </div>
 
