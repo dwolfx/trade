@@ -741,8 +741,22 @@ export function runRealHistoricalBacktest(
             ? entryPrice + stopDistance * config.riskRewardRatio
             : entryPrice - stopDistance * config.riskRewardRatio;
 
+          // Sizing proporcional inteligente:
+          // Em Cripto: frações precisas (ex: 0.0005 BTC) para nunca alavancar sem querer.
+          // Em B3: ações fracionárias/lote sem estourar o capital disponível.
           const riskCapital = currentCapital * 0.20;
-          const quantity = Math.max(1, Math.floor(riskCapital / entryPrice));
+          let quantity = 0;
+          if (config.market === 'CRYPTO') {
+            quantity = parseFloat((riskCapital / entryPrice).toFixed(6));
+          } else {
+            const shares = Math.floor(riskCapital / entryPrice);
+            quantity = shares > 0 ? shares : (currentCapital >= entryPrice ? 1 : 0);
+          }
+
+          // Se o capital não for suficiente para a menor fração/ação, não opera
+          if (quantity <= 0) {
+            continue;
+          }
 
           inTrade = {
             entryBar: i + 1,
