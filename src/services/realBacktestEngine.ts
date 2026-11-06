@@ -43,6 +43,8 @@ export interface RealBacktestConfig {
   timeframe: '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D';
   period?: BacktestPeriod; // '1d' | '7d' | '15d' | '30d' | '90d' | '6mo' | '1y'
   initialCapital: number;
+  positionSizingType?: 'FIXED_VALUE' | 'PERCENT'; // 'FIXED_VALUE' (default) ou 'PERCENT'
+  positionSizeValue?: number; // valor fixo em R$ (ex: 200) ou porcentagem (ex: 20)
   confluenceThreshold: number; // 60 - 95%
   riskRewardRatio: number; // e.g. 1.5, 2.0, 3.0
   stopLossAtrMultiplier: number; // e.g. 1.5
@@ -742,14 +744,23 @@ export function runRealHistoricalBacktest(
             : entryPrice - stopDistance * config.riskRewardRatio;
 
           // Sizing proporcional inteligente:
-          // Em Cripto: frações precisas (ex: 0.0005 BTC) para nunca alavancar sem querer.
-          // Em B3: ações fracionárias/lote sem estourar o capital disponível.
-          const riskCapital = currentCapital * 0.20;
+          // Se FIXED_VALUE: aloca exatamente o valor fixo em R$ (ex: R$ 200 por trade).
+          // Se PERCENT: aloca % do capital atual (default: 20%).
+          let capitalToAllocate = currentCapital * 0.20;
+          if (config.positionSizingType === 'FIXED_VALUE') {
+            const fixedAmount = config.positionSizeValue && config.positionSizeValue > 0
+              ? config.positionSizeValue
+              : 200;
+            capitalToAllocate = Math.min(fixedAmount, currentCapital);
+          } else if (config.positionSizingType === 'PERCENT' && config.positionSizeValue && config.positionSizeValue > 0) {
+            capitalToAllocate = currentCapital * (config.positionSizeValue / 100);
+          }
+
           let quantity = 0;
           if (config.market === 'CRYPTO') {
-            quantity = parseFloat((riskCapital / entryPrice).toFixed(6));
+            quantity = parseFloat((capitalToAllocate / entryPrice).toFixed(6));
           } else {
-            const shares = Math.floor(riskCapital / entryPrice);
+            const shares = Math.floor(capitalToAllocate / entryPrice);
             quantity = shares > 0 ? shares : (currentCapital >= entryPrice ? 1 : 0);
           }
 

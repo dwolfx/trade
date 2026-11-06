@@ -88,6 +88,8 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
   const [timeframe, setTimeframe] = useState<'1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D'>('5m');
   const [period, setPeriod] = useState<BacktestPeriod>('30d');
   const [capital, setCapital] = useState<number>(1000);
+  const [sizingType, setSizingType] = useState<'FIXED_VALUE' | 'PERCENT'>('FIXED_VALUE');
+  const [fixedTradeAmount, setFixedTradeAmount] = useState<number>(200);
   const [confluenceThreshold, setConfluenceThreshold] = useState<number>(80);
   const [riskReward, setRiskReward] = useState<number>(2.0);
   const [useBreakeven, setUseBreakeven] = useState<boolean>(true);
@@ -186,6 +188,8 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
         timeframe,
         period,
         initialCapital: capital,
+        positionSizingType: sizingType,
+        positionSizeValue: fixedTradeAmount,
         confluenceThreshold,
         riskRewardRatio: riskReward,
         stopLossAtrMultiplier: 1.5,
@@ -244,6 +248,8 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
         timeframe,
         period,
         initialCapital: capital,
+        positionSizingType: sizingType,
+        positionSizeValue: fixedTradeAmount,
         confluenceThreshold,
         riskRewardRatio: riskReward,
         stopLossAtrMultiplier: 1.2,
@@ -564,6 +570,59 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                   quickPresets={[100, 500, 1000, 2500, 5000, 10000]}
                 />
               </div>
+            </div>
+
+            {/* 5. Position Sizing: Valor Fixo em R$ por Trade vs % do Capital */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-[#94A3B8]">
+                  Alocação por Operação (Trade Sizing)
+                </label>
+                <div className="flex items-center gap-1 bg-[#161F33] p-0.5 rounded-lg border border-[#1E293B]">
+                  <button
+                    type="button"
+                    onClick={() => setSizingType('FIXED_VALUE')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                      sizingType === 'FIXED_VALUE'
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-white'
+                    }`}
+                  >
+                    Valor Fixo (R$)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSizingType('PERCENT')}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                      sizingType === 'PERCENT'
+                        ? 'bg-sky-500 text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-white'
+                    }`}
+                  >
+                    % do Capital (20%)
+                  </button>
+                </div>
+              </div>
+
+              {sizingType === 'FIXED_VALUE' ? (
+                <div>
+                  <CurrencyInput
+                    value={fixedTradeAmount}
+                    onChange={setFixedTradeAmount}
+                    prefix={currencyPrefix}
+                    min={50}
+                    step={50}
+                    quickPresets={[50, 100, 200, 500, 1000]}
+                  />
+                  <span className="text-[10px] text-[#64748B] block mt-1">
+                    Cada ordem executará exatamente {currencyPrefix} {fixedTradeAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} em {activeSymbol}, com risco calculado e seguro.
+                  </span>
+                </div>
+              ) : (
+                <div className="p-2.5 rounded-xl bg-[#161F33]/70 border border-[#1E293B] text-xs text-[#94A3B8]">
+                  <span>Aloca 20% do capital disponível ({currencyPrefix} {(capital * 0.20).toFixed(2)}) por trade.</span>
+                </div>
+              )}
             </div>
 
             {/* 4. Strategy Selection */}

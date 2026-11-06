@@ -55,7 +55,7 @@ describe('BacktestPage Component', () => {
     render(<BacktestPage />);
 
     // Default Crypto market uses R$ (not U$)
-    expect(screen.getByText('R$')).toBeInTheDocument();
+    expect(screen.getAllByText('R$')[0]).toBeInTheDocument();
     expect(screen.queryByText('U$')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'BTCBRL' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ETHBRL' })).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('BacktestPage Component', () => {
     fireEvent.click(b3Btn);
 
     // B3 market uses R$
-    expect(screen.getByText('R$')).toBeInTheDocument();
+    expect(screen.getAllByText('R$')[0]).toBeInTheDocument();
     expect(screen.queryByText('U$')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'PETR4' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'VALE3' })).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('BacktestPage Component', () => {
     fireEvent.click(cryptoBtn);
 
     // Back to Crypto still uses strictly R$
-    expect(screen.getByText('R$')).toBeInTheDocument();
+    expect(screen.getAllByText('R$')[0]).toBeInTheDocument();
     expect(screen.queryByText('U$')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'BTCBRL' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ETHBRL' })).toBeInTheDocument();
