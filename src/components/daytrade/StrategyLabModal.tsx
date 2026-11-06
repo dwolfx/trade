@@ -219,9 +219,9 @@ export const StrategyLabModal: React.FC<StrategyLabModalProps> = ({
                   <CurrencyInput
                     value={capital}
                     onChange={setCapital}
-                    min={500}
-                    step={1000}
-                    quickPresets={[5000, 10000, 50000]}
+                    min={100}
+                    step={100}
+                    quickPresets={[100, 500, 1000, 2500, 5000, 10000]}
                   />
                 </div>
               </div>

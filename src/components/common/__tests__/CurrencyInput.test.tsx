@@ -43,14 +43,19 @@ describe('CurrencyInput Component', () => {
     expect(handleChange).toHaveBeenCalledWith(10000);
   });
 
-  it('selects quick preset chips on click', () => {
+  it('selects quick preset chips on click including small values', () => {
     const handleChange = vi.fn();
-    render(<CurrencyInput value={10000} onChange={handleChange} quickPresets={[5000, 10000, 50000]} />);
+    render(<CurrencyInput value={1000} onChange={handleChange} quickPresets={[100, 500, 1000, 2500, 5000, 10000]} />);
 
-    const chip50k = screen.getByRole('button', { name: '50k' });
-    fireEvent.click(chip50k);
+    expect(screen.getByRole('button', { name: '100' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '500' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1k' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2.5k' })).toBeInTheDocument();
 
-    expect(handleChange).toHaveBeenCalledWith(50000);
+    const chip100 = screen.getByRole('button', { name: '100' });
+    fireEvent.click(chip100);
+
+    expect(handleChange).toHaveBeenCalledWith(100);
   });
 
   it('clamps to min on blur if left empty', () => {

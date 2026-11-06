@@ -86,7 +86,7 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
   const [strategy, setStrategy] = useState<BotStrategy>('confluence_ai');
   const [timeframe, setTimeframe] = useState<'1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '1D'>('5m');
   const [period, setPeriod] = useState<BacktestPeriod>('30d');
-  const [capital, setCapital] = useState<number>(10000);
+  const [capital, setCapital] = useState<number>(1000);
   const [confluenceThreshold, setConfluenceThreshold] = useState<number>(80);
   const [riskReward, setRiskReward] = useState<number>(2.0);
   const [useBreakeven, setUseBreakeven] = useState<boolean>(true);
@@ -475,9 +475,9 @@ export const BacktestPage: React.FC<BacktestPageProps> = ({ onNavigate }) => {
                   value={capital}
                   onChange={setCapital}
                   prefix={currencyPrefix}
-                  min={500}
-                  step={1000}
-                  quickPresets={[5000, 10000, 25000, 50000]}
+                  min={100}
+                  step={100}
+                  quickPresets={[100, 500, 1000, 2500, 5000, 10000]}
                 />
               </div>
             </div>

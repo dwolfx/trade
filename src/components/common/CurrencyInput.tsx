@@ -16,10 +16,10 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
   value,
   onChange,
   prefix = 'R$',
-  min = 500,
+  min = 100,
   max = 10000000,
-  step = 1000,
-  quickPresets = [5000, 10000, 25000, 50000],
+  step = 100,
+  quickPresets = [100, 500, 1000, 2500, 5000, 10000],
   className = '',
 }) => {
   // Local string state allows user to freely clear and type digits without immediate reset snaps
@@ -132,7 +132,12 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
           {quickPresets.map(preset => {
             const isSelected = value === preset;
-            const label = preset >= 1000 ? `${preset / 1000}k` : `${preset}`;
+            const label =
+              preset >= 1000
+                ? preset % 1000 === 0
+                  ? `${preset / 1000}k`
+                  : `${(preset / 1000).toFixed(1)}k`
+                : `${preset}`;
             return (
               <button
                 key={preset}
