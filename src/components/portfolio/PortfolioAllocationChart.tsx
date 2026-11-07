@@ -152,8 +152,8 @@ export const PortfolioAllocationChart: React.FC<PortfolioAllocationChartProps> =
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: cat.color }}
+                    className="tc-dynamic-color w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ '--cat-color': cat.color } as React.CSSProperties}
                   />
                   <div>
                     <div className="text-xs font-bold text-white flex items-center gap-1.5">
@@ -176,8 +176,8 @@ export const PortfolioAllocationChart: React.FC<PortfolioAllocationChartProps> =
                   </span>
                   <div className="w-16 h-1.5 rounded-full bg-[#161F33] overflow-hidden mt-1 ml-auto">
                     <div
-                      className="h-full rounded-full"
-                      style={{ width: `${percent}%`, backgroundColor: cat.color }}
+                      className="tc-progress-fill tc-dynamic-color h-full rounded-full"
+                      style={{ '--fill-pct': `${percent}%`, '--cat-color': cat.color } as React.CSSProperties}
                     />
                   </div>
                 </div>

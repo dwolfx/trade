@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MarketHeatmap } from '../MarketHeatmap';
 import { MarketProvider } from '../../../context/MarketContext';
 
-describe('MarketHeatmap Component', () => {
+describe('Mapa de Calor de Mercado (MarketHeatmap)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -16,39 +16,35 @@ describe('MarketHeatmap Component', () => {
     );
   };
 
-  it('renders heatmap page header, controls, and B3 tickers', () => {
+  it('renderiza o cabeçalho do mapa de calor, controles e os tickers da B3', () => {
     renderComponent();
 
-    // Check header and mode buttons
     expect(screen.getByText('Mapa de Calor de Mercado (Heatmap)')).toBeInTheDocument();
     expect(screen.getByText('Bolsa B3 (Ações)')).toBeInTheDocument();
     expect(screen.getByText('Cripto 24/7')).toBeInTheDocument();
 
-    // Check period range buttons
     expect(screen.getByText('1D')).toBeInTheDocument();
     expect(screen.getByText('5D')).toBeInTheDocument();
     expect(screen.getByText('1M')).toBeInTheDocument();
     expect(screen.getByText('1A')).toBeInTheDocument();
 
-    // Check main B3 tickers are rendered
     expect(screen.getByText('PETR4')).toBeInTheDocument();
     expect(screen.getByText('VALE3')).toBeInTheDocument();
     expect(screen.getByText('ITUB4')).toBeInTheDocument();
   });
 
-  it('switches to Cripto mode and displays crypto tokens', () => {
+  it('alterna para o modo Cripto 24/7 e exibe os tokens de criptomoedas', () => {
     renderComponent();
 
     const cryptoBtn = screen.getByText('Cripto 24/7');
     fireEvent.click(cryptoBtn);
 
-    // Tokens like BTC and ETH should appear
     expect(screen.getByText('BTC')).toBeInTheDocument();
     expect(screen.getByText('ETH')).toBeInTheDocument();
     expect(screen.getByText('SOL')).toBeInTheDocument();
   });
 
-  it('changes time range when clicking on 1M and 1A buttons', () => {
+  it('altera o período temporal ao clicar nos botões 1M e 1A', () => {
     renderComponent();
 
     const monthBtn = screen.getByText('1M');
@@ -60,17 +56,16 @@ describe('MarketHeatmap Component', () => {
     expect(yearBtn).toHaveClass('text-[#38BDF8]');
   });
 
-  it('filters by sector when selecting a sector option', () => {
+  it('filtra por setor econômico ao escolher uma opção no seletor', () => {
     renderComponent();
 
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: 'Petróleo & Gás' } });
 
-    // PETR4 should be present
     expect(screen.getByText('PETR4')).toBeInTheDocument();
   });
 
-  it('calls onSelectAsset when clicking a tile', () => {
+  it('chama onSelectAsset com o ticker ao clicar em um bloco do mapa', () => {
     const handleSelect = vi.fn();
     renderComponent({ onSelectAsset: handleSelect });
 

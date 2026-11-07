@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useNavigationRouter, getNavFromPath } from '../useNavigationRouter';
 
-describe('useNavigationRouter Hook', () => {
+describe('Hook de Roteamento de Navegação (useNavigationRouter)', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/');
     document.title = 'TradeCraft';
@@ -12,7 +12,7 @@ describe('useNavigationRouter Hook', () => {
     window.history.replaceState({}, '', '/');
   });
 
-  it('correctly maps URL paths to active nav items', () => {
+  it('mapeia corretamente os caminhos de URL para os itens ativos da navegação', () => {
     expect(getNavFromPath('/')).toBe('bolsa');
     expect(getNavFromPath('/home')).toBe('bolsa');
     expect(getNavFromPath('/noticias')).toBe('noticias');
@@ -25,7 +25,7 @@ describe('useNavigationRouter Hook', () => {
     expect(getNavFromPath('/unknown')).toBe('bolsa');
   });
 
-  it('normalizes "/" to "/home" and sets Bolsa de valores title', () => {
+  it('normaliza a rota "/" para "/home" e define o título Bolsa de valores', () => {
     window.history.replaceState({}, '', '/');
     const { result } = renderHook(() => useNavigationRouter());
 
@@ -34,7 +34,7 @@ describe('useNavigationRouter Hook', () => {
     expect(document.title).toBe('Bolsa de valores · TradeCraft');
   });
 
-  it('initializes to "/carteira" when loaded with /carteira pathname', () => {
+  it('inicializa na rota "/carteira" quando carregado com o pathname /carteira', () => {
     window.history.replaceState({}, '', '/carteira');
     const { result } = renderHook(() => useNavigationRouter());
 
@@ -43,7 +43,7 @@ describe('useNavigationRouter Hook', () => {
     expect(document.title).toBe('Carteira · TradeCraft');
   });
 
-  it('updates path and document.title when navigating', () => {
+  it('atualiza o caminho e o document.title ao navegar entre abas', () => {
     const { result } = renderHook(() => useNavigationRouter());
 
     act(() => {
@@ -71,7 +71,7 @@ describe('useNavigationRouter Hook', () => {
     expect(document.title).toBe('Mapa de Dividendos · TradeCraft');
   });
 
-  it('responds to popstate back/forward browser navigation', () => {
+  it('responde aos eventos de avançar e voltar do navegador (popstate)', () => {
     const { result } = renderHook(() => useNavigationRouter());
 
     act(() => {
@@ -79,7 +79,6 @@ describe('useNavigationRouter Hook', () => {
     });
     expect(result.current.activeNav).toBe('carteira');
 
-    // Simulate browser back button
     act(() => {
       window.history.replaceState({}, '', '/noticias');
       window.dispatchEvent(new PopStateEvent('popstate'));

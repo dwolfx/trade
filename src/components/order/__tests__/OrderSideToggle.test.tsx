@@ -2,21 +2,21 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { OrderSideToggle } from '../OrderSideToggle';
 
-describe('OrderSideToggle', () => {
-  it('should render both COMPRAR and VENDER buttons', () => {
+describe('Alternador de Ponta de Ordem (OrderSideToggle)', () => {
+  it('deve renderizar ambos os botões COMPRAR e VENDER', () => {
     render(<OrderSideToggle side="buy" onChange={() => {}} />);
     expect(screen.getByText('COMPRAR')).toBeInTheDocument();
     expect(screen.getByText('VENDER')).toBeInTheDocument();
   });
 
-  it('should call onChange with "sell" when VENDER is clicked', () => {
+  it('deve chamar onChange com "sell" ao clicar no botão VENDER', () => {
     const handleChange = vi.fn();
     render(<OrderSideToggle side="buy" onChange={handleChange} />);
     fireEvent.click(screen.getByText('VENDER'));
     expect(handleChange).toHaveBeenCalledWith('sell');
   });
 
-  it('should call onChange with "buy" when COMPRAR is clicked', () => {
+  it('deve chamar onChange com "buy" ao clicar no botão COMPRAR', () => {
     const handleChange = vi.fn();
     render(<OrderSideToggle side="sell" onChange={handleChange} />);
     fireEvent.click(screen.getByText('COMPRAR'));

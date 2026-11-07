@@ -165,3 +165,28 @@
   color: #FFFFFF;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
+
+
+/* ==========================================================================
+   5. PROGRESS BARS & ANIMATIONS
+   ========================================================================== */
+.tc-progress-fill {
+  width: var(--fill-pct, 0%);
+}
+
+.tc-spin-radar {
+  animation: tc-radar-spin 8s linear infinite;
+}
+
+@keyframes tc-radar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tc-dynamic-color {
+  background-color: var(--cat-color, transparent);
+}

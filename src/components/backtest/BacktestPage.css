@@ -1,0 +1,179 @@
+/**
+ * BacktestPage Dedicated Styles
+ * Conforme Diretrizes Globais: Sem Tailwind, sem estilos inline, utilizando variáveis do Design System.
+ */
+
+.backtest-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 5rem;
+}
+
+.backtest-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .backtest-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+
+  .backtest-col-config {
+    grid-column: span 5 / span 5;
+  }
+
+  .backtest-col-dashboard {
+    grid-column: span 7 / span 7;
+  }
+}
+
+.backtest-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.backtest-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.backtest-card-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Optimization Banner */
+.backtest-notice-banner {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.08), transparent);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-xl);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--color-demo-light);
+  font-size: 0.75rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+/* KPI Strip */
+.backtest-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .backtest-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .backtest-kpi-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.backtest-kpi-card {
+  padding: 0.625rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.backtest-kpi-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.125rem;
+}
+
+.backtest-kpi-value {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+.backtest-kpi-sub {
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Range input styled */
+.backtest-slider {
+  width: 100%;
+  accent-color: var(--color-profit);
+  background-color: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  height: 0.375rem;
+  cursor: pointer;
+}
+
+/* Terminal Feed */
+.backtest-terminal-scroll {
+  height: 9rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-right: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.backtest-table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+}
+
+.backtest-table {
+  width: 100%;
+  text-align: left;
+  font-size: 0.75rem;
+  border-collapse: collapse;
+}
+
+.backtest-table th {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.backtest-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid rgba(30, 41, 59, 0.4);
+  font-family: var(--font-mono);
+}

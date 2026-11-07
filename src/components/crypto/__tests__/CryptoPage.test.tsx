@@ -3,12 +3,12 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { CryptoPage } from '../CryptoPage';
 import { MarketProvider } from '../../../context/MarketContext';
 
-describe('CryptoPage Functional Tests', () => {
+describe('Página de Criptoativos 24/7 (CryptoPage)', () => {
   beforeEach(() => {
     window.localStorage.clear();
   });
 
-  it('should render crypto page header with 24/7 status and currency toggle', async () => {
+  it('deve renderizar o cabeçalho da página de cripto com status 24/7 e seletor de moeda', async () => {
     render(
       <MarketProvider>
         <CryptoPage />
@@ -21,14 +21,13 @@ describe('CryptoPage Functional Tests', () => {
     expect(screen.getByText('🇺🇸 USDT ($)')).toBeInTheDocument();
   });
 
-  it('should render featured crypto cards including BTC, ETH, SOL, USDT', async () => {
+  it('deve renderizar os cards em destaque das principais criptos (BTC, ETH, SOL)', async () => {
     render(
       <MarketProvider>
         <CryptoPage />
       </MarketProvider>
     );
 
-    // Wait for featured cards to render
     await waitFor(() => {
       expect(screen.getAllByText('BTC').length).toBeGreaterThan(0);
       expect(screen.getAllByText('ETH').length).toBeGreaterThan(0);
@@ -36,7 +35,7 @@ describe('CryptoPage Functional Tests', () => {
     }, { timeout: 4000 });
   });
 
-  it('should toggle currency between BRL and USDT', async () => {
+  it('deve alternar a moeda de exibição entre BRL (R$) e USDT ($)', async () => {
     render(
       <MarketProvider>
         <CryptoPage />
@@ -46,13 +45,12 @@ describe('CryptoPage Functional Tests', () => {
     const usdtBtn = screen.getByText('🇺🇸 USDT ($)');
     fireEvent.click(usdtBtn);
 
-    // After clicking USDT, active currency indicators reflect USDT
     await waitFor(() => {
       expect(screen.getAllByText(/\/USDT/i).length).toBeGreaterThan(0);
     });
   });
 
-  it('should render crypto order pad with COMPRAR/VENDER modes and percentage chips', async () => {
+  it('deve renderizar a boleta de cripto com abas COMPRAR/VENDER e chips percentuais', async () => {
     render(
       <MarketProvider>
         <CryptoPage />
@@ -67,7 +65,7 @@ describe('CryptoPage Functional Tests', () => {
     expect(screen.getByText('100%')).toBeInTheDocument();
   });
 
-  it('should filter crypto assets table when typing in search input', async () => {
+  it('deve filtrar a tabela de ativos ao digitar no campo de busca', async () => {
     render(
       <MarketProvider>
         <CryptoPage />
@@ -82,7 +80,7 @@ describe('CryptoPage Functional Tests', () => {
     });
   });
 
-  it('should toggle multi-chart 2x2 mode and render 4 quadrants', async () => {
+  it('deve alternar modo multi-gráfico 2x2 e renderizar 4 quadrantes simultâneos', async () => {
     render(
       <MarketProvider>
         <CryptoPage />
@@ -94,7 +92,6 @@ describe('CryptoPage Functional Tests', () => {
 
     fireEvent.click(multiBtn);
 
-    // After clicking, button says 'Voltar para 1 Gráfico' and 4 slots are visible
     expect(screen.getByText(/1 Gráfico/i)).toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('#2')).toBeInTheDocument();

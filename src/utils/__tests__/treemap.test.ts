@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { computeSquarifiedTreemap, TreemapItem } from '../treemap';
 
-describe('Squarified Treemap Algorithm', () => {
-  it('returns empty array when input is empty or container dimensions are invalid', () => {
+describe('Algoritmo de Mosaico Proporcional (Squarified Treemap)', () => {
+  it('retorna array vazio quando a entrada estiver vazia ou dimensões do contêiner forem inválidas', () => {
     expect(computeSquarifiedTreemap([], 800, 600)).toEqual([]);
     expect(computeSquarifiedTreemap([{ id: 'A', value: 10, data: {} }], 0, 600)).toEqual([]);
     expect(computeSquarifiedTreemap([{ id: 'A', value: 10, data: {} }], 800, 0)).toEqual([]);
     expect(computeSquarifiedTreemap([{ id: 'A', value: -5, data: {} }], 800, 600)).toEqual([]);
   });
 
-  it('allocates larger areas to items with higher weights', () => {
+  it('aloca áreas proporcionalmente maiores para itens com maior peso financeiro', () => {
     const items: TreemapItem[] = [
       { id: 'PETR4', value: 400, data: { symbol: 'PETR4' } },
       { id: 'VALE3', value: 200, data: { symbol: 'VALE3' } },
@@ -30,14 +30,14 @@ describe('Squarified Treemap Algorithm', () => {
     const valeArea = vale.width * vale.height;
     const itubArea = itub.width * itub.height;
 
-    // PETR4 has 50% of the total value (400 / 800)
+    // PETR4 possui 50% do total (400 / 800)
     expect(petrArea).toBeCloseTo((width * height) * 0.5, -1);
-    // VALE3 and ITUB4 each have 25% of the total value
+    // VALE3 e ITUB4 possuem 25% cada
     expect(valeArea).toBeCloseTo((width * height) * 0.25, -1);
     expect(itubArea).toBeCloseTo((width * height) * 0.25, -1);
   });
 
-  it('correctly applies custom padding without negative dimensions', () => {
+  it('aplica espaçamento interno (padding) sem gerar dimensões negativas', () => {
     const items: TreemapItem[] = [
       { id: 'A', value: 10, data: {} },
       { id: 'B', value: 5, data: {} },
@@ -55,7 +55,7 @@ describe('Squarified Treemap Algorithm', () => {
     });
   });
 
-  it('maintains valid bounds within the specified container', () => {
+  it('mantém todas as coordenadas dentro dos limites do contêiner', () => {
     const items: TreemapItem[] = [
       { id: '1', value: 100, data: {} },
       { id: '2', value: 80, data: {} },

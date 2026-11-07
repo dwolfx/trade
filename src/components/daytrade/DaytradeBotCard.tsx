@@ -223,12 +223,12 @@ export const DaytradeBotCard: React.FC<DaytradeBotCardProps> = ({
                 </div>
                 <div className="w-full h-1.5 bg-[#1E293B] rounded-full overflow-hidden flex">
                   <div
-                    className={`h-full transition-all duration-300 ${
+                    className={`tc-progress-fill h-full transition-all duration-300 ${
                       pos.pnl >= 0 ? 'bg-emerald-500' : 'bg-rose-500'
                     }`}
                     style={{
-                      width: `${Math.min(100, Math.max(10, 50 + pos.pnlPercent * 2))}%`,
-                    }}
+                      '--fill-pct': `${Math.min(100, Math.max(10, 50 + pos.pnlPercent * 2))}%`,
+                    } as React.CSSProperties}
                   />
                 </div>
               </div>
@@ -262,12 +262,12 @@ export const DaytradeBotCard: React.FC<DaytradeBotCardProps> = ({
                 </div>
                 <div className="w-full h-1.5 bg-[#1E293B] rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-500 ${
+                    className={`tc-progress-fill h-full transition-all duration-500 ${
                       isB3
                         ? 'bg-gradient-to-r from-blue-500 to-sky-400'
                         : 'bg-gradient-to-r from-purple-500 to-fuchsia-400'
                     }`}
-                    style={{ width: `${bot.status === 'paused' ? 0 : 68}%` }}
+                    style={{ '--fill-pct': `${bot.status === 'paused' ? 0 : 68}%` } as React.CSSProperties}
                   />
                 </div>
               </div>

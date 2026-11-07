@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getLiveUsdRate, isRateSane, resetUsdRateCache } from '../currencyService';
 
-describe('currencyService - Live USD/BRL Rate with Guardrails (Travas)', () => {
+describe('Serviço de Cotação de Moeda com Travas de Segurança (currencyService)', () => {
   beforeEach(() => {
     resetUsdRateCache();
     localStorage.clear();
@@ -12,21 +12,21 @@ describe('currencyService - Live USD/BRL Rate with Guardrails (Travas)', () => {
     vi.restoreAllMocks();
   });
 
-  it('validates rate sanity with upper and lower guardrails (isRateSane)', () => {
+  it('valida a sanidade da cotação com travas superior e inferior (isRateSane)', () => {
     expect(isRateSane(5.50)).toBe(true);
     expect(isRateSane(2.50)).toBe(true);
     expect(isRateSane(15.00)).toBe(true);
 
-    // Unsafe values that must be rejected
+    // Valores anômalos que devem ser rejeitados imediatamente
     expect(isRateSane(0)).toBe(false);
     expect(isRateSane(-5)).toBe(false);
-    expect(isRateSane(1.99)).toBe(false); // Too low for USD/BRL
-    expect(isRateSane(15.01)).toBe(false); // Too high / anomaly
+    expect(isRateSane(1.99)).toBe(false);
+    expect(isRateSane(15.01)).toBe(false);
     expect(isRateSane(NaN)).toBe(false);
     expect(isRateSane(Infinity)).toBe(false);
   });
 
-  it('fetches live USD rate from Primary Guardrail (Binance USDTBRL)', async () => {
+  it('busca a cotação ao vivo do Dólar através da trava primária (Binance USDTBRL)', async () => {
     const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
       json: async () => ({ symbol: 'USDTBRL', price: '5.5432' }),
@@ -40,8 +40,7 @@ describe('currencyService - Live USD/BRL Rate with Guardrails (Travas)', () => {
     expect(result.formattedRate).toBe('R$ 5.54');
   });
 
-  it('falls back to Secondary Guardrail (Yahoo Finance) when Binance fails', async () => {
-    // Binance fails, Yahoo succeeds
+  it('aciona a trava secundária (Yahoo Finance) quando a Binance falhar', async () => {
     const mockFetch = vi.spyOn(globalThis, 'fetch')
       .mockRejectedValueOnce(new Error('Binance timeout'))
       .mockResolvedValueOnce({
@@ -65,7 +64,7 @@ describe('currencyService - Live USD/BRL Rate with Guardrails (Travas)', () => {
     expect(result.formattedRate).toBe('R$ 5.52');
   });
 
-  it('falls back to Tertiary Guardrail (AwesomeAPI) when Binance and Yahoo fail', async () => {
+  it('aciona a trava terciária (AwesomeAPI) se Binance e Yahoo falharem', async () => {
     const mockFetch = vi.spyOn(globalThis, 'fetch')
       .mockRejectedValueOnce(new Error('Binance offline'))
       .mockRejectedValueOnce(new Error('Yahoo 404'))
@@ -84,11 +83,10 @@ describe('currencyService - Live USD/BRL Rate with Guardrails (Travas)', () => {
     expect(result.formattedRate).toBe('R$ 5.53');
   });
 
-  it('falls back to localStorage or Safe Default when all networks are offline', async () => {
+  it('utiliza fallback seguro ou cache de contingência se toda a rede estiver indisponível', async () => {
     vi.spyOn(globalThis, 'fetch')
-      .mockRejectedValue(new Error('All networks down'));
+      .mockRejectedValue(new Error('Rede indisponível'));
 
-    // With no localStorage saved, should return safe default
     const result = await getLiveUsdRate();
 
     expect(result.source).toBe('FALLBACK');
@@ -96,7 +94,7 @@ describe('currencyService - Live USD/BRL Rate with Guardrails (Travas)', () => {
     expect(result.formattedRate).toBe('R$ 5.52');
   });
 
-  it('uses memory cache for consecutive calls within TTL window', async () => {
+  it('utiliza cache em memória para chamadas consecutivas dentro do intervalo TTL', async () => {
     const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({ symbol: 'USDTBRL', price: '5.5500' }),

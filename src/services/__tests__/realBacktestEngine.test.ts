@@ -10,22 +10,22 @@ import {
 } from '../realBacktestEngine';
 import { Candle } from '../../types/market';
 
-describe('realBacktestEngine - Quant Calculations', () => {
-  it('calculates EMA correctly without lookahead bias', () => {
+describe('Motor de Backtest Real - Cálculos Quantitativos', () => {
+  it('calcula EMA corretamente sem viés de antecipação (lookahead bias)', () => {
     const data = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     const ema = calculateEMA(data, 5);
 
     expect(ema).toHaveLength(data.length);
-    // Before period (5), initial values are 0
+    // Antes do período (5), valores iniciais são 0
     expect(ema[0]).toBe(0);
     expect(ema[3]).toBe(0);
-    // 5th element is simple moving average (10+11+12+13+14)/5 = 12
+    // 5º elemento é a média móvel simples: (10+11+12+13+14)/5 = 12
     expect(ema[4]).toBe(12);
-    // Subsequent values are smoothed: 15 * (2/6) + 12 * (4/6) = 5 + 8 = 13
+    // Valores subsequentes usam fator de suavização: 15 * (2/6) + 12 * (4/6) = 5 + 8 = 13
     expect(ema[5]).toBe(13);
   });
 
-  it('calculates RSI within bounds [0, 100]', () => {
+  it('calcula RSI dentro dos limites permitidos [0, 100]', () => {
     const closes = [10, 11, 12, 13, 12, 11, 10, 9, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
     const rsi = calculateRSI(closes, 14);
 
@@ -36,7 +36,7 @@ describe('realBacktestEngine - Quant Calculations', () => {
     });
   });
 
-  it('calculates ATR correctly', () => {
+  it('calcula ATR (Average True Range) com precisão', () => {
     const candles: Candle[] = Array.from({ length: 20 }, (_, i) => ({
       time: i * 60000,
       open: 10 + i,
@@ -51,19 +51,18 @@ describe('realBacktestEngine - Quant Calculations', () => {
     expect(atr[14]).toBeGreaterThan(0);
   });
 
-  it('calculates VWAP correctly based on price and volume', () => {
+  it('calcula VWAP corretamente ponderado pelo volume financeiro', () => {
     const candles: Candle[] = [
-      { time: 1, open: 10, high: 12, low: 8, close: 10, volume: 100 }, // TP = 10, vol = 100
-      { time: 2, open: 10, high: 22, low: 18, close: 20, volume: 100 }, // TP = 20, vol = 100
+      { time: 1, open: 10, high: 12, low: 8, close: 10, volume: 100 },
+      { time: 2, open: 10, high: 22, low: 18, close: 20, volume: 100 },
     ];
 
     const vwap = calculateVWAP(candles);
     expect(vwap[0]).toBe(10);
-    // (10*100 + 20*100) / 200 = 15
     expect(vwap[1]).toBe(15);
   });
 
-  it('runs walk-forward backtest simulation and tracks performance metrics', () => {
+  it('executa simulação walk-forward de backtest e rastreia métricas de desempenho', () => {
     const candles = generateRealisticWalkCandles('PETR4', 'B3', 150);
 
     const config: RealBacktestConfig = {
@@ -80,7 +79,7 @@ describe('realBacktestEngine - Quant Calculations', () => {
       slippagePercent: 0.02,
     };
 
-    const report = runRealHistoricalBacktest(candles, config, true, 'Test Data Feed');
+    const report = runRealHistoricalBacktest(candles, config, true, 'Feed de Teste');
 
     expect(report).toBeDefined();
     expect(report.totalCandles).toBe(150);
@@ -91,7 +90,7 @@ describe('realBacktestEngine - Quant Calculations', () => {
     expect(report.winRate).toBeLessThanOrEqual(100);
     expect(report.maxDrawdownPercent).toBeGreaterThanOrEqual(0);
 
-    // Each trade must have valid entry and exit prices
+    // Cada operação executada deve possuir preços válidos de entrada e saída
     report.trades.forEach(trade => {
       expect(trade.entryPrice).toBeGreaterThan(0);
       expect(trade.exitPrice).toBeGreaterThan(0);
@@ -100,7 +99,7 @@ describe('realBacktestEngine - Quant Calculations', () => {
     });
   });
 
-  it('throws descriptive error if fewer than 30 candles are provided', () => {
+  it('lança erro descritivo em português se menos de 30 candles forem fornecidos', () => {
     const candles = generateRealisticWalkCandles('PETR4', 'B3', 15);
     const config: RealBacktestConfig = {
       symbol: 'PETR4',
@@ -116,7 +115,7 @@ describe('realBacktestEngine - Quant Calculations', () => {
       slippagePercent: 0.02,
     };
 
-    expect(() => runRealHistoricalBacktest(candles, config, false, 'Short feed')).toThrow(
+    expect(() => runRealHistoricalBacktest(candles, config, false, 'Feed curto')).toThrow(
       'Mínimo de 30 candles necessários'
     );
   });

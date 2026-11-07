@@ -7,45 +7,45 @@ import {
   validateOrder
 } from '../orderCalculator';
 
-describe('orderCalculator', () => {
-  it('should calculate B3 fees correctly (0.030%)', () => {
+describe('Calculadora de Ordens de Negociação (orderCalculator)', () => {
+  it('deve calcular taxas da B3 corretamente (0.030% de emolumentos e liquidação)', () => {
     const gross = 10000;
     const fees = calculateB3Fees(gross);
     expect(fees).toBe(3.00); // 10000 * 0.0003 = 3.00
   });
 
-  it('should return 0 fees for 0 or negative gross total', () => {
+  it('deve retornar taxa zero para total bruto zero ou negativo', () => {
     expect(calculateB3Fees(0)).toBe(0);
     expect(calculateB3Fees(-100)).toBe(0);
   });
 
-  it('should calculate BUY order total adding B3 fees', () => {
+  it('deve calcular total da ordem de COMPRA adicionando taxas da B3', () => {
     const { grossTotal, fees, netTotal } = calculateOrderTotal(50.00, 100, 'buy');
     expect(grossTotal).toBe(5000.00);
     expect(fees).toBe(1.50);
     expect(netTotal).toBe(5001.50);
   });
 
-  it('should calculate SELL order total deducting B3 fees', () => {
+  it('deve calcular total da ordem de VENDA deduzindo taxas da B3', () => {
     const { grossTotal, fees, netTotal } = calculateOrderTotal(50.00, 100, 'sell');
     expect(grossTotal).toBe(5000.00);
     expect(fees).toBe(1.50);
     expect(netTotal).toBe(4998.50);
   });
 
-  it('should calculate Take Profit price correctly', () => {
+  it('deve calcular preço de Take Profit corretamente com base no percentual', () => {
     const base = 50.00;
     const tp = calculateTakeProfitPrice(base, 10); // +10%
     expect(tp).toBe(55.00);
   });
 
-  it('should calculate Stop Loss price correctly', () => {
+  it('deve calcular preço de Stop Loss corretamente com base no percentual', () => {
     const base = 50.00;
     const sl = calculateStopLossPrice(base, 5); // -5%
     expect(sl).toBe(47.50);
   });
 
-  it('should invalidate order with 0 or negative quantity', () => {
+  it('deve invalidar ordem com quantidade igual a zero ou negativa', () => {
     const res = validateOrder({
       side: 'buy',
       quantity: 0,
@@ -57,7 +57,7 @@ describe('orderCalculator', () => {
     expect(res.error).toContain('maior que zero');
   });
 
-  it('should invalidate BUY order if cash is insufficient', () => {
+  it('deve invalidar ordem de COMPRA se o saldo disponível for insuficiente', () => {
     const res = validateOrder({
       side: 'buy',
       quantity: 1000,
@@ -69,7 +69,7 @@ describe('orderCalculator', () => {
     expect(res.error).toContain('Saldo insuficiente');
   });
 
-  it('should invalidate SELL order if holdings are insufficient', () => {
+  it('deve invalidar ordem de VENDA se a custódia for insuficiente', () => {
     const res = validateOrder({
       side: 'sell',
       quantity: 200,
@@ -81,7 +81,7 @@ describe('orderCalculator', () => {
     expect(res.error).toContain('Quantidade indisponível');
   });
 
-  it('should validate valid BUY order', () => {
+  it('deve validar com sucesso ordem de COMPRA com saldo e parâmetros válidos', () => {
     const res = validateOrder({
       side: 'buy',
       quantity: 100,

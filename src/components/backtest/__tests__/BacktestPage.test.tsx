@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BacktestPage } from '../BacktestPage';
 
-// Mock the historical fetcher so unit tests run fast and deterministically
+// Mock do buscador histórico para garantir testes determinísticos e rápidos
 vi.mock('../../services/realBacktestEngine', async importOriginal => {
   const actual: any = await importOriginal();
   return {
@@ -15,32 +15,33 @@ vi.mock('../../services/realBacktestEngine', async importOriginal => {
   };
 });
 
-describe('BacktestPage Component', () => {
+describe('Componente Página de Backtest', () => {
   beforeEach(() => {
     localStorage.clear();
   });
-  it('renders initial clean state and runs simulation on button click', async () => {
+
+  it('renderiza o estado inicial limpo e executa a simulação ao clicar no botão', async () => {
     render(<BacktestPage />);
 
     expect(screen.getByText(/Laboratório de Backtesting Quantitativo/i)).toBeInTheDocument();
     expect(screen.getByText(/Parâmetros do Replay Quant/i)).toBeInTheDocument();
     expect(screen.getByText(/Mercado de Atuação/i)).toBeInTheDocument();
 
-    // Verifies clean initial empty state!
+    // Valida o estado inicial limpo
     expect(screen.getByText(/Laboratório Quantitativo Pronto/i)).toBeInTheDocument();
     expect(screen.getByText(/O painel está limpo aguardando seus parâmetros/i)).toBeInTheDocument();
 
     const runBtn = screen.getByRole('button', { name: /Executar Replay Histórico Real/i });
     expect(runBtn).toBeInTheDocument();
 
-    // Select 7D period
+    // Seleciona o período de 7 dias
     const period7dBtn = screen.getByRole('button', { name: '7D' });
     fireEvent.click(period7dBtn);
     expect(screen.getByText(/Últimos 7 dias/i)).toBeInTheDocument();
 
     fireEvent.click(runBtn);
 
-    // After clicking run, results and playback elements appear
+    // Após clicar em executar, os cards de métricas e replay devem surgir
     await waitFor(() => {
       expect(screen.getByText(/Resultado Líquido/i)).toBeInTheDocument();
       expect(screen.getByText(/Taxa de Acerto/i)).toBeInTheDocument();
@@ -51,10 +52,10 @@ describe('BacktestPage Component', () => {
     });
   });
 
-  it('switches between B3 and CRYPTO markets and displays Brazilian Real (R$) consistently without U$', () => {
+  it('alterna entre mercados B3 e CRIPTO exibindo Real Brasileiro (R$) de forma consistente sem U$', () => {
     render(<BacktestPage />);
 
-    // Default Crypto market uses R$ (not U$)
+    // Mercado padrão Cripto utiliza R$ estritamente
     expect(screen.getAllByText('R$')[0]).toBeInTheDocument();
     expect(screen.queryByText('U$')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'BTCBRL' })).toBeInTheDocument();
@@ -63,7 +64,7 @@ describe('BacktestPage Component', () => {
     const b3Btn = screen.getByRole('button', { name: /Bolsa B3/i });
     fireEvent.click(b3Btn);
 
-    // B3 market uses R$
+    // Mercado B3 também usa R$
     expect(screen.getAllByText('R$')[0]).toBeInTheDocument();
     expect(screen.queryByText('U$')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'PETR4' })).toBeInTheDocument();
@@ -72,14 +73,14 @@ describe('BacktestPage Component', () => {
     const cryptoBtn = screen.getByRole('button', { name: /Criptoativos 24\/7/i });
     fireEvent.click(cryptoBtn);
 
-    // Back to Crypto still uses strictly R$
+    // De volta para Cripto mantém estritamente R$
     expect(screen.getAllByText('R$')[0]).toBeInTheDocument();
     expect(screen.queryByText('U$')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'BTCBRL' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ETHBRL' })).toBeInTheDocument();
   });
 
-  it('opens and closes interactive explanatory popovers for Confluence and Risk:Reward', () => {
+  it('abre e fecha caixas explicativas interativas de Confluência e Risco:Retorno', () => {
     render(<BacktestPage />);
 
     const confluenceHelp = screen.getByTitle(/Clique para entender o que é Confluência Mínima/i);
@@ -88,7 +89,7 @@ describe('BacktestPage Component', () => {
     expect(screen.getByText(/O que é Confluência Mínima\?/i)).toBeInTheDocument();
     expect(screen.getByText(/nota quantitativa \(0 a 100%\)/i)).toBeInTheDocument();
 
-    // Toggle close
+    // Fecha ao clicar novamente
     fireEvent.click(confluenceHelp);
     expect(screen.queryByText(/O que é Confluência Mínima\?/i)).not.toBeInTheDocument();
 
@@ -99,7 +100,7 @@ describe('BacktestPage Component', () => {
     expect(screen.getByText(/tamanho do seu Stop Loss/i)).toBeInTheDocument();
   });
 
-  it('allows typing a custom ticker, adds to history, and runs backtest', async () => {
+  it('permite digitar ticker personalizado, adiciona ao histórico e roda o backtest', async () => {
     render(<BacktestPage />);
 
     const customInput = screen.getByPlaceholderText(/Ou pesquise/i);
@@ -115,7 +116,7 @@ describe('BacktestPage Component', () => {
     });
   });
 
-  it('calls onNavigate when clicking CTA to go to Daytrade Cockpit', async () => {
+  it('chama onNavigate ao clicar no CTA para ir ao Daytrade Cockpit', async () => {
     const handleNavigate = vi.fn();
     render(<BacktestPage onNavigate={handleNavigate} />);
 

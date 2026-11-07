@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { generateInitialCandles, generateNextTick } from '../candleGenerator';
 
-describe('candleGenerator Tests', () => {
-  it('should generate requested number of candles with correct last close matching basePrice', () => {
+describe('Gerador de Velas Históricas e Ticks (candleGenerator)', () => {
+  it('deve gerar a quantidade solicitada de candles com o último fechamento alinhado ao preço base', () => {
     const basePrice = 112.5;
     const candles = generateInitialCandles(basePrice, '1D', 30);
 
@@ -10,12 +10,11 @@ describe('candleGenerator Tests', () => {
     const last = candles[candles.length - 1];
     expect(last.close).toBe(basePrice);
 
-    // Ensure no massive spike on the last candle (open and close must be reasonably close)
     const deltaPercent = Math.abs(last.close - last.open) / last.open;
-    expect(deltaPercent).toBeLessThan(0.02); // less than 2% difference
+    expect(deltaPercent).toBeLessThan(0.02);
   });
 
-  it('should generate candles for different timeframes without negative values', () => {
+  it('deve gerar candles para diferentes tempos gráficos sem valores negativos', () => {
     const candles = generateInitialCandles(100, '1S', 28);
     expect(candles).toHaveLength(28);
 
@@ -27,7 +26,7 @@ describe('candleGenerator Tests', () => {
     }
   });
 
-  it('should update candle on tick and create new candle when interval passes', () => {
+  it('deve atualizar candle a cada tick e abrir novo candle ao expirar o tempo gráfico', () => {
     const now = Date.now();
     const currentCandle = {
       time: now,

@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { PortfolioPage } from '../PortfolioPage';
 import { MarketProvider } from '../../../context/MarketContext';
 
-describe('PortfolioPage Integration Tests', () => {
-  it('should render consolidated portfolio title and KPIs', () => {
+describe('Página da Carteira Consolidada (PortfolioPage)', () => {
+  it('deve renderizar o título da carteira consolidada e os cards de KPIs', () => {
     render(
       <MarketProvider>
         <PortfolioPage onNavigate={() => {}} />
@@ -18,7 +18,7 @@ describe('PortfolioPage Integration Tests', () => {
     expect(screen.getByText(/Alocação Macro/i)).toBeInTheDocument();
   });
 
-  it('should render asset allocation classes', () => {
+  it('deve renderizar as classes de alocação de ativos', () => {
     render(
       <MarketProvider>
         <PortfolioPage onNavigate={() => {}} />
@@ -33,7 +33,7 @@ describe('PortfolioPage Integration Tests', () => {
     expect(screen.getAllByText(/Margem Daytrade/i).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('should render stocks individual performance with filter tabs', () => {
+  it('deve renderizar desempenho individual dos ativos com abas de filtro', () => {
     render(
       <MarketProvider>
         <PortfolioPage onNavigate={() => {}} />
@@ -44,14 +44,13 @@ describe('PortfolioPage Integration Tests', () => {
     expect(screen.getAllByText('PETR4').length).toBeGreaterThan(0);
     expect(screen.getAllByText('WEGE3').length).toBeGreaterThan(0);
 
-    // Test filter tabs in individual performance
     const cdbFilterButtons = screen.getAllByRole('button', { name: /CDB/i });
     fireEvent.click(cdbFilterButtons[0]);
 
     expect(screen.getAllByText(/Tesouro Selic 2029/i).length).toBeGreaterThan(0);
   });
 
-  it('should render upcoming and recent dividends with tab switching', () => {
+  it('deve exibir proventos futuros e recentes permitindo alternar abas', () => {
     render(
       <MarketProvider>
         <PortfolioPage onNavigate={() => {}} />
@@ -61,7 +60,6 @@ describe('PortfolioPage Integration Tests', () => {
     expect(screen.getByText('Central de Dividendos & Proventos')).toBeInTheDocument();
     expect(screen.getByText(/Próximos a Receber/i)).toBeInTheDocument();
 
-    // Click on "Últimos 3 Recebidos"
     const recentTab = screen.getByRole('button', { name: /Últimos 3 Recebidos/i });
     fireEvent.click(recentTab);
 
@@ -69,30 +67,27 @@ describe('PortfolioPage Integration Tests', () => {
     expect(screen.getAllByText(/Depositado/i).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('should open order drawer with DEMO/LIVE switch and custody info when clicking Operar', () => {
+  it('deve abrir gaveta de ordens com seletor DEMO/LIVE e dados de custódia ao clicar em Operar', () => {
     render(
       <MarketProvider>
         <PortfolioPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    // Find first "Operar" button in table
     const tradeButtons = screen.getAllByRole('button', { name: /Operar/i });
     fireEvent.click(tradeButtons[0]);
 
-    // Drawer with Boleta Rápida B3 should open!
     expect(screen.getByText(/Boleta Rápida B3/i)).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /DEMO/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('button', { name: /LIVE/i }).length).toBeGreaterThan(0);
 
-    // Close button should close drawer
     const closeBtn = screen.getByTitle('Fechar boleta');
     fireEvent.click(closeBtn);
 
     expect(screen.queryByTitle('Fechar boleta')).not.toBeInTheDocument();
   });
 
-  it('should open order drawer when clicking Nova Ordem button', () => {
+  it('deve abrir gaveta de ordens ao clicar no botão Nova Ordem', () => {
     render(
       <MarketProvider>
         <PortfolioPage onNavigate={() => {}} />

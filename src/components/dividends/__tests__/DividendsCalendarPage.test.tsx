@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { DividendsCalendarPage } from '../DividendsCalendarPage';
 import { MarketProvider } from '../../../context/MarketContext';
 
-describe('DividendsCalendarPage Functional & Integration Tests', () => {
-  it('renders page header, pinga-pinga badge and KPIs', () => {
+describe('Calendário de Proventos e Dividendos (DividendsCalendarPage)', () => {
+  it('renderiza o cabeçalho da página, o badge do pinga-pinga e os cards de KPIs', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -17,7 +17,7 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(screen.getByText(/Próximo Pinga-Pinga/i)).toBeInTheDocument();
   });
 
-  it('renders 3 origin filter buttons with multi-select capability (Carteira + Favoritos simultaneously)', () => {
+  it('renderiza 3 botões de filtro de origem com suporte a seleção múltipla (Carteira + Favoritos simultaneamente)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -32,18 +32,17 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(favoritosBtn).toBeInTheDocument();
     expect(mercadoBtn).toBeInTheDocument();
 
-    // Default: Carteira is active
     expect(carteiraBtn).toHaveAttribute('aria-pressed', 'true');
     expect(favoritosBtn).toHaveAttribute('aria-pressed', 'false');
 
-    // Click Meus Favoritos -> ADDS it (does not replace!)
+    // Ao clicar em Meus Favoritos, adiciona a seleção sem desmarcar a Carteira
     fireEvent.click(favoritosBtn);
 
     expect(carteiraBtn).toHaveAttribute('aria-pressed', 'true');
     expect(favoritosBtn).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('renders monthly calendar grid with week days and visual legend for FII, Ação B3 and US$', () => {
+  it('renderiza a grade mensal do calendário com dias da semana e legenda visual (FII, Ação B3 e US$)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -55,13 +54,12 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(screen.getByText('SEX')).toBeInTheDocument();
     expect(screen.getByText('SÁB')).toBeInTheDocument();
 
-    // Visual legend in footer
     expect(screen.getByText(/Fundos Imobiliários \(Rendimento Isento\)/i)).toBeInTheDocument();
     expect(screen.getByText(/Ações \/ Stocks \(Dividendo & JCP\)/i)).toBeInTheDocument();
     expect(screen.getByText(/Ações Globais/i)).toBeInTheDocument();
   });
 
-  it('switches between grid (Calendário) and list (Lista / Agenda) views', () => {
+  it('alterna a visualização entre grade (Calendário) e lista (Lista / Agenda)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -71,40 +69,33 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     const listBtn = screen.getByRole('button', { name: /Lista \/ Agenda/i });
     fireEvent.click(listBtn);
 
-    // List view displays detailed rows with valor por cota and Data-COM
     expect(screen.getAllByText(/Data-COM:/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Valor por cota/i).length).toBeGreaterThan(0);
   });
 
-  it('filters by Level 1 Todo o Mercado and Level 2 Sub-filtro FIIs', () => {
+  it('filtra por Todo o Mercado (Nível 1) e Sub-filtro de FIIs (Nível 2)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    // 1. Switch to Todo o Mercado
     const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado/i });
     fireEvent.click(mercadoBtn);
 
-    // 2. Switch to List view
     const listBtn = screen.getByRole('button', { name: /Lista \/ Agenda/i });
     fireEvent.click(listBtn);
 
-    // 3. Sub-filter by FIIs
     const fiiFilterBtn = screen.getByRole('button', { name: /FIIs \(Imobiliários\)/i });
     fireEvent.click(fiiFilterBtn);
 
-    // FIIs should be visible
     expect(screen.getAllByText(/\$HGLG11/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/\$KNIP11/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/\$VISC11/i).length).toBeGreaterThan(0);
-
-    // Stock should not be visible
     expect(screen.queryByText(/\$PETR4/i)).not.toBeInTheDocument();
   });
 
-  it('filters by Level 1 Todo o Mercado and Level 2 Sub-filtro Internacionais (US$)', () => {
+  it('filtra por Todo o Mercado (Nível 1) e Sub-filtro de Ativos Internacionais US$ (Nível 2)', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -120,46 +111,37 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     const intlBtn = screen.getByRole('button', { name: /Internacionais \(US\$\)/i });
     fireEvent.click(intlBtn);
 
-    // International stocks should be visible
     expect(screen.getAllByText(/\$AAPL/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/\$KO/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/\$JNJ/i).length).toBeGreaterThan(0);
-
-    // Brazilian Stock or FII should not be visible in list
     expect(screen.queryByText(/FII · Imobiliário/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Ação · B3/i)).not.toBeInTheDocument();
   });
 
-  it('filters by Minha Carteira and Sub-filtro Ações B3', () => {
+  it('filtra por Minha Carteira e Sub-filtro de Ações B3', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    // Default origin is Minha Carteira
     const listBtn = screen.getByRole('button', { name: /Lista \/ Agenda/i });
     fireEvent.click(listBtn);
 
-    // Sub-filter by Ações B3
     const acoesBtn = screen.getByRole('button', { name: /Ações B3/i });
     fireEvent.click(acoesBtn);
 
-    // PETR4 should be visible as it is owned in portfolio
     expect(screen.getAllByText(/\$PETR4/i).length).toBeGreaterThan(0);
-
-    // FII should not be visible in Ações sub-filter
     expect(screen.queryByText(/FII · Imobiliário/i)).not.toBeInTheDocument();
   });
 
-  it('filters by search input', () => {
+  it('filtra os proventos por ticker ao digitar no campo de busca', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    // Select Mercado to have full pool
     const mercadoBtn = screen.getByRole('button', { name: /Todo o Mercado/i });
     fireEvent.click(mercadoBtn);
 
@@ -173,7 +155,7 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(screen.queryByText(/\$KO/i)).not.toBeInTheDocument();
   });
 
-  it('opens order modal when clicking Operar button', async () => {
+  it('abre o modal de ordens ao clicar no botão Operar', async () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />
@@ -187,13 +169,12 @@ describe('DividendsCalendarPage Functional & Integration Tests', () => {
     expect(operateButtons.length).toBeGreaterThan(0);
     fireEvent.click(operateButtons[0]);
 
-    // Slide-over boleta drawer should open
     await waitFor(() => {
       expect(screen.getByText(/Boleta Rápida B3/i)).toBeInTheDocument();
     });
   });
 
-  it('renders interactive passive income simulator card', () => {
+  it('renderiza o card interativo de simulação de renda passiva pinga-pinga', () => {
     render(
       <MarketProvider>
         <DividendsCalendarPage onNavigate={() => {}} />

@@ -460,8 +460,8 @@ export const NewsPage: React.FC<NewsPageProps> = ({ onNavigate }) => {
         {/* Minimal Progress Line */}
         <div className="w-full bg-[#161F33] h-1.5 rounded-full overflow-hidden">
           <div
-            className="bg-gradient-to-r from-blue-600 to-[#60A5FA] h-full rounded-full transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
+            className="tc-progress-fill bg-gradient-to-r from-blue-600 to-[#60A5FA] h-full rounded-full transition-all duration-300"
+            style={{ '--fill-pct': `${progressPercent}%` } as React.CSSProperties}
           />
         </div>
       </div>

@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { NewsPage } from '../NewsPage';
 import { MarketProvider } from '../../../context/MarketContext';
 
-describe('NewsPage Functional & Integration Tests', () => {
-  it('renders page header and radar for portfolio/favorites', () => {
+describe('Terminal de Notícias e Radar Institucional (NewsPage)', () => {
+  it('renderiza o cabeçalho da página e o radar de notícias da carteira e favoritos', () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -16,7 +16,7 @@ describe('NewsPage Functional & Integration Tests', () => {
     expect(screen.getByText(/Alta Prioridade/i)).toBeInTheDocument();
   });
 
-  it('filters news by search query', () => {
+  it('filtra as notícias por termo pesquisado no campo de busca', () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -26,12 +26,11 @@ describe('NewsPage Functional & Integration Tests', () => {
     const searchInput = screen.getByPlaceholderText(/Buscar por notícia, empresa ou ticker/i);
     fireEvent.change(searchInput, { target: { value: 'WEGE3' } });
 
-    // WEG news should be displayed
     const matchingHeadlines = screen.getAllByText(/VoltTech|WEG/i);
     expect(matchingHeadlines.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('filters news by category pill click', () => {
+  it('filtra notícias ao clicar na pílula de categoria correspondente', () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -44,7 +43,7 @@ describe('NewsPage Functional & Integration Tests', () => {
     expect(screen.getByText(/Bitcoin supera/i)).toBeInTheDocument();
   });
 
-  it('opens news reader modal when clicking on a card', async () => {
+  it('abre o modal de leitura e resumo executivo ao clicar em um card de notícia', async () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -55,13 +54,12 @@ describe('NewsPage Functional & Integration Tests', () => {
     expect(readButtons.length).toBeGreaterThanOrEqual(1);
     fireEvent.click(readButtons[0]);
 
-    // Modal should appear
     await waitFor(() => {
       expect(screen.getByText(/Resumo Executivo para Decisão/i)).toBeInTheDocument();
     });
   });
 
-  it('opens order drawer when clicking Operar on an asset in news', async () => {
+  it('abre a gaveta de ordens ao clicar no botão Operar em um ativo da notícia', async () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -72,21 +70,19 @@ describe('NewsPage Functional & Integration Tests', () => {
     expect(operateButtons.length).toBeGreaterThan(0);
     fireEvent.click(operateButtons[0]);
 
-    // Slide-over boleta drawer should open right on the news page!
     await waitFor(() => {
       expect(screen.getByText(/Boleta Rápida B3/i)).toBeInTheDocument();
       expect(screen.getAllByText(/PETR4/i).length).toBeGreaterThan(0);
     });
   });
 
-  it('renders interactive clickable ticker buttons inside headlines that open boleta drawer', async () => {
+  it('renderiza botões de tickers interativos no título que abrem a boleta rápida', async () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
       </MarketProvider>
     );
 
-    // Any button containing ⚡PETR4 inside text
     const tickerButtons = screen.getAllByRole('button', { name: /⚡PETR4/i });
     expect(tickerButtons.length).toBeGreaterThanOrEqual(1);
 
@@ -96,7 +92,7 @@ describe('NewsPage Functional & Integration Tests', () => {
     });
   });
 
-  it('loads more news when clicking Carregar mais notícias button', async () => {
+  it('carrega mais notícias ao clicar no botão Carregar mais notícias', async () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -111,7 +107,8 @@ describe('NewsPage Functional & Integration Tests', () => {
       expect(screen.getByText(/Exibindo/i)).toBeInTheDocument();
     });
   });
-  it('renders the breaking news ticker (PLANTÃO B3)', async () => {
+
+  it('renderiza o ticker animado de notícias urgentes (PLANTÃO B3)', async () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -121,7 +118,7 @@ describe('NewsPage Functional & Integration Tests', () => {
     expect(screen.getByText(/PLANTÃO B3/i)).toBeInTheDocument();
   });
 
-  it('filters news by time range buttons (Ao Vivo, Hoje, Essa Semana, 15 Dias, Esse Mês)', () => {
+  it('filtra as notícias pelos botões de período (Ao Vivo, Hoje, Essa Semana, 15 Dias, Esse Mês)', () => {
     render(
       <MarketProvider>
         <NewsPage onNavigate={() => {}} />
@@ -132,7 +129,6 @@ describe('NewsPage Functional & Integration Tests', () => {
     expect(aoVivoBtn).toBeInTheDocument();
     fireEvent.click(aoVivoBtn);
 
-    // Should filter feed
     expect(screen.getByText(/Exibindo/i)).toBeInTheDocument();
 
     const hojeBtn = screen.getByRole('button', { name: /^Hoje$/i });

@@ -6,8 +6,8 @@ import {
 } from '../daytradeEngine';
 import { DaytradeBot } from '../../types/daytrade';
 
-describe('Daytrade Engine', () => {
-  it('defines valid quant strategies with confluence thresholds', () => {
+describe('Motor de Daytrade e Execução de Robôs Quantitativos (daytradeEngine)', () => {
+  it('define estratégias quantitativas válidas com notas de confluência mínimas', () => {
     expect(STRATEGY_DEFINITIONS.confluence_ai).toBeDefined();
     expect(STRATEGY_DEFINITIONS.vwap_pullback).toBeDefined();
     expect(STRATEGY_DEFINITIONS.mean_reversion).toBeDefined();
@@ -16,7 +16,7 @@ describe('Daytrade Engine', () => {
     expect(STRATEGY_DEFINITIONS.confluence_ai.defaultThreshold).toBeGreaterThanOrEqual(70);
   });
 
-  it('initializes default bots with allocated capital and risk boundaries', () => {
+  it('inicializa os robôs padrão com capital alocado e limites de risco diário', () => {
     expect(INITIAL_BOTS.length).toBeGreaterThanOrEqual(3);
     const winBot = INITIAL_BOTS.find(b => b.market === 'B3');
     const cryptoBot = INITIAL_BOTS.find(b => b.market === 'CRYPTO');
@@ -29,16 +29,16 @@ describe('Daytrade Engine', () => {
     expect(cryptoBot!.allocatedCapital).toBeGreaterThan(0);
   });
 
-  it('updates position price and calculates pnl during tick', () => {
+  it('atualiza o preço da posição e recalcula o PnL durante cada tick de mercado', () => {
     const testBot: DaytradeBot = {
       id: 'test-bot-1',
-      name: 'Test Bot',
+      name: 'Robô de Teste',
       market: 'B3',
       symbol: 'WINZ24',
       assetName: 'Mini-Índice',
       strategy: 'confluence_ai',
       strategyLabel: 'Confluência IA',
-      strategyDescription: 'Test',
+      strategyDescription: 'Teste',
       allocatedCapital: 2000,
       status: 'in_position',
       currentPosition: {
@@ -71,22 +71,22 @@ describe('Daytrade Engine', () => {
     expect(updated.lastUpdated).toBeGreaterThanOrEqual(testBot.lastUpdated);
   });
 
-  it('triggers take profit when current price reaches take profit level', () => {
+  it('aciona saída por Take Profit quando o preço de mercado atinge o alvo estipulado', () => {
     const testBot: DaytradeBot = {
       id: 'test-bot-tp',
-      name: 'Take Profit Bot',
+      name: 'Robô Take Profit',
       market: 'B3',
       symbol: 'PETR4',
       assetName: 'Petrobras',
       strategy: 'vwap_pullback',
       strategyLabel: 'VWAP',
-      strategyDescription: 'Test',
+      strategyDescription: 'Teste',
       allocatedCapital: 1000,
       status: 'in_position',
       currentPosition: {
         side: 'BUY',
         entryPrice: 30,
-        currentPrice: 35, // Already past take profit
+        currentPrice: 35, // Já superou o take profit de 34
         quantity: 100,
         stopLoss: 28,
         takeProfit: 34,
@@ -100,7 +100,7 @@ describe('Daytrade Engine', () => {
       winningTrades: 1,
       winRate: 100,
       maxDailyLoss: 150,
-      targetDailyProfit: 1000, // higher so it doesn't stop immediately
+      targetDailyProfit: 1000,
       confluenceThreshold: 75,
       createdAt: Date.now(),
       lastUpdated: Date.now(),
@@ -109,7 +109,7 @@ describe('Daytrade Engine', () => {
     const { updatedBots, newLogs } = simulateBotTick([testBot], []);
     const updated = updatedBots[0];
 
-    expect(updated.currentPosition).toBeNull(); // Position closed
+    expect(updated.currentPosition).toBeNull(); // Posição encerrada com lucro
     expect(updated.dailyPnl).toBeGreaterThan(0);
     expect(newLogs.some(l => l.type === 'EXIT')).toBe(true);
   });

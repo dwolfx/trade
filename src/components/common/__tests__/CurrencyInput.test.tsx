@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { CurrencyInput } from '../CurrencyInput';
 
-describe('CurrencyInput Component', () => {
-  it('renders initial formatted value with Brazilian separator and currency prefix', () => {
+describe('Componente de Entrada Monetária (CurrencyInput)', () => {
+  it('renderiza o valor inicial formatado com separador brasileiro e prefixo de moeda', () => {
     const handleChange = vi.fn();
     render(<CurrencyInput value={10000} onChange={handleChange} prefix="R$" />);
 
@@ -12,24 +12,22 @@ describe('CurrencyInput Component', () => {
     expect(input).toBeInTheDocument();
   });
 
-  it('allows user to clear and type new digits freely without snapping back', () => {
+  it('permite limpar e digitar novos números livremente sem travar a digitação', () => {
     const handleChange = vi.fn();
     render(<CurrencyInput value={10000} onChange={handleChange} prefix="R$" min={500} />);
 
     const input = screen.getByDisplayValue('10.000');
     fireEvent.focus(input);
 
-    // Clear input
     fireEvent.change(input, { target: { value: '' } });
     expect(input).toHaveValue('');
 
-    // Type 25000
     fireEvent.change(input, { target: { value: '25000' } });
     expect(input).toHaveValue('25.000');
     expect(handleChange).toHaveBeenCalledWith(25000);
   });
 
-  it('steps value using custom + and - buttons', () => {
+  it('incrementa e decrementa o valor usando os botões customizados de + e -', () => {
     const handleChange = vi.fn();
     render(<CurrencyInput value={10000} onChange={handleChange} step={1000} />);
 
@@ -43,7 +41,7 @@ describe('CurrencyInput Component', () => {
     expect(handleChange).toHaveBeenCalledWith(10000);
   });
 
-  it('selects quick preset chips on click including small values', () => {
+  it('seleciona valores predefinidos ao clicar nos chips de atalho', () => {
     const handleChange = vi.fn();
     render(<CurrencyInput value={1000} onChange={handleChange} quickPresets={[100, 500, 1000, 2500, 5000, 10000]} />);
 
@@ -58,7 +56,7 @@ describe('CurrencyInput Component', () => {
     expect(handleChange).toHaveBeenCalledWith(100);
   });
 
-  it('clamps to min on blur if left empty', () => {
+  it('restaura o valor mínimo no evento blur se o campo for deixado vazio', () => {
     const handleChange = vi.fn();
     render(<CurrencyInput value={10000} onChange={handleChange} min={500} />);
 

@@ -54,7 +54,7 @@ export const WatchlistNewsRadar: React.FC<WatchlistNewsRadarProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-[#1E293B]">
         <div className="flex items-center gap-3">
           <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600/20 text-[#60A5FA] border border-blue-500/30 shadow-inner">
-            <Radar size={20} className="animate-spin text-[#60A5FA]" style={{ animationDuration: '8s' }} />
+            <Radar size={20} className="tc-spin-radar text-[#60A5FA]" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-sky-400 rounded-full ring-2 ring-[#0B0F19] animate-ping" />
           </div>
           <div>
