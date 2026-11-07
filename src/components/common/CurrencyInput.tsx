@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
-interface CurrencyInputProps {
+export interface CurrencyInputProps {
   value: number;
   onChange: (val: number) => void;
   prefix?: string;

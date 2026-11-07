@@ -9,7 +9,7 @@ export interface CustomSelectOption<T extends string | number> {
   icon?: React.ReactNode;
 }
 
-interface CustomSelectProps<T extends string | number> {
+export interface CustomSelectProps<T extends string | number> {
   value: T;
   onChange: (val: T) => void;
   options: CustomSelectOption<T>[];
