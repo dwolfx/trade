@@ -1,4 +1,4 @@
-# Dependencies
+﻿# Dependencies
 node_modules/
 .pnp
 .pnp.js
@@ -26,3 +26,11 @@ pnpm-debug.log*
 Thumbs.db
 .vercel
 .env*
+
+
+# Protecoes de Seguranca Locais
+*.env
+.venv/
+
+
+# Protecoes Locais de Seguranca
